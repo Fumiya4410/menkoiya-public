@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- めんこい家 Vol.17: 成長紙芝居を統合 -->
+<!-- めんこい家 Vol.31: 探索マップ + Vol.30機能統合 -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -205,9 +205,46 @@
         @media(prefers-reduced-motion:reduce){.menkoi-pageflip-enter-active,.menkoi-pageflip-leave-active{transition:none}}
         @media(max-width:480px){.menkoi-book-rings{gap:14px}.menkoi-book-controls button{padding:10px 9px;font-size:11px}}
 
+
+        /* Vol.27 SIMPLE：新機能は足さず、見せ方だけ整理 */
+        .simple-card{
+            background:#fff;border:1px solid #E8DECE;border-radius:18px;padding:18px;
+            box-shadow:0 4px 16px #315C4609;
+        }
+        .simple-card-title{font-weight:800;color:#254B39;font-size:15px}
+        .simple-muted{font-size:11px;color:#6B7280;line-height:1.7}
+        .simple-action{
+            display:inline-flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px 14px;border-radius:12px;font-size:12px;font-weight:800;
+        }
+        .simple-action-primary{background:#315C46;color:white}
+        .simple-action-primary:hover{background:#254B39}
+        .simple-action-secondary{background:#fff;border:1px solid #D8D3C8;color:#315C46}
+        .simple-action-secondary:hover{background:#F7F2E8}
+        .simple-details{background:white;border:1px solid #E8DECE;border-radius:16px;overflow:hidden}
+        .simple-details>summary{
+            cursor:pointer;list-style:none;padding:14px 16px;font-size:13px;font-weight:800;color:#315C46;
+            display:flex;justify-content:space-between;align-items:center;gap:10px
+        }
+        .simple-details>summary::-webkit-details-marker{display:none}
+        .simple-details>summary::after{content:"＋";color:#946442;font-size:17px}
+        .simple-details[open]>summary::after{content:"−"}
+        .simple-subtabs{display:flex;gap:5px;padding:4px;background:#F7F2E8;border-radius:12px}
+        .simple-subtabs button{flex:1;padding:8px 10px;border-radius:9px;font-size:11px;font-weight:800;color:#6B6B65}
+        .simple-subtabs button.is-active{background:#fff;color:#315C46;box-shadow:0 2px 8px #0000000f}
+        .simple-quest-card{
+            background:#fff;border:1px solid #E8DECE;border-radius:18px;overflow:hidden;
+            box-shadow:0 4px 14px #315C4608;transition:.18s ease
+        }
+        .simple-quest-card:hover{box-shadow:0 8px 22px #315C4612;transform:translateY(-1px)}
+        @media(max-width:640px){
+            .simple-card{padding:14px;border-radius:16px}
+        }
+
     </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
 #menkoi-map-overlay{display:none;position:fixed;inset:0;z-index:9999;background:#f7f2e8;color:#243d2e;flex-direction:column}
 #menkoi-map-overlay.open{display:flex}
 #menkoi-map-canvas{flex:1;min-height:280px;z-index:1}
@@ -220,7 +257,7 @@
 .menkoi-map-popup{width:230px;line-height:1.6}
 .menkoi-map-popup strong{font-size:15px}
 .menkoi-map-legend{font-size:12px;color:#526554;margin-left:auto}
-</style>
+    </style>
 </head>
 <body class="min-h-screen flex flex-col">
     <div id="app" class="flex-1 flex flex-col min-h-screen pb-16 md:pb-0">
@@ -309,20 +346,41 @@
                         <i class="fa-solid fa-bell"></i><span class="hidden sm:inline">通知</span>
                         <span v-if="unreadNotificationCount" class="bg-red-500 text-white text-[11px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center">{{ unreadNotificationCount }}</span>
                     </button>
-                    <nav class="hidden md:flex items-center gap-2 text-sm font-medium">
-                        <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'" class="px-3 py-2 rounded-lg transition">
+                    <nav class="hidden md:flex items-center gap-1 lg:gap-2 text-xs lg:text-sm font-medium shrink-0">
+                        <button @click="currentTab = 'home'"
+                                :class="currentTab === 'home' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'"
+                                class="px-2 lg:px-3 py-2 rounded-lg transition whitespace-nowrap">
                             <i class="fa-solid fa-house mr-1"></i>ホーム
                         </button>
-                        <button @click="currentTab = 'houses'" :class="currentTab === 'houses' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'" class="px-3 py-2 rounded-lg transition">
-                            <i class="fa-solid fa-building-user mr-1"></i>空き家一覧
+                        <button @click="currentTab = 'houses'"
+                                :class="currentTab === 'houses' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'"
+                                class="px-2 lg:px-3 py-2 rounded-lg transition whitespace-nowrap">
+                            <i class="fa-solid fa-building-user mr-1"></i>空き家
                         </button>
-                        <button @click="currentTab = 'profile'" :class="currentTab === 'profile' ? 'bg-iwate-green' : 'hover:bg-iwate-green/50'" class="px-3 py-2 rounded-lg">マイページ</button>
-                        <button v-if="currentUser.role === 'owner'" @click="openCreateHouseModal" class="bg-iwate-gold text-iwate-darkgreen font-bold px-3 py-2 rounded-lg hover:bg-yellow-400 transition shadow">
-                            <i class="fa-solid fa-plus-circle mr-1"></i>空き家登録
+                        <button @click="currentTab = 'quests'"
+                                :class="currentTab === 'quests' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'"
+                                class="px-2 lg:px-3 py-2 rounded-lg transition whitespace-nowrap">
+                            <i class="fa-solid fa-list-check mr-1"></i>活動
                         </button>
-                        <button v-if="currentUser.role === 'owner'" @click="openCreateQuestModal" class="bg-white text-iwate-darkgreen font-bold px-3 py-2 rounded-lg hover:bg-gray-100 transition shadow">
-                            <i class="fa-solid fa-scroll mr-1"></i>活動作成
+                        <button @click="currentTab = 'profile'"
+                                :class="currentTab === 'profile' ? 'bg-iwate-green text-white font-bold' : 'hover:bg-iwate-green/50 text-gray-200'"
+                                class="px-2 lg:px-3 py-2 rounded-lg transition whitespace-nowrap">
+                            <i class="fa-solid fa-user mr-1"></i>マイページ
                         </button>
+
+                        <details v-if="currentUser.role === 'owner'" class="relative">
+                            <summary class="list-none cursor-pointer bg-iwate-gold text-iwate-darkgreen font-black px-3 py-2 rounded-lg hover:bg-yellow-400 transition shadow whitespace-nowrap">
+                                <i class="fa-solid fa-plus mr-1"></i>作成
+                            </summary>
+                            <div class="absolute right-0 top-11 z-50 w-44 bg-white text-gray-700 border rounded-xl shadow-xl p-2 space-y-1">
+                                <button @click="openCreateHouseModal" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold hover:bg-iwate-paper">
+                                    <i class="fa-solid fa-house-circle-check w-5 text-iwate-green"></i>空き家を登録
+                                </button>
+                                <button @click="openCreateQuestModal" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold hover:bg-iwate-paper">
+                                    <i class="fa-solid fa-list-check w-5 text-iwate-wood"></i>活動を募集
+                                </button>
+                            </div>
+                        </details>
                     </nav>
                 </div>
             </div>
@@ -378,406 +436,478 @@
             </div>
 
             <!-- TAB 1：ホーム画面 -->
-            <div v-if="currentTab === 'home'" class="space-y-6">
-                
-                <!-- ヒーローバナー -->
-                <div class="bg-gradient-to-r from-iwate-green to-iwate-darkgreen rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+            <div v-if="currentTab === 'home'" class="space-y-5">
+
+                <section class="bg-gradient-to-r from-iwate-green to-iwate-darkgreen rounded-2xl p-6 md:p-7 text-white shadow-lg relative overflow-hidden">
                     <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black">岩手</div>
                     <div class="relative z-10 max-w-2xl">
-                        <h2 class="text-2xl md:text-3xl font-black mb-2 leading-tight">
-                            『空き家』から、<br class="hidden sm:inline">地域に愛される『めんこい家』に。
+                        <p class="text-[10px] font-black tracking-[.18em] text-iwate-gold">MENKOIYA</p>
+                        <h2 class="text-2xl md:text-3xl font-black mt-1 leading-tight">
+                            空き家を知って、関わって、<br class="hidden sm:inline">地域に愛される家へ。
                         </h2>
-                        <p class="text-sm text-iwate-lightgreen mb-4 leading-relaxed">
-                            昔話や写真で過去を残し、地域の活動で現在を記録し、みんなのアイデアで未来の居場所をつくろう。
+                        <p class="text-sm text-iwate-lightgreen mt-2 leading-relaxed">
+                            家の記憶を残し、地域の活動を通して手入れし、これからの使い方をみんなで考えるサービスです。
                         </p>
+                    </div>
+                </section>
+
+                <!-- 役割ごとの「次にすること」だけを前面に -->
+                <section class="simple-card">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p class="text-[10px] font-bold tracking-widest text-iwate-wood">まずはここから</p>
+                            <h3 class="simple-card-title mt-1">
+                                {{
+                                    currentUser.role === 'owner'
+                                    ? '空き家を登録するか、地域の人に活動を募集しましょう'
+                                    : currentUser.role === 'resident'
+                                    ? '地域の空き家を見て、記憶や活用案に参加しましょう'
+                                    : '気になる空き家や、参加できる活動を探しましょう'
+                                }}
+                            </h3>
+                            <p class="simple-muted mt-1">
+                                {{
+                                    currentUser.role === 'owner'
+                                    ? '管理や申請対応は必要なときだけ確認できます。'
+                                    : currentUser.role === 'resident'
+                                    ? '空き家の詳細から、家の記憶・活用案・イベント利用を確認できます。'
+                                    : '空き家の物語を知ってから活動を選ぶことも、活動から探すこともできます。'
+                                }}
+                            </p>
+                        </div>
+
                         <div class="flex flex-wrap gap-2">
-                            <button @click="currentTab = 'houses'" class="bg-white text-iwate-darkgreen text-xs font-bold px-4 py-2 rounded-xl shadow hover:bg-gray-100 transition">
-                                対象の空き家を見る ({{ houses.length }}件)
-                            </button>
-                            <button v-if="currentUser.role === 'owner'" @click="openCreateHouseModal" class="bg-iwate-gold text-iwate-darkgreen text-xs font-bold px-4 py-2 rounded-xl shadow hover:bg-yellow-400 transition">
-                                <i class="fa-solid fa-house-circle-check mr-1"></i>空き家を登録する
-                            </button>
-                            <button v-if="currentUser.role === 'owner'" @click="openCreateQuestModal" class="bg-white/15 border border-white/50 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-white/25 transition">
-                                活動を募集する →
-                            </button>
-                            <button v-if="currentUser.role === 'participant'" @click="currentTab = 'home'; $nextTick(() => $refs.questList?.scrollIntoView({ behavior: 'smooth', block: 'start' }))" class="bg-iwate-gold text-iwate-darkgreen text-xs font-bold px-4 py-2 rounded-xl shadow hover:bg-yellow-400 transition">
-                                <i class="fa-solid fa-hands-holding-circle mr-1"></i>参加できる活動を探す
-                            </button>
-                            <button v-if="currentUser.role === 'resident'" @click="currentTab = 'houses'" class="bg-iwate-gold text-iwate-darkgreen text-xs font-bold px-4 py-2 rounded-xl shadow hover:bg-yellow-400 transition">
-                                <i class="fa-solid fa-check-to-slot mr-1"></i>地域の活用案を見る
-                            </button>
+                            <template v-if="currentUser.role === 'owner'">
+                                <button @click="openCreateHouseModal" class="simple-action simple-action-primary">
+                                    <i class="fa-solid fa-house-circle-check"></i>空き家を登録
+                                </button>
+                                <button @click="openCreateQuestModal" class="simple-action simple-action-secondary">
+                                    <i class="fa-solid fa-list-check"></i>活動を募集
+                                </button>
+                            </template>
+                            <template v-else-if="currentUser.role === 'resident'">
+                                <button @click="currentTab='houses'" class="simple-action simple-action-primary">
+                                    <i class="fa-solid fa-building-user"></i>空き家を見る
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button @click="currentTab='houses'" class="simple-action simple-action-primary">
+                                    <i class="fa-solid fa-building-user"></i>空き家を探す
+                                </button>
+                                <button @click="currentTab='quests'" class="simple-action simple-action-secondary">
+                                    <i class="fa-solid fa-list-check"></i>活動を探す
+                                </button>
+                            </template>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Vol.9 所有者のイベント申請受信箱 -->
-                <section v-if="currentUser.role === 'owner'" class="bg-white rounded-2xl border border-iwate-gold/40 shadow-sm p-4 space-y-3">
-                    <h3 class="font-bold text-iwate-darkgreen"><i class="fa-solid fa-bell text-iwate-gold mr-1"></i> イベント申請・通知 <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{{ ownerPendingApplications.length }}件 要対応</span></h3>
-                    <p v-if="!ownerApplications.length" class="text-xs text-gray-500">イベント利用申請はまだありません。</p>
-                    <div v-for="entry in ownerApplications" :key="entry.application.id" class="bg-iwate-paper border rounded-xl p-3 text-xs space-y-2">
-                        <div class="flex justify-between gap-2"><strong>{{ entry.application.eventName }}</strong><span class="text-iwate-wood font-bold">{{ applicationStatusLabel(entry.application.status) }}</span></div>
-                        <p>物件：{{ entry.house.name }} ／ 申請者：{{ getUserName(entry.application.userId) }}</p>
-                        <p>希望日：{{ entry.application.startDate }} ／ 人数：{{ entry.application.people || '未指定' }}名</p>
-                        <p class="whitespace-pre-wrap">{{ entry.application.detail }}</p>
-                        <p v-if="entry.application.proposal" class="bg-white rounded-lg p-2">提示中の代替案：{{ entry.application.proposal }}</p>
-                        <p v-if="entry.application.reply" class="bg-white rounded-lg p-2">利用者からの回答：{{ entry.application.reply }}</p>
-                        <div v-if="['pending','counter_reply'].includes(entry.application.status)" class="space-y-2">
-                            <textarea v-model="entry.application.ownerMessageDraft" rows="2" class="w-full border rounded-lg p-2" placeholder="代替案（日時・人数・条件など）、または却下理由を入力"></textarea>
-                            <div class="flex flex-wrap gap-2">
-                                <button @click="decideEventApplication(entry.house,entry.application,'approved')" class="bg-iwate-green text-white px-3 py-2 rounded-lg font-bold">承認する</button>
-                                <button @click="decideEventApplication(entry.house,entry.application,'counter')" class="bg-iwate-gold text-iwate-darkgreen px-3 py-2 rounded-lg font-bold">代替案を提示</button>
-                                <button @click="decideEventApplication(entry.house,entry.application,'rejected')" class="bg-red-100 text-red-700 px-3 py-2 rounded-lg font-bold">却下する</button>
+                <!-- 所有者だけ：イベント申請は折りたたんで必要時に確認 -->
+                <details v-if="currentUser.role === 'owner'" class="simple-details" :open="ownerPendingApplications.length > 0">
+                    <summary>
+                        <span><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>イベント利用申請</span>
+                        <span class="text-[10px] text-gray-500">{{ ownerPendingApplications.length }}件 要対応</span>
+                    </summary>
+                    <div class="border-t p-4 space-y-3">
+                        <p v-if="!ownerApplications.length" class="text-xs text-gray-500">イベント利用申請はまだありません。</p>
+                        <div v-for="entry in ownerApplications" :key="entry.application.id" class="bg-iwate-paper border rounded-xl p-3 text-xs space-y-2">
+                            <div class="flex justify-between gap-2">
+                                <strong>{{ entry.application.eventName }}</strong>
+                                <span class="text-iwate-wood font-bold">{{ applicationStatusLabel(entry.application.status) }}</span>
+                            </div>
+                            <p>物件：{{ entry.house.name }} ／ 申請者：{{ getUserName(entry.application.userId) }}</p>
+                            <p>希望日：{{ entry.application.startDate }} ／ 人数：{{ entry.application.people || '未指定' }}名</p>
+                            <p class="whitespace-pre-wrap">{{ entry.application.detail }}</p>
+                            <p v-if="entry.application.proposal" class="bg-white rounded-lg p-2">提示中の代替案：{{ entry.application.proposal }}</p>
+                            <p v-if="entry.application.reply" class="bg-white rounded-lg p-2">利用者からの回答：{{ entry.application.reply }}</p>
+
+                            <div v-if="['pending','counter_reply'].includes(entry.application.status)" class="space-y-2">
+                                <textarea v-model="entry.application.ownerMessageDraft" rows="2" class="w-full border rounded-lg p-2" placeholder="代替案、または却下理由を入力"></textarea>
+                                <div class="flex flex-wrap gap-2">
+                                    <button @click="decideEventApplication(entry.house,entry.application,'approved')" class="bg-iwate-green text-white px-3 py-2 rounded-lg font-bold">承認</button>
+                                    <button @click="decideEventApplication(entry.house,entry.application,'counter')" class="bg-iwate-gold text-iwate-darkgreen px-3 py-2 rounded-lg font-bold">代替案</button>
+                                    <button @click="decideEventApplication(entry.house,entry.application,'rejected')" class="bg-red-100 text-red-700 px-3 py-2 rounded-lg font-bold">却下</button>
+                                </div>
+                            </div>
+
+                            <div v-if="entry.application.status === 'accepted'" class="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                                <p class="text-green-800 font-bold">利用者が代替案に同意しました。</p>
+                                <button @click="decideEventApplication(entry.house,entry.application,'approved')" class="bg-iwate-green text-white px-4 py-2 rounded-lg font-bold">
+                                    最終承認する
+                                </button>
                             </div>
                         </div>
-                        <div v-if="entry.application.status === 'accepted'" class="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                            <p class="text-green-800 font-bold"><i class="fa-solid fa-handshake mr-1"></i>利用者が代替案に同意しました。最終承認してください。</p>
-                            <button @click="decideEventApplication(entry.house,entry.application,'approved')" class="bg-iwate-green text-white px-4 py-2 rounded-lg font-bold shadow">
-                                <i class="fa-solid fa-check mr-1"></i>最終承認する
-                            </button>
-                        </div>
                     </div>
-                </section>
+                </details>
 
-                <!-- Vol.16: ロール別の最初の一歩 -->
-                <section class="menkoi-start-guide" aria-label="はじめの一歩">
-                    <div class="menkoi-start-icon"><i class="fa-solid" :class="currentUser.role === 'owner' ? 'fa-house' : currentUser.role === 'resident' ? 'fa-people-group' : 'fa-shoe-prints'"></i></div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[10px] font-bold tracking-widest text-iwate-wood">はじめの一歩</p>
-                        <h3 class="font-bold text-iwate-darkgreen text-sm mt-1">{{ currentUser.role === 'owner' ? '家を登録して、協力者とつながろう' : currentUser.role === 'resident' ? '地域の家を知り、未来に一票を' : '気になる家を見つけて、活動に参加しよう' }}</h3>
-                        <p class="text-xs text-gray-600 mt-1">{{ currentUser.role === 'owner' ? '家を登録したら、清掃や記憶の聞き取りなどを募集できます。' : currentUser.role === 'resident' ? '空き家の詳細にある「未来」から、活用案や投票を確認できます。' : '家の物語を見たり、募集中の活動を探したりできます。' }}</p>
-                    </div>
-                    <button type="button" @click="currentUser.role === 'owner' ? openCreateHouseModal() : currentTab = 'houses'" class="menkoi-start-action">{{ currentUser.role === 'owner' ? '家を登録' : '空き家を見る' }} <i class="fa-solid fa-arrow-right ml-1"></i></button>
-                </section>
-
-                <!-- 基本フロー -->
-                <section class="bg-white rounded-2xl border border-iwate-wood/15 shadow-sm p-4 md:p-5">
+                <!-- 3ステップだけ残す -->
+                <section class="simple-card">
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                         <div>
-                            <h3 class="font-bold text-iwate-darkgreen">
-                                <i class="fa-solid fa-route mr-1 text-iwate-gold"></i>めんこい家の使い方
-                            </h3>
-                            <p class="text-[11px] text-gray-500 mt-0.5">空き家を「見る」だけで終わらせず、関わりながら活用へつなげます。</p>
+                            <h3 class="simple-card-title"><i class="fa-solid fa-route text-iwate-gold mr-1"></i>めんこい家の流れ</h3>
+                            <p class="simple-muted mt-1">機能ではなく、体験の順番だけを簡単に示します。</p>
                         </div>
-                        <span class="text-[11px] px-2.5 py-1 rounded-full bg-iwate-paper text-iwate-wood font-bold">
-                            現在：{{ currentUser.role === 'owner' ? '所有者' : currentUser.role === 'resident' ? '地域住民' : '参加者' }}として操作中
-                        </span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="rounded-xl bg-iwate-paper p-3 border border-iwate-wood/10">
+                        <button @click="currentTab='houses'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
                             <div class="text-iwate-gold font-black text-lg">01</div>
-                            <div class="font-bold text-sm text-iwate-darkgreen">見つける</div>
-                            <p class="text-[11px] text-gray-500 mt-1">空き家の歴史や地域の昔話を知る。</p>
-                        </div>
-                        <div class="rounded-xl bg-iwate-paper p-3 border border-iwate-wood/10">
+                            <div class="font-bold text-sm text-iwate-darkgreen">知る</div>
+                            <p class="text-[11px] text-gray-500 mt-1">家の歴史や今の状態を見る。</p>
+                        </button>
+                        <button @click="currentTab='quests'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
                             <div class="text-iwate-gold font-black text-lg">02</div>
                             <div class="font-bold text-sm text-iwate-darkgreen">関わる</div>
-                            <p class="text-[11px] text-gray-500 mt-1">清掃・草刈り・聞き取りに参加して今を残す。</p>
-                        </div>
-                        <div class="rounded-xl bg-iwate-paper p-3 border border-iwate-wood/10">
+                            <p class="text-[11px] text-gray-500 mt-1">清掃・草刈り・聞き取りなどに参加する。</p>
+                        </button>
+                        <button @click="currentTab='houses'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
                             <div class="text-iwate-gold font-black text-lg">03</div>
                             <div class="font-bold text-sm text-iwate-darkgreen">活かす</div>
-                            <p class="text-[11px] text-gray-500 mt-1">活用案を出し合い、育った空き家のイベント利用につなげる。</p>
+                            <p class="text-[11px] text-gray-500 mt-1">活用案やイベント利用につなげる。</p>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB：クエスト一覧 -->
+            <div v-if="currentTab === 'quests'" class="space-y-5">
+                <section class="simple-card space-y-4">
+                    <div class="flex flex-wrap justify-between items-end gap-3">
+                        <div>
+                            <p class="text-[10px] font-bold tracking-widest text-iwate-wood">ACTIVITIES</p>
+                            <h2 class="text-xl font-black text-iwate-darkgreen"><i class="fa-solid fa-list-check mr-1"></i>地域の活動</h2>
+                            <p class="simple-muted mt-1">まず一覧で活動を選び、申請・報告・承認などの操作は詳細画面で行います。</p>
                         </div>
                     </div>
-                </section>
 
-                <!-- 空き家の物語を最初に紹介 -->
-                <section class="space-y-3">
-                    <div class="flex justify-between items-center"><h3 class="text-xl font-bold text-iwate-darkgreen"><i class="fa-solid fa-book-open mr-2"></i>空き家の物語を見つける</h3><button @click="currentTab = 'houses'" class="text-xs text-iwate-green font-bold">すべて見る →</button></div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button v-for="house in houses.slice(0,3)" :key="house.id" @click="openHouseDetailModal(house)" class="text-left bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition">
-                            <img :src="house.image" :alt="house.name" class="w-full h-36 object-cover"><div class="p-4 space-y-2"><p class="text-xs text-iwate-wood">{{ house.location }} · LV.{{ house.level }}</p><h4 class="font-bold text-sm">{{ house.name }}</h4><p class="text-xs text-gray-500">家の記憶 {{ getVerifiedHistoryCount(house) }}件 · 成長記録 {{ house.growthLogs?.length || 0 }}件</p><span class="text-xs font-bold text-iwate-green">物語を見る →</span></div>
+                    <div class="relative max-w-2xl">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input v-model="questSearch" type="search"
+                               class="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-iwate-green/30 focus:border-iwate-green"
+                               placeholder="活動名・場所・空き家名で検索">
+                        <button v-if="questSearch" type="button" @click="questSearch=''" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-gray-400 hover:bg-gray-100">
+                            <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                </section>
 
-                <!-- クエスト一覧セクション -->
-                <div ref="questList" class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-200 pb-3">
-                    <div>
-                        <h3 class="text-xl font-bold text-iwate-darkgreen flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-iwate-wood"></i> 地域の活動に参加する
-                        </h3>
-                        <p class="text-xs text-gray-500">整備や昔話の聞き取りを通して、家の物語をつなぎます</p>
-                    </div>
                     <div class="flex flex-wrap gap-2">
-                        <button @click="questFilter = 'all'"
-                                :class="questFilter === 'all' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            すべて ({{ availableQuests.length }})
+                        <button @click="questFilter='all'" :class="questFilter==='all' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            すべて
                         </button>
-
-                        <button @click="questFilter = 'active'"
-                                :class="questFilter === 'active' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
+                        <button @click="questFilter='active'" :class="questFilter==='active' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
                             進行中
                         </button>
-
-                        <button v-if="currentUser.role === 'participant'"
-                                @click="questFilter = 'confirmedMine'"
-                                :class="questFilter === 'confirmedMine' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-circle-check mr-1"></i>参加確定・履歴 ({{ myConfirmedQuests.length }})
+                        <button v-if="currentUser.role==='participant'" @click="questFilter='confirmedMine'" :class="questFilter==='confirmedMine' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            参加中・履歴 ({{ myConfirmedQuests.length }})
                         </button>
-
-                        <button v-if="currentUser.role === 'participant'"
-                                @click="questFilter = 'pendingMine'"
-                                :class="questFilter === 'pendingMine' ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-200'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-hourglass-half mr-1"></i>申請待ち ({{ myPendingQuests.length }})
+                        <button v-if="currentUser.role==='participant'" @click="questFilter='pendingMine'" :class="questFilter==='pendingMine' ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-200'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            申請待ち ({{ myPendingQuests.length }})
                         </button>
-
-                        <button v-if="currentUser.role === 'owner'"
-                                @click="questFilter = 'mine'"
-                                :class="questFilter === 'mine' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-user-pen mr-1"></i>自分のクエスト ({{ myQuests.length }})
+                        <button v-if="currentUser.role==='owner'" @click="questFilter='mine'" :class="questFilter==='mine' ? 'bg-iwate-darkgreen text-white' : 'bg-white text-gray-600 border'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            自分の活動 ({{ myQuests.length }})
                         </button>
-
-                        <button v-if="currentUser.role === 'owner'"
-                                @click="questFilter = 'joinRequests'"
-                                :class="questFilter === 'joinRequests' ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-200'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-user-check mr-1"></i>参加申請 ({{ questsWithJoinRequests.length }})
+                        <button v-if="currentUser.role==='owner'" @click="questFilter='joinRequests'" :class="questFilter==='joinRequests' ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-200'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            参加申請 ({{ questsWithJoinRequests.length }})
                         </button>
-
-                        <button v-if="currentUser.role === 'owner'"
-                                @click="questFilter = 'reportRequests'"
-                                :class="questFilter === 'reportRequests' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-blue-200'"
-                                class="text-xs px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-clipboard-check mr-1"></i>報告確認 ({{ questsWithPendingReports.length }})
+                        <button v-if="currentUser.role==='owner'" @click="questFilter='reportRequests'" :class="questFilter==='reportRequests' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-blue-200'" class="text-xs px-3 py-1.5 rounded-lg font-bold">
+                            報告確認 ({{ questsWithPendingReports.length }})
                         </button>
                     </div>
-                </div>
+                </section>
 
-                <!-- クエストカード一覧 -->
-                <div v-if="filteredQuests.length === 0" class="bg-white border border-dashed border-gray-300 rounded-2xl py-12 text-center text-gray-400">
-                    <i class="fa-solid fa-list-check text-3xl mb-3"></i>
+                <div v-if="filteredQuests.length===0" class="simple-card text-center py-10 text-gray-400">
+                    <i class="fa-solid fa-list-check text-3xl mb-2"></i>
                     <p class="text-sm font-bold">
                         {{
-                            questFilter === 'mine' ? '自分が作成したクエストはまだありません'
-                            : questFilter === 'confirmedMine' ? '参加確定・完了済みのクエストはまだありません'
+                            questSearch.trim() ? '検索条件に一致する活動はありません'
+                            : questFilter === 'mine' ? '自分が作成した活動はまだありません'
+                            : questFilter === 'confirmedMine' ? '参加中・完了済みの活動はまだありません'
                             : questFilter === 'pendingMine' ? '現在、承認待ちの参加申請はありません'
                             : questFilter === 'joinRequests' ? '現在、未対応の参加申請はありません'
                             : questFilter === 'reportRequests' ? '現在、確認待ちの完了報告はありません'
-                            : '表示できるクエストはありません'
+                            : '表示できる活動はありません'
                         }}
                     </p>
                 </div>
 
-                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div v-for="quest in filteredQuests" :key="quest.id" 
-                         class="bg-white rounded-2xl border border-iwate-wood/15 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden">
-                        
-                        <div class="relative h-48 bg-gray-200">
-                            <img :src="quest.image" :alt="quest.title" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                            
-                            <div class="absolute top-3 left-3 flex gap-2">
-                                <span class="bg-iwate-darkgreen/90 text-iwate-gold text-xs font-bold px-2.5 py-1 rounded-lg border border-iwate-gold/40 shadow">
-                                    <i class="fa-solid fa-seedling mr-1"></i>LV.{{ getHouse(quest.houseId)?.level }} {{ getHouse(quest.houseId)?.levelName }}
-                                </span>
-                                <span :class="getStatusBadgeClass(quest)" class="text-xs font-bold px-2.5 py-1 rounded-lg shadow">
-                                    {{ getStatusText(quest) }}
-                                </span>
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <article v-for="quest in filteredQuests" :key="quest.id" class="simple-quest-card">
+                        <div class="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] min-h-[160px]">
+                            <div class="relative bg-gray-100">
+                                <img :src="quest.image" :alt="quest.title" class="absolute inset-0 w-full h-full object-cover">
                             </div>
 
-                            <div class="absolute top-3 right-3 bg-iwate-gold text-iwate-darkgreen font-black text-sm px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                                <i class="fa-solid fa-coins"></i> +100 pt
-                            </div>
-
-                            <div class="absolute bottom-3 left-3 right-3 text-white">
-                                <div class="text-[11px] text-gray-300 font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-location-dot text-iwate-gold"></i> {{ quest.location }}
-                                </div>
-                                <div class="text-xs font-bold truncate opacity-90">
-                                    物件: {{ getHouse(quest.houseId)?.name }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                            <div>
-                                <h4 class="font-bold text-base text-gray-900 mb-2 leading-snug">
-                                    {{ quest.title }}
-                                </h4>
-                                <p class="text-xs text-gray-600 line-clamp-2 mb-3">
-                                    {{ quest.description }}
-                                </p>
-
-                                <div class="bg-iwate-paper p-3 rounded-xl space-y-1.5 text-xs text-gray-700">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-regular fa-calendar-alt text-iwate-wood w-4 text-center"></i>
-                                        <span class="font-medium">{{ quest.datetime }}</span>
+                            <div class="p-4 flex flex-col justify-between gap-3">
+                                <div>
+                                    <div class="flex flex-wrap gap-1.5 mb-2">
+                                        <span :class="getStatusBadgeClass(quest)" class="text-[10px] font-bold px-2 py-1 rounded-full">{{ getStatusText(quest) }}</span>
+                                        <span class="bg-iwate-paper text-iwate-wood text-[10px] font-bold px-2 py-1 rounded-full">参加者LV.{{ getQuestRequiredLevel(quest) }}以上</span>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-users text-iwate-wood w-4 text-center"></i>
-                                        <span>定員: {{ quest.capacity }}名 
-                                            <strong class="text-iwate-green"> (残り {{ getRemainingSlots(quest) }} 枠)</strong>
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-wrench text-iwate-wood w-4 text-center"></i>
-                                        <span class="truncate">物件状態: {{ getHouse(quest.houseId)?.status }}</span>
+
+                                    <h3 class="font-bold text-sm text-gray-900 leading-snug">{{ quest.title }}</h3>
+                                    <p class="text-[11px] text-gray-500 mt-1 line-clamp-2">{{ quest.description }}</p>
+
+                                    <div class="mt-2 space-y-1 text-[10px] text-gray-500">
+                                        <p><i class="fa-solid fa-location-dot text-iwate-wood w-4"></i>{{ quest.location }}</p>
+                                        <p><i class="fa-regular fa-clock text-iwate-wood w-4"></i>{{ quest.datetime }}</p>
+                                        <p><i class="fa-solid fa-users text-iwate-wood w-4"></i>残り {{ getRemainingSlots(quest) }} / {{ quest.capacity }} 枠</p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="pt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <button @click="openQuestDetailModal(quest)" class="text-xs text-iwate-wood hover:underline font-bold py-2">
-                                    <i class="fa-solid fa-info-circle mr-1"></i>詳細・チャットを見る
-                                </button>
-
-                                <div class="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
-                                    <button v-if="currentUser.role === 'participant' && !getUserApplicationStatus(quest)"
-                                            @click="applyQuest(quest)"
-                                            :disabled="getRemainingSlots(quest) <= 0"
-                                            :class="getRemainingSlots(quest) > 0 ? 'bg-iwate-green hover:bg-iwate-darkgreen text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
-                                            class="px-4 py-2 rounded-xl font-bold text-xs shadow transition flex items-center gap-1">
-                                        <i class="fa-solid fa-hand-holding-hand"></i>
-                                        {{ getRemainingSlots(quest) > 0 ? '参加を申し込む' : '満員' }}
-                                    </button>
-
-                                    <div v-if="currentUser.role === 'participant' && getUserApplicationStatus(quest) === 'pending'"
-                                         class="flex flex-wrap items-center justify-end gap-2">
-                                        <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1.5 rounded-xl font-bold border border-amber-300">
-                                            <i class="fa-solid fa-hourglass-half mr-1"></i>参加申請の承認待ち
-                                        </span>
-                                        <button @click="cancelQuestApplication(quest)"
-                                                class="bg-white text-gray-600 border px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-50">
-                                            申請を取り消す
-                                        </button>
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                                    <div class="text-[10px] font-bold">
+                                        <span v-if="currentUser.role==='participant' && getUserApplicationStatus(quest)==='pending'" class="text-amber-700">申請承認待ち</span>
+                                        <span v-else-if="currentUser.role==='participant' && getUserApplicationStatus(quest)==='joined'" class="text-blue-700">参加確定</span>
+                                        <span v-else-if="currentUser.role==='participant' && getUserApplicationStatus(quest)==='reported'" class="text-amber-700">報告確認待ち</span>
+                                        <span v-else-if="currentUser.role==='participant' && getUserApplicationStatus(quest)==='approved'" class="text-green-700">達成済み</span>
+                                        <span v-else-if="isQuestOwner(quest) && hasPendingJoinRequests(quest)" class="text-amber-700">参加申請 {{ getPendingJoinRequestCount(quest) }}件</span>
+                                        <span v-else-if="isQuestOwner(quest) && hasPendingReports(quest)" class="text-blue-700">報告 {{ getPendingReportsCount(quest) }}件</span>
                                     </div>
-
-                                    <div v-if="currentUser.role === 'participant' && getUserApplicationStatus(quest) === 'rejected'"
-                                         class="max-w-sm bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-900 space-y-2">
-                                        <div class="font-black"><i class="fa-solid fa-circle-xmark mr-1"></i>参加申請が見送られました</div>
-                                        <p v-if="getUserApplication(quest)?.joinRejectionReason">理由：{{ getUserApplication(quest).joinRejectionReason }}</p>
-                                        <button @click="applyQuest(quest)" :disabled="getRemainingSlots(quest) <= 0" class="bg-iwate-green text-white px-3 py-2 rounded-lg font-bold disabled:bg-gray-300">再申請する</button>
-                                    </div>
-
-                                    <div v-if="currentUser.role === 'participant'
-                                               && getUserApplicationStatus(quest) === 'joined'
-                                               && !getUserApplication(quest)?.rejectionReason"
-                                         class="flex flex-wrap gap-2">
-                                        <button @click="cancelQuestParticipation(quest)"
-                                                class="bg-white hover:bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1">
-                                            <i class="fa-solid fa-ban"></i> 参加を取り消す
-                                        </button>
-                                        <button @click="openReportModal(quest)"
-                                                class="bg-iwate-gold hover:bg-yellow-500 text-iwate-darkgreen px-4 py-2 rounded-xl font-black text-xs shadow transition flex items-center gap-1">
-                                            <i class="fa-solid fa-camera"></i> 活動を報告
-                                        </button>
-                                    </div>
-
-                                    <div v-if="currentUser.role === 'participant'
-                                               && getUserApplicationStatus(quest) === 'joined'
-                                               && getUserApplication(quest)?.rejectionReason"
-                                         class="max-w-sm bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-900 space-y-2">
-                                        <div class="font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-rotate-left"></i> 報告が差し戻されました
-                                        </div>
-                                        <div>
-                                            <span class="font-bold">差し戻し理由：</span>
-                                            <span>{{ getUserApplication(quest).rejectionReason }}</span>
-                                        </div>
-                                        <div class="flex flex-wrap gap-2 pt-1">
-                                            <button @click="cancelQuestParticipation(quest)"
-                                                    class="bg-white hover:bg-red-100 text-red-700 border border-red-200 px-3 py-2 rounded-lg font-bold">
-                                                <i class="fa-solid fa-ban mr-1"></i>参加を取り消す
-                                            </button>
-                                            <button @click="openReportModal(quest)"
-                                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold shadow">
-                                                <i class="fa-solid fa-camera mr-1"></i>再報告
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <span v-if="currentUser.role === 'participant' && getUserApplicationStatus(quest) === 'reported'"
-                                          class="bg-amber-100 text-amber-800 text-xs px-3 py-1.5 rounded-xl font-bold border border-amber-300 inline-block">
-                                        <i class="fa-solid fa-clock mr-1"></i>所有者の承認待ち
-                                    </span>
-
-                                    <span v-if="currentUser.role === 'participant' && getUserApplicationStatus(quest) === 'approved'"
-                                          class="bg-green-100 text-green-800 text-xs px-3 py-1.5 rounded-xl font-bold border border-green-300 inline-block">
-                                        <i class="fa-solid fa-check-circle mr-1"></i>承認完了 (+100pt)
-                                    </span>
-
-                                    <button v-if="isQuestOwner(quest) && hasPendingJoinRequests(quest)"
-                                            @click="openQuestApplicationsModal(quest)"
-                                            class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-xs shadow transition flex items-center gap-1">
-                                        <i class="fa-solid fa-user-check"></i> 参加申請を確認 ({{ getPendingJoinRequestCount(quest) }})
-                                    </button>
-
-                                    <button v-if="isQuestOwner(quest) && hasPendingReports(quest)"
-                                            @click="openApprovalModal(quest)"
-                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-xs shadow transition flex items-center gap-1">
-                                        <i class="fa-solid fa-clipboard-check"></i> 報告の承認チェック ({{ getPendingReportsCount(quest) }})
-                                    </button>
-
-                                    <button v-if="isQuestOwner(quest)"
-                                            @click="openEditQuestModal(quest)"
-                                            class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1">
-                                        <i class="fa-solid fa-pen"></i> クエストを編集
-                                    </button>
-
-                                    <button v-if="isQuestOwner(quest)"
-                                            @click="deleteQuest(quest)"
-                                            :disabled="hasAnyApplications(quest)"
-                                            :class="hasAnyApplications(quest) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'"
-                                            class="px-4 py-2 rounded-xl font-bold text-xs shadow transition flex items-center gap-1">
-                                        <i class="fa-solid fa-trash"></i>
-                                        {{ hasAnyApplications(quest) ? '参加者あり・削除不可' : 'クエストを削除' }}
+                                    <button @click="openQuestDetailModal(quest)" class="text-xs font-black text-iwate-green">
+                                        詳細・操作 →
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </div>
             </div>
 
             <!-- マイページ -->
-            <div v-if="currentTab === 'profile'" class="space-y-5">
-                <h3 class="text-xl font-bold text-iwate-darkgreen">マイページ</h3>
-                <div class="bg-white border rounded-2xl p-5 space-y-3">
-                    <div class="text-3xl">{{ currentUser.avatar }}</div>
-                    <h4 class="font-bold">{{ currentUser.name }}</h4>
-                    <p class="text-xs text-gray-500">{{ roleLabel(currentUser.role) }} <span v-if="currentUser.role === 'participant'"> · {{ currentUser.totalPoints }} 累計pt</span></p>
+            <!-- TAB：累計ポイントランキング -->
+            <div v-if="currentTab === 'ranking'" class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold tracking-widest text-iwate-wood">COMMUNITY RANKING</p>
+                    <h2 class="text-2xl font-black text-iwate-darkgreen flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-iwate-gold"></i>ランキング
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-1">活動で獲得した累計ポイントから、参加者みんなの順位を確認できます。</p>
+                </div>
+                    <section class="bg-white rounded-2xl border border-iwate-gold/40 shadow-sm overflow-hidden" aria-label="累計ポイントランキング">
+                        <div class="p-4 md:p-5 border-b border-iwate-wood/10 bg-gradient-to-r from-amber-50 to-iwate-paper">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-widest text-iwate-wood">COMMUNITY RANKING</p>
+                                    <h3 class="text-lg font-black text-iwate-darkgreen flex items-center gap-2">
+                                        <i class="fa-solid fa-ranking-star text-iwate-gold"></i> 累計ポイントランキング
+                                    </h3>
+                                    <p class="text-[11px] text-gray-500 mt-1">活動で獲得した累計ポイントで参加者をランキング。所持ポイントを使っても順位は下がりません。</p>
+                                </div>
+                                <span class="text-[11px] font-bold text-iwate-wood bg-white border border-iwate-gold/30 px-3 py-1.5 rounded-full">参加者 {{ participantRanking.length }}人</span>
+                            </div>
+                        </div>
 
-                    <div v-if="currentUser.role !== 'resident'" class="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
-                        <h4 class="font-bold text-iwate-darkgreen">{{ currentUser.role === 'owner' ? '🏡 所有者レベル' : '🌱 参加者レベル' }}：LV.{{ currentUser.role === 'owner' ? getOwnerLevel(currentUser) : currentUser.level }}</h4>
-                        <p class="text-xs text-gray-700">{{ currentUser.role === 'owner' ? getOwnerLevelCondition(currentUser) : getParticipantLevelCondition(currentUser) }}</p>
-                        <p v-if="currentUser.role === 'owner'" class="text-xs text-gray-500">所有者はポイントを使わず、運営実績で成長します。</p>
-                    </div>
-                    <div class="border rounded-xl p-4 space-y-2">
-                        <h4 class="font-bold">🔔 通知 <span class="text-xs text-gray-500">({{ userNotifications(currentUser).filter(n => !n.read).length }}件未読)</span></h4>
-                        <p v-if="!userNotifications(currentUser).length" class="text-xs text-gray-500">通知はまだありません。</p>
-                        <div v-for="n in userNotifications(currentUser)" :key="n.id" class="rounded-lg border p-3 text-sm" :class="n.read ? 'bg-gray-50' : 'bg-amber-50 border-amber-200'">
-                            <div class="flex justify-between gap-2"><strong>{{ n.title }}</strong><button v-if="!n.read" @click="n.read = true" class="text-xs text-iwate-green underline">既読にする</button></div>
-                            <p class="text-xs mt-1">{{ n.message }}</p><p class="text-[10px] text-gray-400 mt-1">{{ n.date }}</p>
+                        <div v-if="participantRanking.length === 0" class="py-10 text-center text-xs text-gray-400">
+                            <i class="fa-solid fa-trophy text-3xl mb-2 text-gray-300"></i>
+                            <p>ランキング対象の参加者はまだいません。</p>
+                        </div>
+
+                        <div v-else class="p-4 md:p-5 space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div v-for="entry in participantRanking.slice(0,3)" :key="'podium-' + entry.user.id"
+                                     class="rounded-xl border p-4 text-center relative"
+                                     :class="entry.user.id === currentUser.id ? 'border-iwate-gold bg-amber-50 ring-1 ring-iwate-gold/30' : 'border-iwate-wood/10 bg-iwate-paper'">
+                                    <div class="text-2xl mb-1" aria-hidden="true">{{ entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : '🏅' }}</div>
+                                    <div class="text-xs font-black text-iwate-wood">{{ entry.rank }}位</div>
+                                    <div class="text-3xl mt-1">{{ entry.user.avatar || '🙂' }}</div>
+                                    <div class="font-bold text-sm text-gray-800 mt-1 truncate">{{ entry.user.name }}</div>
+                                    <div class="text-[10px] text-gray-500 mt-1">参加者 LV.{{ entry.user.level || 1 }}</div>
+                                    <div class="text-xl font-black text-iwate-darkgreen mt-2">{{ Number(entry.user.totalPoints) || 0 }}<span class="text-xs ml-0.5">pt</span></div>
+                                    <span v-if="entry.user.id === currentUser.id" class="inline-block mt-2 text-[10px] font-bold bg-iwate-darkgreen text-white px-2 py-0.5 rounded-full">あなた</span>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-xl overflow-hidden">
+                                <div v-for="entry in participantRanking" :key="'ranking-' + entry.user.id"
+                                     class="flex items-center gap-3 px-3 py-3 border-b last:border-b-0"
+                                     :class="entry.user.id === currentUser.id ? 'bg-amber-50' : 'bg-white'">
+                                    <div class="w-9 shrink-0 text-center font-black" :class="entry.rank <= 3 ? 'text-iwate-wood' : 'text-gray-500'">{{ entry.rank }}位</div>
+                                    <div class="w-9 h-9 rounded-full bg-iwate-paper flex items-center justify-center text-xl shrink-0">{{ entry.user.avatar || '🙂' }}</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <span class="font-bold text-sm truncate">{{ entry.user.name }}</span>
+                                            <span v-if="entry.user.id === currentUser.id" class="text-[9px] font-bold bg-iwate-darkgreen text-white px-1.5 py-0.5 rounded-full">あなた</span>
+                                        </div>
+                                        <div class="text-[10px] text-gray-500">参加者 LV.{{ entry.user.level || 1 }}</div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <div class="font-black text-iwate-darkgreen">{{ Number(entry.user.totalPoints) || 0 }} pt</div>
+                                        <div class="text-[9px] text-gray-400">累計</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+            </div>
+
+                        <div v-if="currentTab === 'profile'" class="space-y-5">
+                <section class="simple-card">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-iwate-paper flex items-center justify-center text-3xl">{{ currentUser.avatar }}</div>
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-xl font-black text-iwate-darkgreen">{{ currentUser.name }}</h2>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ roleLabel(currentUser.role) }}
+                                <span v-if="currentUser.role==='participant'"> · LV.{{ currentUser.level }} · 累計 {{ currentUser.totalPoints }}pt</span>
+                                <span v-else-if="currentUser.role==='owner'"> · 所有者LV.{{ getOwnerLevel(currentUser) }}</span>
+                            </p>
+                            <p class="text-xs font-bold text-iwate-wood mt-2">🏅 {{ currentUser.equippedTitle || userTitles(currentUser)[0] || '地域の仲間' }}</p>
                         </div>
                     </div>
-                    <div class="bg-iwate-paper rounded-xl p-3">
-                        <p class="text-xs text-gray-500">代表称号</p>
-                        <p class="font-bold text-iwate-wood">🏅 {{ currentUser.equippedTitle || userTitles(currentUser)[0] || '地域の仲間' }}</p>
+
+                    <div v-if="currentUser.role !== 'resident'" class="mt-4 bg-green-50 border border-green-200 rounded-xl p-3">
+                        <p class="text-xs font-bold text-iwate-darkgreen">
+                            {{ currentUser.role === 'owner' ? getOwnerLevelCondition(currentUser) : getParticipantLevelCondition(currentUser) }}
+                        </p>
                     </div>
-                    <div class="border rounded-2xl p-4 space-y-3">
-                        <div class="flex items-center justify-between gap-2">
-                            <h4 class="font-bold text-iwate-darkgreen">🏅 称号図鑑</h4>
-                            <span class="text-xs text-gray-500">{{ userTitles(currentUser).length }} / {{ allTitles.length }} 獲得</span>
+                </section>
+
+                <section v-if="currentUser.role==='participant'" class="simple-card">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 class="simple-card-title">活動の記録</h3>
+                            <p class="simple-muted mt-1">順位は必要なときだけ確認できます。</p>
                         </div>
-                        <p class="text-xs text-gray-600">未獲得の称号もタップすると条件と進捗を確認できます。獲得した称号は代表称号に設定できます。</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div v-for="title in allTitles" :key="title" class="rounded-xl border p-3 space-y-2" :class="userTitles(currentUser).includes(title) ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'">
-                                <button @click="openTitleInfo(title)" class="w-full text-left space-y-1">
-                                    <div class="text-sm font-bold" :class="userTitles(currentUser).includes(title) ? 'text-amber-900' : 'text-gray-500'">{{ userTitles(currentUser).includes(title) ? '🏅' : '🔒' }} {{ title }}</div>
-                                    <div class="text-[11px]" :class="userTitles(currentUser).includes(title) ? 'text-green-700' : 'text-gray-500'">{{ userTitles(currentUser).includes(title) ? '獲得済み' : '未獲得' }} · 詳細を見る</div>
-                                    <p class="text-xs text-gray-600">{{ getTitleProgress(title, currentUser) }}</p>
-                                </button>
-                                <button v-if="userTitles(currentUser).includes(title)" @click="currentUser.equippedTitle = title; showToast('代表称号を変更しました')" class="text-xs rounded-lg px-3 py-1.5 font-bold" :class="(currentUser.equippedTitle || userTitles(currentUser)[0]) === title ? 'bg-iwate-darkgreen text-white' : 'bg-white border text-iwate-darkgreen'" :disabled="(currentUser.equippedTitle || userTitles(currentUser)[0]) === title">{{ (currentUser.equippedTitle || userTitles(currentUser)[0]) === title ? '設定中' : '代表称号にする' }}</button>
+                        <button @click="currentTab='ranking'" class="simple-action simple-action-secondary">
+                            <i class="fa-solid fa-ranking-star"></i>ランキングを見る
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Vol.28: 参加者同士のパーティー -->
+                <section v-if="currentUser.role==='participant'" class="simple-card space-y-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h3 class="simple-card-title"><i class="fa-solid fa-people-group text-iwate-green mr-1"></i>パーティー</h3>
+                            <p class="simple-muted mt-1">参加者同士で仲間をつくれます。1人が所属できるパーティーは1つです。</p>
+                        </div>
+                        <span v-if="currentParty" class="text-[10px] font-bold rounded-full bg-green-50 text-iwate-darkgreen border border-green-200 px-2.5 py-1">{{ getPartyMembers(currentParty).length }}人</span>
+                    </div>
+
+                    <div v-if="partyInvitations.length && !currentParty" class="space-y-2">
+                        <p class="text-xs font-bold text-iwate-darkgreen">📨 パーティー招待が届いています</p>
+                        <div v-for="party in partyInvitations" :key="'invite-'+party.id" class="rounded-xl border border-amber-200 bg-amber-50 p-3 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="font-bold text-sm text-gray-800">{{ party.name }}</p>
+                                <p class="text-[11px] text-gray-600">リーダー：{{ getUserName(party.leaderId) }} · {{ getPartyMembers(party).length }}人</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="acceptPartyInvite(party)" class="bg-iwate-green text-white px-3 py-1.5 rounded-lg text-xs font-bold">参加する</button>
+                                <button @click="declinePartyInvite(party)" class="bg-white border text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold">辞退</button>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <div v-if="currentParty" class="space-y-4">
+                        <div class="rounded-2xl bg-iwate-paper border border-iwate-wood/10 p-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-widest text-iwate-wood">MY PARTY</p>
+                                    <h4 class="text-lg font-black text-iwate-darkgreen">{{ currentParty.name }}</h4>
+                                </div>
+                                <span v-if="isPartyLeader(currentParty)" class="text-[10px] font-bold bg-iwate-gold/20 text-iwate-wood rounded-full px-2.5 py-1">あなたがリーダー</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div v-for="member in getPartyMembers(currentParty)" :key="member.id" class="flex items-center gap-3 rounded-xl bg-white border p-3">
+                                    <div class="text-2xl">{{ member.avatar }}</div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-gray-800 truncate">{{ member.name }} <span v-if="member.id===currentParty.leaderId" class="text-[10px] text-iwate-wood">👑 リーダー</span></p>
+                                        <p class="text-[10px] text-gray-500">参加者 LV.{{ member.level || 1 }} · 累計 {{ Number(member.totalPoints) || 0 }}pt</p>
+                                    </div>
+                                    <button v-if="isPartyLeader(currentParty) && member.id!==currentUser.id" @click="removePartyMember(currentParty, member.id)" class="text-[10px] font-bold text-red-600 border border-red-200 rounded-lg px-2 py-1">外す</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="isPartyLeader(currentParty)" class="space-y-3">
+                            <div>
+                                <p class="text-xs font-bold text-iwate-darkgreen">仲間を招待する</p>
+                                <p class="text-[10px] text-gray-500 mt-1">相手が承認するとパーティーに加入します。</p>
+                            </div>
+                            <p v-if="!availablePartyInvitees.length" class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">現在招待できる参加者はいません。</p>
+                            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div v-for="user in availablePartyInvitees" :key="'party-user-'+user.id" class="flex items-center gap-3 rounded-xl border p-3">
+                                    <span class="text-xl">{{ user.avatar }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold truncate">{{ user.name }}</p>
+                                        <p class="text-[10px] text-gray-500">LV.{{ user.level || 1 }}</p>
+                                    </div>
+                                    <button @click="inviteParticipantToParty(user.id)" class="bg-iwate-darkgreen text-white rounded-lg px-3 py-1.5 text-[10px] font-bold">招待</button>
+                                </div>
+                            </div>
+                            <div v-if="(currentParty.invitedUserIds || []).length" class="rounded-xl bg-gray-50 border p-3">
+                                <p class="text-[10px] font-bold text-gray-600 mb-2">招待中</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span v-for="userId in currentParty.invitedUserIds" :key="'pending-party-'+userId" class="text-[10px] bg-white border rounded-full px-2.5 py-1">{{ getUserName(userId) }}</span>
+                                </div>
+                            </div>
+                            <button @click="disbandParty(currentParty)" class="text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">パーティーを解散する</button>
+                        </div>
+
+                        <div v-else>
+                            <button @click="leaveParty(currentParty)" class="text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">パーティーから脱退する</button>
+                        </div>
+                    </div>
+
+                    <div v-else class="space-y-3">
+                        <div>
+                            <p class="text-xs font-bold text-iwate-darkgreen">新しいパーティーを作る</p>
+                            <p class="text-[10px] text-gray-500 mt-1">作成した人がリーダーになります。</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input v-model="newPartyName" maxlength="30" type="text" placeholder="パーティー名（例：遠野おたすけ隊）" class="flex-1 border rounded-xl px-3 py-2 text-sm">
+                            <button @click="createParty" class="bg-iwate-darkgreen text-white rounded-xl px-4 py-2 text-xs font-bold"><i class="fa-solid fa-plus mr-1"></i>作成する</button>
+                        </div>
+                    </div>
+                </section>
+
+                <details class="simple-details" :open="userNotifications(currentUser).filter(n => !n.read).length > 0">
+                    <summary>
+                        <span><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>通知</span>
+                        <span class="text-[10px] text-gray-500">{{ userNotifications(currentUser).filter(n => !n.read).length }}件未読</span>
+                    </summary>
+                    <div class="border-t p-4 space-y-2">
+                        <p v-if="!userNotifications(currentUser).length" class="text-xs text-gray-500">通知はまだありません。</p>
+                        <div v-for="n in userNotifications(currentUser)" :key="n.id"
+                             class="rounded-xl border p-3 text-sm"
+                             :class="n.read ? 'bg-gray-50' : 'bg-amber-50 border-amber-200'">
+                            <div class="flex justify-between gap-2">
+                                <strong class="text-xs">{{ n.title }}</strong>
+                                <button v-if="!n.read" @click="n.read=true" class="text-[10px] text-iwate-green font-bold">既読にする</button>
+                            </div>
+                            <p class="text-xs mt-1">{{ n.message }}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">{{ n.date }}</p>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="simple-details">
+                    <summary>
+                        <span><i class="fa-solid fa-medal text-iwate-gold mr-2"></i>称号</span>
+                        <span class="text-[10px] text-gray-500">{{ userTitles(currentUser).length }} / {{ allTitles.length }} 獲得</span>
+                    </summary>
+                    <div class="border-t p-4 space-y-3">
+                        <p class="text-xs text-gray-600">条件や進捗を確認し、獲得済みの称号は代表称号に設定できます。</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div v-for="title in allTitles" :key="title"
+                                 class="rounded-xl border p-3 space-y-2"
+                                 :class="userTitles(currentUser).includes(title) ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'">
+                                <button @click="openTitleInfo(title)" class="w-full text-left">
+                                    <p class="text-sm font-bold" :class="userTitles(currentUser).includes(title) ? 'text-amber-900' : 'text-gray-500'">
+                                        {{ userTitles(currentUser).includes(title) ? '🏅' : '🔒' }} {{ title }}
+                                    </p>
+                                    <p class="text-xs text-gray-600 mt-1">{{ getTitleProgress(title,currentUser) }}</p>
+                                </button>
+                                <button v-if="userTitles(currentUser).includes(title)"
+                                        @click="currentUser.equippedTitle=title; showToast('代表称号を変更しました')"
+                                        class="text-xs rounded-lg px-3 py-1.5 font-bold"
+                                        :class="(currentUser.equippedTitle || userTitles(currentUser)[0])===title ? 'bg-iwate-darkgreen text-white' : 'bg-white border text-iwate-darkgreen'">
+                                    {{ (currentUser.equippedTitle || userTitles(currentUser)[0])===title ? '設定中' : '代表称号にする' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
 
             <!-- TAB 2：空き家一覧 -->
@@ -792,13 +922,31 @@
                     </button>
                 </div>
 
+                <!-- 空き家検索 -->
+                <div class="relative max-w-2xl">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input v-model="houseSearch" type="search"
+                           class="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-iwate-green/30 focus:border-iwate-green"
+                           placeholder="空き家名・所在地・状態などで検索">
+                    <button v-if="houseSearch" type="button" @click="houseSearch = ''" aria-label="空き家検索をクリア"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
                 <div v-if="houses.length === 0" class="bg-white border border-dashed border-gray-300 rounded-2xl py-12 text-center text-gray-400">
                     <i class="fa-solid fa-house-circle-xmark text-3xl mb-3"></i>
                     <p class="text-sm font-bold">まだ空き家が登録されていません</p>
                 </div>
 
+                <div v-else-if="filteredHouses.length === 0" class="bg-white border border-dashed border-gray-300 rounded-2xl py-12 text-center text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3"></i>
+                    <p class="text-sm font-bold">検索条件に一致する空き家はありません</p>
+                    <button v-if="houseSearch" type="button" @click="houseSearch = ''" class="mt-3 text-xs font-bold text-iwate-green hover:underline">検索をクリア</button>
+                </div>
+
                 <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div v-for="house in houses" :key="house.id" 
+                    <div v-for="house in filteredHouses" :key="house.id" 
                          class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
                         <img :src="house.image" :alt="house.name" class="h-44 w-full object-cover">
                         <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
@@ -844,16 +992,18 @@
         </main>
 
         <!-- モバイルナビゲーション -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 shadow-lg">
-            <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 grid grid-cols-4 py-2 shadow-lg">
+            <button @click="currentTab='home'" :class="currentTab==='home' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
                 <i class="fa-solid fa-house text-lg mb-0.5"></i>ホーム
             </button>
-            <button @click="currentTab = 'houses'" :class="currentTab === 'houses' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
-                <i class="fa-solid fa-building-user text-lg mb-0.5"></i>空き家一覧
+            <button @click="currentTab='houses'" :class="currentTab==='houses' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
+                <i class="fa-solid fa-building-user text-lg mb-0.5"></i>空き家
             </button>
-            <button @click="currentTab = 'profile'" class="flex flex-col items-center text-[10px]" :class="currentTab === 'profile' ? 'text-iwate-green font-bold' : 'text-gray-500'"><i class="fa-solid fa-user text-lg mb-0.5"></i>マイページ</button>
-            <button v-if="currentUser.role === 'owner'" @click="openCreateQuestModal" class="flex flex-col items-center text-[10px] text-iwate-gold font-bold">
-                <i class="fa-solid fa-plus-circle text-lg mb-0.5"></i>活動作成
+            <button @click="currentTab='quests'" :class="currentTab==='quests' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
+                <i class="fa-solid fa-list-check text-lg mb-0.5"></i>活動
+            </button>
+            <button @click="currentTab='profile'" :class="currentTab==='profile' ? 'text-iwate-green font-bold' : 'text-gray-500'" class="flex flex-col items-center text-[10px]">
+                <i class="fa-solid fa-user text-lg mb-0.5"></i>マイページ
             </button>
         </nav>
 
@@ -901,6 +1051,9 @@
                     <p><strong><i class="fa-solid fa-location-dot text-iwate-wood"></i> 実施場所:</strong> {{ activeQuest.location }}</p>
                     <p><strong><i class="fa-regular fa-clock text-iwate-wood"></i> 日時:</strong> {{ activeQuest.datetime }}</p>
                     <p><strong><i class="fa-solid fa-users text-iwate-wood"></i> 募集人数:</strong> 定員 {{ activeQuest.capacity }} 名 (残り {{ getRemainingSlots(activeQuest) }} 名)</p>
+                    <p><strong><i class="fa-solid fa-ranking-star text-iwate-wood"></i> 参加条件:</strong> 参加者LV.{{ getQuestRequiredLevel(activeQuest) }}以上 <span class="text-gray-500">（空き家LV.{{ getHouse(activeQuest.houseId)?.level || 1 }}に連動）</span></p>
+                    <p v-if="currentUser.role === 'participant' && !meetsQuestLevel(activeQuest)" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-2"><i class="fa-solid fa-lock mr-1"></i>この空き家はLV.{{ getHouse(activeQuest.houseId)?.level || 1 }}のため、参加者LV.{{ getQuestRequiredLevel(activeQuest) }}以上が必要です。現在はLV.{{ currentUser.level }}です。</p>
+                    <p v-if="currentUser.role === 'participant' && currentParty && isPartyLeader(currentParty) && getPartyQuestEligibility(activeQuest).ok && (getPartyQuestEligibility(activeQuest).lowLevelMembers?.length || 0)" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>パーティー内にLV.{{ getQuestRequiredLevel(activeQuest) }}未満のメンバーが{{ getPartyQuestEligibility(activeQuest).lowLevelMembers.length }}人います。条件を満たすメンバーが1人以上いるためパーティー参加は可能ですが、LV未達のメンバーには申請時に警告通知が送られます。</p>
                     <p><strong><i class="fa-solid fa-briefcase text-iwate-wood"></i> 持ち物:</strong> {{ activeQuest.items }}</p>
                     <p><strong><i class="fa-solid fa-bullseye text-iwate-wood"></i> 達成条件:</strong> {{ activeQuest.conditions }}</p>
                     <p v-if="activeQuest.notes"><strong><i class="fa-solid fa-triangle-exclamation text-iwate-wood"></i> 注意事項:</strong> {{ activeQuest.notes }}</p>
@@ -935,14 +1088,84 @@
                     <p class="text-[10px] text-gray-500">クエストごとに所有者と参加者が1対1で連絡できます。連絡内容はこのデモの保存領域に記録されます。</p>
                 </div>
 
-                <div class="pt-3 border-t flex justify-end gap-2 flex-wrap">
-                    <button @click="modals.questDetail = false" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl">閉じる</button>
-                    <button v-if="currentUser.role === 'participant' && !getUserApplicationStatus(activeQuest)"
-                            @click="applyQuest(activeQuest); modals.questDetail = false;"
-                            :disabled="getRemainingSlots(activeQuest) <= 0"
-                            class="px-5 py-2 bg-iwate-green hover:bg-iwate-darkgreen text-white text-xs font-bold rounded-xl shadow">
-                        この活動に参加する
-                    </button>
+                <div class="pt-3 border-t space-y-3">
+                    <!-- 参加者の操作 -->
+                    <div v-if="currentUser.role==='participant'" class="space-y-2">
+                        <div v-if="!getUserApplicationStatus(activeQuest)" class="flex flex-wrap justify-end gap-2">
+                            <button
+                                    @click="applyQuest(activeQuest); modals.questDetail=false"
+                                    :disabled="getRemainingSlots(activeQuest)<=0 || !meetsQuestLevel(activeQuest)"
+                                    :class="getRemainingSlots(activeQuest)>0 && meetsQuestLevel(activeQuest) ? 'bg-iwate-green text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    class="px-4 py-2 rounded-xl text-xs font-bold">
+                                {{ getRemainingSlots(activeQuest)<=0 ? '満員' : !meetsQuestLevel(activeQuest) ? `LV.${getQuestRequiredLevel(activeQuest)}以上で参加可` : '個人で申し込む' }}
+                            </button>
+                            <button v-if="currentParty && isPartyLeader(currentParty)"
+                                    @click="applyQuestAsParty(activeQuest); modals.questDetail=false"
+                                    :disabled="!canApplyQuestAsParty(activeQuest)"
+                                    :class="canApplyQuestAsParty(activeQuest) ? 'bg-iwate-gold text-iwate-darkgreen' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    class="px-4 py-2 rounded-xl text-xs font-black">
+                                <i class="fa-solid fa-people-group mr-1"></i>{{ getPartyApplyButtonText(activeQuest) }}
+                            </button>
+                            <span v-else-if="currentParty && !isPartyLeader(currentParty)" class="bg-blue-50 text-blue-700 border border-blue-100 text-[10px] px-3 py-2 rounded-xl">
+                                パーティー申請はリーダーの {{ getUserName(currentParty.leaderId) }} さんが行えます
+                            </span>
+                        </div>
+
+                        <template v-else-if="getUserApplicationStatus(activeQuest)==='pending'">
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <span class="bg-amber-100 text-amber-800 text-xs px-3 py-2 rounded-xl font-bold">
+                                    {{ isPartyQuestApplication(getUserApplication(activeQuest)) ? `${getPartyApplicationName(getUserApplication(activeQuest))}で参加申請の承認待ち` : '参加申請の承認待ち' }}
+                                </span>
+                                <button v-if="isPartyQuestApplication(getUserApplication(activeQuest)) && getUserApplication(activeQuest)?.partyLeaderId===currentUser.id"
+                                        @click="cancelPartyQuestApplication(activeQuest, getUserApplication(activeQuest)?.partyApplicationId); modals.questDetail=false"
+                                        class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-gray-600">パーティー申請を取り消す</button>
+                                <button v-else-if="!isPartyQuestApplication(getUserApplication(activeQuest))"
+                                        @click="cancelQuestApplication(activeQuest); modals.questDetail=false" class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-gray-600">申請を取り消す</button>
+                            </div>
+                        </template>
+
+                        <template v-else-if="getUserApplicationStatus(activeQuest)==='rejected'">
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <span class="bg-red-50 text-red-700 border border-red-200 text-xs px-3 py-2 rounded-xl">{{ getUserApplication(activeQuest)?.joinRejectionReason || '参加申請が見送られました' }}</span>
+                                <button @click="applyQuest(activeQuest); modals.questDetail=false" :disabled="!meetsQuestLevel(activeQuest)" class="bg-iwate-green text-white px-3 py-2 rounded-xl text-xs font-bold disabled:bg-gray-300">個人で再申請</button>
+                                <button v-if="currentParty && isPartyLeader(currentParty)" @click="applyQuestAsParty(activeQuest); modals.questDetail=false" :disabled="!canApplyQuestAsParty(activeQuest)" class="bg-iwate-gold text-iwate-darkgreen px-3 py-2 rounded-xl text-xs font-bold disabled:bg-gray-300 disabled:text-gray-500">パーティーで再申請</button>
+                            </div>
+                        </template>
+
+                        <div v-else-if="getUserApplicationStatus(activeQuest)==='joined' && !getUserApplication(activeQuest)?.rejectionReason" class="flex flex-wrap justify-end gap-2">
+                            <span v-if="isPartyQuestApplication(getUserApplication(activeQuest))" class="bg-blue-50 text-blue-700 border border-blue-100 text-[10px] px-3 py-2 rounded-xl">{{ getPartyApplicationName(getUserApplication(activeQuest)) }}で参加確定</span>
+                            <button @click="cancelQuestParticipation(activeQuest); modals.questDetail=false" class="bg-white text-red-600 border border-red-200 px-3 py-2 rounded-xl text-xs font-bold">参加を取り消す</button>
+                            <button @click="openReportModal(activeQuest); modals.questDetail=false" class="bg-iwate-gold text-iwate-darkgreen px-4 py-2 rounded-xl text-xs font-black">活動を報告</button>
+                        </div>
+
+                        <div v-else-if="getUserApplicationStatus(activeQuest)==='joined' && getUserApplication(activeQuest)?.rejectionReason" class="flex flex-wrap justify-end gap-2">
+                            <span class="bg-red-50 text-red-700 border border-red-200 text-xs px-3 py-2 rounded-xl">報告が差し戻されています：{{ getUserApplication(activeQuest).rejectionReason }}</span>
+                            <button @click="openReportModal(activeQuest); modals.questDetail=false" class="bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold">再報告</button>
+                        </div>
+
+                        <div v-else class="flex flex-wrap justify-end gap-2">
+                            <span v-if="getUserApplicationStatus(activeQuest)==='reported'" class="bg-amber-100 text-amber-800 text-xs px-3 py-2 rounded-xl font-bold">所有者の承認待ち</span>
+                            <span v-else-if="getUserApplicationStatus(activeQuest)==='approved'" class="bg-green-100 text-green-800 text-xs px-3 py-2 rounded-xl font-bold">承認完了 (+100pt)</span>
+                        </div>
+                    </div>
+
+                    <!-- 所有者の操作 -->
+                    <div v-if="isQuestOwner(activeQuest)" class="flex flex-wrap justify-end gap-2">
+                        <button v-if="hasPendingJoinRequests(activeQuest)" @click="openQuestApplicationsModal(activeQuest); modals.questDetail=false" class="bg-amber-500 text-white px-3 py-2 rounded-xl text-xs font-bold">
+                            参加申請を確認 ({{ getPendingJoinRequestCount(activeQuest) }})
+                        </button>
+                        <button v-if="hasPendingReports(activeQuest)" @click="openApprovalModal(activeQuest); modals.questDetail=false" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold">
+                            報告を確認 ({{ getPendingReportsCount(activeQuest) }})
+                        </button>
+                        <button @click="openEditQuestModal(activeQuest)" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2 rounded-xl text-xs font-bold">編集</button>
+                        <button @click="deleteQuest(activeQuest)" :disabled="hasAnyApplications(activeQuest)" :class="hasAnyApplications(activeQuest) ? 'bg-gray-200 text-gray-400' : 'bg-red-600 text-white'" class="px-3 py-2 rounded-xl text-xs font-bold">
+                            {{ hasAnyApplications(activeQuest) ? '参加者あり・削除不可' : '削除' }}
+                        </button>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button @click="modals.questDetail=false" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl">閉じる</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -957,22 +1180,31 @@
                     </div>
                     <button @click="modals.questApplications = false" class="text-gray-400 text-xl font-bold">&times;</button>
                 </div>
-                <div v-if="pendingJoinRequestsForActiveQuest.length === 0" class="text-center text-xs text-gray-400 py-8">未対応の参加申請はありません。</div>
-                <div v-for="app in pendingJoinRequestsForActiveQuest" :key="app.userId" class="border rounded-xl p-4 space-y-3 bg-amber-50/50">
+                <div v-if="pendingJoinRequestGroupsForActiveQuest.length === 0" class="text-center text-xs text-gray-400 py-8">未対応の参加申請はありません。</div>
+                <div v-for="group in pendingJoinRequestGroupsForActiveQuest" :key="group.key" class="border rounded-xl p-4 space-y-3 bg-amber-50/50">
                     <div class="flex justify-between gap-2 items-start">
-                        <div><p class="font-bold text-sm">{{ getUserName(app.userId) }}</p><p class="text-[10px] text-gray-500">申請日時：{{ app.requestedAt || '記録なし' }}</p></div>
-                        <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-bold">承認待ち</span>
+                        <div>
+                            <p class="font-bold text-sm">
+                                <i v-if="group.isParty" class="fa-solid fa-people-group text-iwate-green mr-1"></i>{{ group.label }}
+                            </p>
+                            <p v-if="group.isParty" class="text-[10px] text-gray-600 mt-1">{{ group.apps.length }}人：{{ group.apps.map(app => getUserName(app.userId)).join('・') }}</p>
+                            <p class="text-[10px] text-gray-500">申請日時：{{ group.apps[0]?.requestedAt || '記録なし' }}</p>
+                        </div>
+                        <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-bold">{{ group.isParty ? 'パーティー申請' : '承認待ち' }}</span>
+                    </div>
+                    <div v-if="group.isParty" class="text-[10px] rounded-lg bg-white border p-2 text-gray-600">
+                        一括承認すると {{ group.apps.length }} 枠を使用します。残り {{ getRemainingSlots(activeQuest) }} 枠。
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button @click="approveQuestJoin(activeQuest, app)" :disabled="getRemainingSlots(activeQuest) <= 0" class="bg-iwate-green text-white px-4 py-2 rounded-lg text-xs font-bold disabled:bg-gray-300 disabled:cursor-not-allowed"><i class="fa-solid fa-check mr-1"></i>参加を承認</button>
-                        <button @click="app.showJoinRejectForm = !app.showJoinRejectForm" class="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-xmark mr-1"></i>見送る</button>
+                        <button @click="approveQuestJoinGroup(activeQuest, group)" :disabled="getRemainingSlots(activeQuest) < group.apps.length" class="bg-iwate-green text-white px-4 py-2 rounded-lg text-xs font-bold disabled:bg-gray-300 disabled:cursor-not-allowed"><i class="fa-solid fa-check mr-1"></i>{{ group.isParty ? 'パーティー全員を承認' : '参加を承認' }}</button>
+                        <button @click="group.apps[0].showJoinRejectForm = !group.apps[0].showJoinRejectForm" class="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-xmark mr-1"></i>{{ group.isParty ? '全員見送る' : '見送る' }}</button>
                     </div>
-                    <div v-if="app.showJoinRejectForm" class="bg-white border border-red-100 rounded-lg p-3 space-y-2">
+                    <div v-if="group.apps[0]?.showJoinRejectForm" class="bg-white border border-red-100 rounded-lg p-3 space-y-2">
                         <label class="font-bold text-xs text-red-800">見送り理由</label>
-                        <textarea v-model="app.joinRejectReasonDraft" rows="2" class="w-full border rounded-lg p-2 text-xs" placeholder="例：今回は定員調整のため見送ります"></textarea>
+                        <textarea v-model="group.apps[0].joinRejectReasonDraft" rows="2" class="w-full border rounded-lg p-2 text-xs" placeholder="例：今回は定員調整のため見送ります"></textarea>
                         <div class="flex justify-end gap-2">
-                            <button @click="app.showJoinRejectForm = false; app.joinRejectReasonDraft = ''" class="bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold">戻る</button>
-                            <button @click="rejectQuestJoin(activeQuest, app)" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">見送りを確定</button>
+                            <button @click="group.apps[0].showJoinRejectForm = false; group.apps[0].joinRejectReasonDraft = ''" class="bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold">戻る</button>
+                            <button @click="rejectQuestJoinGroup(activeQuest, group)" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">{{ group.isParty ? '全員の見送りを確定' : '見送りを確定' }}</button>
                         </div>
                     </div>
                 </div>
@@ -1142,32 +1374,59 @@
                         <p class="text-gray-500">条件達成後、所有者がレベルアップを承認します。</p>
                     </div>
                 </details>
-                <!-- Vol.15: 過去・今・未来の入口と独立した3D記録館 -->
-                <section class="menkoi-navigation space-y-4" aria-label="この家の記録と活用">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-[10px] font-bold tracking-widest text-iwate-wood">HOUSE STORY</p>
-                            <h4 class="text-base font-bold text-iwate-darkgreen">この家の物語</h4>
-                        </div>
-                        <span class="text-[11px] text-gray-500">記憶をつなぎ、未来を育てる</span>
+                <!-- Vol.27 SIMPLE：過去・今・未来の3入口に整理 -->
+                <section class="menkoi-navigation space-y-3" aria-label="この家の記録と活用">
+                    <div>
+                        <p class="text-[10px] font-bold tracking-widest text-iwate-wood">HOUSE STORY</p>
+                        <h4 class="text-base font-bold text-iwate-darkgreen">この家を知る・育てる・活かす</h4>
                     </div>
+
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button" @click="houseTab = 'history'" :aria-pressed="houseTab === 'history'" class="menkoi-story-card" :class="houseTab === 'history' ? 'is-selected' : ''">
-                            <i class="fa-solid fa-book-open text-xl mb-1"></i><span class="font-bold text-sm">過去</span><span class="text-[10px]">家の記憶</span><span class="text-[10px] opacity-75">{{ getVerifiedHistoryCount(activeHouse) }}件</span>
+                        <button type="button"
+                                @click="houseTab='history'"
+                                :class="['history','model3d'].includes(houseTab) ? 'is-selected' : ''"
+                                class="menkoi-story-card">
+                            <i class="fa-solid fa-book-open text-xl mb-1"></i>
+                            <span class="font-bold text-sm">過去</span>
+                            <span class="text-[10px]">記憶・3D</span>
                         </button>
-                        <button type="button" @click="houseTab = 'growth'" :aria-pressed="houseTab === 'growth'" class="menkoi-story-card" :class="houseTab === 'growth' ? 'is-selected' : ''">
-                            <i class="fa-solid fa-seedling text-xl mb-1"></i><span class="font-bold text-sm">今</span><span class="text-[10px]">成長記録</span><span class="text-[10px] opacity-75">{{ activeHouse.growthLogs?.length || 0 }}件</span>
+
+                        <button type="button"
+                                @click="houseTab='growth'"
+                                :class="houseTab==='growth' ? 'is-selected' : ''"
+                                class="menkoi-story-card">
+                            <i class="fa-solid fa-seedling text-xl mb-1"></i>
+                            <span class="font-bold text-sm">今</span>
+                            <span class="text-[10px]">成長記録</span>
                         </button>
-                        <button type="button" @click="houseTab = 'ideas'" :aria-pressed="houseTab === 'ideas'" class="menkoi-story-card" :class="houseTab === 'ideas' ? 'is-selected' : ''">
-                            <i class="fa-solid fa-lightbulb text-xl mb-1"></i><span class="font-bold text-sm">未来</span><span class="text-[10px]">活用と投票</span><span class="text-[10px] opacity-75">アイデアを育む</span>
+
+                        <button type="button"
+                                @click="houseTab='ideas'"
+                                :class="['ideas','apply'].includes(houseTab) ? 'is-selected' : ''"
+                                class="menkoi-story-card">
+                            <i class="fa-solid fa-lightbulb text-xl mb-1"></i>
+                            <span class="font-bold text-sm">未来</span>
+                            <span class="text-[10px]">活用・イベント</span>
                         </button>
                     </div>
-                    <button type="button" @click="houseTab = 'model3d'" :aria-pressed="houseTab === 'model3d'" class="menkoi-archive-card w-full text-left" :class="houseTab === 'model3d' ? 'is-selected' : ''">
-                        <span class="menkoi-archive-icon"><i class="fa-solid fa-cube"></i></span>
-                        <span class="flex-1 min-w-0"><span class="block text-[10px] tracking-widest font-bold text-iwate-wood">DIGITAL ARCHIVE</span><span class="block font-bold text-base text-iwate-darkgreen">3D記録館</span><span class="block text-xs text-gray-600 mt-1">改築前も、その後も。時代を超えて家の姿を残す</span></span>
-                        <i class="fa-solid fa-arrow-right text-iwate-green"></i>
-                    </button>
-                    <button type="button" @click="houseTab = 'apply'" :aria-pressed="houseTab === 'apply'" class="menkoi-event-link w-full text-left" :class="houseTab === 'apply' ? 'is-selected' : ''"><i class="fa-regular fa-calendar-check text-iwate-wood"></i><span class="flex-1 font-bold text-sm">イベント利用・申請</span><i class="fa-solid fa-chevron-right text-xs"></i></button>
+
+                    <div v-if="['history','model3d'].includes(houseTab)" class="simple-subtabs">
+                        <button @click="houseTab='history'" :class="houseTab==='history' ? 'is-active' : ''">
+                            <i class="fa-solid fa-landmark mr-1"></i>家の記憶
+                        </button>
+                        <button @click="houseTab='model3d'" :class="houseTab==='model3d' ? 'is-active' : ''">
+                            <i class="fa-solid fa-cube mr-1"></i>3D記録館
+                        </button>
+                    </div>
+
+                    <div v-if="['ideas','apply'].includes(houseTab)" class="simple-subtabs">
+                        <button @click="houseTab='ideas'" :class="houseTab==='ideas' ? 'is-active' : ''">
+                            <i class="fa-solid fa-lightbulb mr-1"></i>活用と投票
+                        </button>
+                        <button @click="houseTab='apply'" :class="houseTab==='apply' ? 'is-active' : ''">
+                            <i class="fa-regular fa-calendar-check mr-1"></i>イベント利用
+                        </button>
+                    </div>
                 </section>
 
                 <!-- Vol.17: 成長記録を紙芝居のようにめくる -->
@@ -1509,39 +1768,24 @@
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">対象の空き家 <span class="text-red-500">*</span></label>
                         <select v-model="newQuestForm.houseId"
-                                :disabled="editingQuestId && hasAnyApplications(getQuestById(editingQuestId))"
-                                :class="editingQuestId && hasAnyApplications(getQuestById(editingQuestId)) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'"
+                                :disabled="isQuestHouseSelectionLocked()"
+                                :class="isQuestHouseSelectionLocked() ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white cursor-pointer'"
                                 class="w-full border p-2 rounded-xl">
+                            <option value="" disabled>空き家を選択してください</option>
                             <option v-for="h in ownedHouses" :key="h.id" :value="h.id">{{ h.name }} ({{ h.location }})</option>
                         </select>
-                        <p v-if="editingQuestId && hasAnyApplications(getQuestById(editingQuestId))" class="text-[10px] text-amber-700 mt-1">参加申請・参加者がいるため、対象の空き家は変更できません。</p>
+                        <p v-if="!editingQuestId" class="text-[10px] text-gray-500 mt-1">登録した空き家の中から、活動を行う物件を選択してください。</p>
+                        <p v-if="isQuestHouseSelectionLocked()" class="text-[10px] text-amber-700 mt-1">参加申請・参加者がいるため、編集中は対象の空き家を変更できません。</p>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">活動名 <span class="text-red-500">*</span></label>
-                        <select v-model="newQuestForm.title" class="w-full border p-2 rounded-xl bg-white">
-                            <option value="" disabled>活動の目的を選択してください</option>
-                            <option v-for="item in questActivityNames" :key="item" :value="item">{{ item }}</option>
-                            <option value="その他">その他（自由入力）</option>
-                        </select>
-                        <input v-if="newQuestForm.title === 'その他'" v-model="newQuestForm.customTitle" type="text" maxlength="100" placeholder="活動名を入力してください" class="w-full border p-2 rounded-xl mt-2">
+                        <input v-model="newQuestForm.title" type="text" class="w-full border p-2 rounded-xl">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">作業内容の説明 <span class="text-red-500">*</span></label>
-                        <p class="text-[11px] text-gray-500 mb-2">主な作業内容を1つ選択してください。</p>
-                        <select :value="newQuestForm.tasks[0] || ''" @change="newQuestForm.tasks = $event.target.value ? [$event.target.value] : []" class="w-full border p-2 rounded-xl bg-white mb-2">
-                            <option value="" disabled>作業内容を選択してください</option>
-                            <option v-for="task in questTaskOptions" :key="task" :value="task">{{ task }}</option>
-                        </select>
-                        <input v-if="newQuestForm.tasks.includes('その他')" v-model="newQuestForm.customTask" type="text" maxlength="120" placeholder="その他の作業を入力" class="w-full border p-2 rounded-xl mb-2">
-                        <label class="block font-bold text-gray-700 mb-1">作業の補足説明（任意）</label>
-                        <textarea v-model="newQuestForm.description" rows="2" placeholder="作業範囲・集合場所・注意点など" class="w-full border p-2 rounded-xl"></textarea>
+                        <textarea v-model="newQuestForm.description" rows="2" class="w-full border p-2 rounded-xl"></textarea>
                     </div>
-                    <div class="rounded-xl border border-green-200 bg-green-50 p-3">
-                        <div class="font-bold text-green-900"><i class="fa-solid fa-book-open mr-1"></i>歴史・記憶の収集 <span class="text-[10px] rounded-full bg-green-700 text-white px-2 py-1 ml-1">全クエスト共通・必須</span></div>
-                        <p class="text-[11px] text-green-900 mt-2">空き家や周辺地域の歴史・思い出・文化に触れ、活動後に記録します。新発見、既存情報への追加、現地確認、調査したが発見なし、のいずれでも記録できます。</p>
-                        <p class="text-[10px] text-green-800 mt-1">※危険な場所への立ち入りや無理な探索は不要です。未確認の伝承は事実と区別して記録してください。</p>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         <div>
                             <label class="block font-bold text-gray-700 mb-1">開催日 <span class="text-red-500">*</span></label>
                             <input v-model="newQuestForm.date" type="date" class="w-full border p-2 rounded-xl">
@@ -1553,6 +1797,14 @@
                         <div>
                             <label class="block font-bold text-gray-700 mb-1">募集人数 <span class="text-red-500">*</span></label>
                             <input v-model.number="newQuestForm.capacity" type="number" min="1" class="w-full border p-2 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">必要参加LV</label>
+                            <div class="w-full border rounded-xl p-2 bg-green-50 text-green-900 font-bold min-h-[38px] flex items-center">
+                                <span v-if="getHouse(newQuestForm.houseId)">参加者LV.{{ getHouse(newQuestForm.houseId).level }}以上</span>
+                                <span v-else class="text-gray-400 font-normal">空き家を選択すると自動設定</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-1">空き家LVと自動連動します。例：空き家LV.3 → 参加者LV.3以上。</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1632,12 +1884,11 @@
                 </div>
                 <div class="bg-iwate-paper border rounded-xl p-4 text-xs space-y-2">
                     <p><strong>対象の空き家：</strong>{{ getHouse(newQuestForm.houseId)?.name }}</p>
-                    <p><strong>活動名：</strong>{{ newQuestForm.title === 'その他' ? newQuestForm.customTitle : newQuestForm.title }}</p>
-                    <p class="whitespace-pre-wrap"><strong>作業内容：</strong>{{ newQuestForm.tasks.map(t => t === 'その他' ? newQuestForm.customTask : t).join('、') }}
-{{ newQuestForm.description }}
-【必須】歴史・記憶の収集</p>
+                    <p><strong>活動名：</strong>{{ newQuestForm.title }}</p>
+                    <p class="whitespace-pre-wrap"><strong>作業内容：</strong>{{ newQuestForm.description }}</p>
                     <p><strong>開催日時：</strong>{{ newQuestForm.date }} {{ newQuestForm.startTime }}〜</p>
                     <p><strong>募集人数：</strong>{{ newQuestForm.capacity }}名</p>
+                    <p><strong>参加条件：</strong>参加者LV.{{ getHouse(newQuestForm.houseId)?.level || 1 }}以上 <span class="text-gray-500">（空き家LV連動）</span></p>
                     <p><strong>達成報酬：</strong>100pt</p>
                     <p><strong>持ち物：</strong>{{ newQuestForm.items || '特になし' }}</p>
                     <p class="whitespace-pre-wrap"><strong>達成条件：</strong>{{ newQuestForm.conditions || '作業の完了' }}</p>
@@ -1645,7 +1896,7 @@
                     <p v-if="newQuestForm.eventUtilization" class="whitespace-pre-wrap"><strong>イベント活用：</strong>{{ newQuestForm.eventUtilization }}</p>
                 </div>
                 <p v-if="editingQuestId && hasAnyApplications(getQuestById(editingQuestId))" class="text-[11px] bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3">
-                    ※すでに参加申請・参加者がいるため、対象物件の変更はできません。募集人数は現在の参加確定人数より少なくできません。
+                    ※すでに参加申請・参加者がいるため、対象物件の変更はできません。募集人数は現在の参加確定人数より少なくできません。また、既存の申請者が参加できなくなるレベル条件への引き上げはできません。
                 </p>
                 <div class="flex flex-wrap justify-end gap-2">
                     <button @click="modals.confirmQuest = false" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold">戻って修正</button>
@@ -1733,6 +1984,8 @@
                     firebaseHydrating: true,
                     currentTab: 'home',
                     questFilter: 'all',
+                    questSearch: '',
+                    houseSearch: '',
                     houseTab: 'history',
                     growthPageIndex: 0,
                     
@@ -1749,6 +2002,8 @@
                         { id: 'u3', name: '盛岡 次郎', role: 'participant', points: 100, totalPoints: 150, level: 1, avatar: '🌲' },
                         { id: 'u4', name: '遠野の地域住民', role: 'resident', points: 0, totalPoints: 0, level: 1, avatar: '🏘️' }
                     ],
+                    parties: [],
+                    newPartyName: '',
                     currentUserId: 'u2',
 
                     houses: [
@@ -1825,6 +2080,7 @@
                             datetime: '2026年10月10日(土) 10:00〜14:00',
                             capacity: 4,
                             points: 100,
+                            requiredLevel: 1,
                             items: '軍手、マスク、動きやすい服',
                             conditions: '縁側および主屋床面の掃除機がけ＆乾拭き完了',
                             description: '長年使われていなかった縁側と囲炉裏の間をみんなでキレイにします！',
@@ -1903,18 +2159,14 @@
                         pastUse: '住宅',
                         ownerMsg: '', allowedEvents: [], customEvents: '', eventConditions: '', imagePreview: '', imageFileName: ''
                     },
-                    questActivityNames: ['空き家をきれいにしよう', '眠っている家をよみがえらせよう', '家の記憶を探そう', '地域の魅力を発見しよう', 'みんなが集まる場所をつくろう', '空き家を見守ろう'],
-                    questTaskOptions: ['草刈り', '清掃・掃除', 'ごみ拾い・片付け', '庭木の手入れ', 'DIY・修繕', '写真撮影', '昔の写真・資料集め', '地域住民への聞き取り', 'イベント準備・運営', '建物・周辺環境の確認', 'その他'],
                     newQuestForm: {
                         houseId: 'h1',
                         title: '',
-                        customTitle: '',
-                        tasks: [],
-                        customTask: '',
                         description: '',
                         date: '',
                         startTime: '',
                         capacity: 3,
+                        requiredLevel: 1,
                         points: 100,
                         items: '軍手',
                         conditions: '作業の完了',
@@ -1939,6 +2191,7 @@
                 users: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 houses: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 quests: { handler() { this.scheduleFirebaseSave(); }, deep: true },
+                parties: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 currentUserId() { this.scheduleFirebaseSave(); }
             },
             async mounted() {
@@ -1956,23 +2209,26 @@
                             const snaps = await Promise.all((ids || []).map(id => workspace.collection(collectionName).doc(id).get()));
                             return snaps.filter(s => s.exists).map(s => s.data().data).filter(Boolean);
                         };
-                        const [savedUsers, savedHouses, savedQuests] = await Promise.all([
+                        const [savedUsers, savedHouses, savedQuests, savedParties] = await Promise.all([
                             loadByIds('users', core.userIds),
                             loadByIds('houses', core.houseIds),
-                            loadByIds('quests', core.questIds)
+                            loadByIds('quests', core.questIds),
+                            loadByIds('parties', core.partyIds || [])
                         ]);
                         if (savedUsers.length) this.users = savedUsers;
                         if (savedHouses.length) this.houses = savedHouses;
                         if (savedQuests.length) this.quests = savedQuests;
+                        this.parties = savedParties;
                         if (core.currentUserId) this.currentUserId = core.currentUserId;
                     } else {
                         // vol11以前の一括ドキュメント保存から読み込み、自動でvol12方式へ移行する。
-                        const [usersSnap, housesSnap, questsSnap] = await Promise.all([
-                            state.doc('users').get(), state.doc('houses').get(), state.doc('quests').get()
+                        const [usersSnap, housesSnap, questsSnap, partiesSnap] = await Promise.all([
+                            state.doc('users').get(), state.doc('houses').get(), state.doc('quests').get(), state.doc('parties').get()
                         ]);
                         if (usersSnap.exists && Array.isArray(usersSnap.data().items)) this.users = usersSnap.data().items;
                         if (housesSnap.exists && Array.isArray(housesSnap.data().items)) this.houses = housesSnap.data().items;
                         if (questsSnap.exists && Array.isArray(questsSnap.data().items)) this.quests = questsSnap.data().items;
+                        if (partiesSnap.exists && Array.isArray(partiesSnap.data().items)) this.parties = partiesSnap.data().items;
                         if (core.currentUserId) this.currentUserId = core.currentUserId;
                     }
 
@@ -1992,6 +2248,46 @@
                 currentUser() {
                     return this.users.find(u => u.id === this.currentUserId) || this.users[0];
                 },
+                currentParty() {
+                    if (this.currentUser?.role !== 'participant') return null;
+                    return this.parties.find(party => (party.memberIds || []).includes(this.currentUser.id)) || null;
+                },
+                partyInvitations() {
+                    if (this.currentUser?.role !== 'participant') return [];
+                    return this.parties.filter(party => (party.invitedUserIds || []).includes(this.currentUser.id));
+                },
+                availablePartyInvitees() {
+                    const party = this.currentParty;
+                    if (!party || party.leaderId !== this.currentUser?.id) return [];
+                    const memberSet = new Set(party.memberIds || []);
+                    const invitedSet = new Set(party.invitedUserIds || []);
+                    return this.users.filter(user =>
+                        user.role === 'participant' &&
+                        user.id !== this.currentUser.id &&
+                        !memberSet.has(user.id) &&
+                        !invitedSet.has(user.id) &&
+                        !this.getPartyForUser(user.id)
+                    );
+                },
+                participantRanking() {
+                    const sorted = this.users
+                        .filter(user => user.role === 'participant')
+                        .slice()
+                        .sort((a, b) => {
+                            const pointDiff = (Number(b.totalPoints) || 0) - (Number(a.totalPoints) || 0);
+                            if (pointDiff !== 0) return pointDiff;
+                            return String(a.name || '').localeCompare(String(b.name || ''), 'ja');
+                        });
+                    let lastPoints = null;
+                    let lastRank = 0;
+                    return sorted.map((user, index) => {
+                        const points = Number(user.totalPoints) || 0;
+                        const rank = lastPoints === points ? lastRank : index + 1;
+                        lastPoints = points;
+                        lastRank = rank;
+                        return { user, rank };
+                    });
+                },
                 currentGrowthLog() {
                     const logs = this.activeHouse?.growthLogs || [];
                     return logs[Math.min(Math.max(this.growthPageIndex, 0), logs.length - 1)] || {};
@@ -2003,6 +2299,23 @@
                     return this.houses.filter(h => h.ownerId === this.currentUser.id).flatMap(h => (h.useApplications || []).map(a => ({house:h,application:a}))).sort((a,b) => (b.application.requestedAt || '').localeCompare(a.application.requestedAt || ''));
                 },
                 ownerPendingApplications() { return this.ownerApplications.filter(e => ['pending','counter_reply','accepted'].includes(e.application.status)); },
+                filteredHouses() {
+                    const keyword = (this.houseSearch || '').trim().toLowerCase();
+                    if (!keyword) return this.houses;
+                    return this.houses.filter(house => {
+                        const searchable = [
+                            house.name,
+                            house.location,
+                            house.status,
+                            house.pastUse,
+                            house.ownerMsg,
+                            ...(house.allowedEvents || []),
+                            house.customEvents,
+                            house.eventConditions
+                        ].filter(Boolean).join(' ').toLowerCase();
+                        return searchable.includes(keyword);
+                    });
+                },
                 ownedHouses() {
                     if (this.currentUser.role !== 'owner') return [];
                     return this.houses.filter(h => h.ownerId === this.currentUser.id);
@@ -2040,16 +2353,41 @@
                     return this.quests.filter(q => !this.isQuestCompleted(q));
                 },
                 filteredQuests() {
+                    let quests;
                     if (this.questFilter === 'active') {
-                        return this.quests.filter(q => !this.isQuestCompleted(q) &&
+                        quests = this.quests.filter(q => !this.isQuestCompleted(q) &&
                             (q.applications || []).some(a => ['pending','joined','reported','approved'].includes(a.status)));
+                    } else if (this.questFilter === 'mine') {
+                        quests = this.myQuests;
+                    } else if (this.questFilter === 'confirmedMine') {
+                        quests = this.myConfirmedQuests;
+                    } else if (this.questFilter === 'pendingMine') {
+                        quests = this.myPendingQuests;
+                    } else if (this.questFilter === 'joinRequests') {
+                        quests = this.questsWithJoinRequests.filter(q => !this.isQuestCompleted(q));
+                    } else if (this.questFilter === 'reportRequests') {
+                        quests = this.questsWithPendingReports.filter(q => !this.isQuestCompleted(q));
+                    } else {
+                        quests = this.availableQuests;
                     }
-                    if (this.questFilter === 'mine') return this.myQuests;
-                    if (this.questFilter === 'confirmedMine') return this.myConfirmedQuests;
-                    if (this.questFilter === 'pendingMine') return this.myPendingQuests;
-                    if (this.questFilter === 'joinRequests') return this.questsWithJoinRequests.filter(q => !this.isQuestCompleted(q));
-                    if (this.questFilter === 'reportRequests') return this.questsWithPendingReports.filter(q => !this.isQuestCompleted(q));
-                    return this.availableQuests;
+
+                    const keyword = (this.questSearch || '').trim().toLowerCase();
+                    if (!keyword) return quests;
+                    return quests.filter(quest => {
+                        const house = this.getHouse(quest.houseId);
+                        const searchable = [
+                            quest.title,
+                            quest.location,
+                            quest.description,
+                            quest.items,
+                            quest.conditions,
+                            quest.notes,
+                            quest.eventUtilization,
+                            house?.name,
+                            house?.location
+                        ].filter(Boolean).join(' ').toLowerCase();
+                        return searchable.includes(keyword);
+                    });
                 },
                 pendingReportsForActiveQuest() {
                     if (!this.activeQuest || !this.activeQuest.applications) return [];
@@ -2058,6 +2396,9 @@
                 pendingJoinRequestsForActiveQuest() {
                     if (!this.activeQuest || !this.activeQuest.applications) return [];
                     return this.activeQuest.applications.filter(a => a.status === 'pending');
+                },
+                pendingJoinRequestGroupsForActiveQuest() {
+                    return this.getPendingJoinRequestGroups(this.activeQuest);
                 }
             },
             methods: {
@@ -2113,6 +2454,25 @@
 
                     // 旧保存データで、累計ポイントだけ増えてLVが更新されていない利用者を補正する。
                     this.users.forEach(user => this.updateUserLevel(user));
+
+                    // Vol.28: パーティーデータを補正する。参加者だけが所属でき、1人1パーティーにする。
+                    if (!Array.isArray(this.parties)) this.parties = [];
+                    const participantIds = new Set(this.users.filter(u => u.role === 'participant').map(u => u.id));
+                    const occupied = new Set();
+                    this.parties = this.parties.filter(party => party && participantIds.has(party.leaderId)).map(party => {
+                        const members = [party.leaderId, ...(Array.isArray(party.memberIds) ? party.memberIds : [])]
+                            .filter((id, index, arr) => participantIds.has(id) && arr.indexOf(id) === index)
+                            .filter(id => id === party.leaderId || !occupied.has(id));
+                        members.forEach(id => occupied.add(id));
+                        const invited = (Array.isArray(party.invitedUserIds) ? party.invitedUserIds : [])
+                            .filter((id, index, arr) => participantIds.has(id) && !occupied.has(id) && arr.indexOf(id) === index);
+                        return {
+                            ...party,
+                            name: String(party.name || 'なかよしパーティー').trim() || 'なかよしパーティー',
+                            memberIds: members,
+                            invitedUserIds: invited
+                        };
+                    });
                 },
                 async saveToFirebase() {
                     if (!this.firebaseUid) return;
@@ -2120,20 +2480,22 @@
                     const state = workspace.collection('state');
                     const clone = value => JSON.parse(JSON.stringify(value));
 
-                    // users / houses / quests を1件ずつ別ドキュメントに保存し、画像増加時の肥大化を緩和。
+                    // users / houses / quests / parties を1件ずつ別ドキュメントに保存し、画像増加時の肥大化を緩和。
                     this.firebaseSaveQueue = this.firebaseSaveQueue.catch(() => {}).then(async () => {
                         const batch = db.batch();
                         batch.set(state.doc('core'), {
-                            schemaVersion: 12,
+                            schemaVersion: 14,
                             currentUserId: this.currentUserId,
                             userIds: this.users.map(u => u.id),
                             houseIds: this.houses.map(h => h.id),
                             questIds: this.quests.map(q => q.id),
+                            partyIds: this.parties.map(p => p.id),
                             updatedAt: new Date().toISOString()
                         });
                         this.users.forEach(user => batch.set(workspace.collection('users').doc(user.id), {data: clone(user)}));
                         this.houses.forEach(house => batch.set(workspace.collection('houses').doc(house.id), {data: clone(house)}));
                         this.quests.forEach(quest => batch.set(workspace.collection('quests').doc(quest.id), {data: clone(quest)}));
+                        this.parties.forEach(party => batch.set(workspace.collection('parties').doc(party.id), {data: clone(party)}));
                         await batch.commit();
                     });
                     try {
@@ -2145,6 +2507,115 @@
                         this.showToast('Firebase保存エラー: ' + error.message, 'error');
                     }
                 },
+                getPartyForUser(userId) {
+                    return this.parties.find(party => (party.memberIds || []).includes(userId)) || null;
+                },
+                getPartyMembers(party) {
+                    if (!party) return [];
+                    return (party.memberIds || []).map(id => this.users.find(user => user.id === id)).filter(Boolean);
+                },
+                isPartyLeader(party) {
+                    return !!party && party.leaderId === this.currentUser?.id;
+                },
+                createParty() {
+                    if (this.currentUser.role !== 'participant') {
+                        this.showToast('パーティーを作成できるのは参加者です', 'error');
+                        return;
+                    }
+                    if (this.currentParty) {
+                        this.showToast('すでにパーティーに所属しています', 'warning');
+                        return;
+                    }
+                    const name = String(this.newPartyName || '').trim();
+                    if (!name) {
+                        this.showToast('パーティー名を入力してください', 'warning');
+                        return;
+                    }
+                    const party = {
+                        id: 'party_' + Date.now(),
+                        name: name.slice(0, 30),
+                        leaderId: this.currentUser.id,
+                        memberIds: [this.currentUser.id],
+                        invitedUserIds: [],
+                        createdAt: new Date().toLocaleString('ja-JP')
+                    };
+                    this.parties.push(party);
+                    this.newPartyName = '';
+                    this.showToast(`パーティー「${party.name}」を作成しました！`);
+                },
+                inviteParticipantToParty(userId) {
+                    const party = this.currentParty;
+                    if (!party || !this.isPartyLeader(party)) {
+                        this.showToast('招待できるのはパーティーリーダーです', 'warning');
+                        return;
+                    }
+                    const user = this.users.find(u => u.id === userId && u.role === 'participant');
+                    if (!user) return;
+                    if (this.getPartyForUser(user.id)) {
+                        this.showToast(`${user.name}さんはすでに別のパーティーに所属しています`, 'warning');
+                        return;
+                    }
+                    if (!Array.isArray(party.invitedUserIds)) party.invitedUserIds = [];
+                    if (party.invitedUserIds.includes(user.id)) {
+                        this.showToast('すでに招待済みです', 'warning');
+                        return;
+                    }
+                    party.invitedUserIds.push(user.id);
+                    this.notifyUser(user.id, '👥 パーティー招待', `${this.currentUser.name}さんから「${party.name}」への招待が届きました。マイページから参加できます。`);
+                    this.showToast(`${user.name}さんを招待しました`);
+                },
+                acceptPartyInvite(party) {
+                    if (this.currentUser.role !== 'participant' || !party) return;
+                    if (this.currentParty) {
+                        this.showToast('すでにパーティーに所属しています', 'warning');
+                        return;
+                    }
+                    if (!(party.invitedUserIds || []).includes(this.currentUser.id)) {
+                        this.showToast('この招待は有効ではありません', 'warning');
+                        return;
+                    }
+                    if (!Array.isArray(party.memberIds)) party.memberIds = [party.leaderId].filter(Boolean);
+                    if (!party.memberIds.includes(this.currentUser.id)) party.memberIds.push(this.currentUser.id);
+                    party.invitedUserIds = (party.invitedUserIds || []).filter(id => id !== this.currentUser.id);
+                    this.parties.forEach(other => {
+                        if (other.id !== party.id && Array.isArray(other.invitedUserIds)) {
+                            other.invitedUserIds = other.invitedUserIds.filter(id => id !== this.currentUser.id);
+                        }
+                    });
+                    this.notifyUser(party.leaderId, '🎉 パーティー参加', `${this.currentUser.name}さんが「${party.name}」に参加しました。`);
+                    this.showToast(`「${party.name}」に参加しました！`);
+                },
+                declinePartyInvite(party) {
+                    if (!party) return;
+                    party.invitedUserIds = (party.invitedUserIds || []).filter(id => id !== this.currentUser.id);
+                    this.showToast('パーティー招待を辞退しました');
+                },
+                removePartyMember(party, userId) {
+                    if (!party || !this.isPartyLeader(party) || userId === party.leaderId) return;
+                    const user = this.users.find(u => u.id === userId);
+                    party.memberIds = (party.memberIds || []).filter(id => id !== userId);
+                    if (user) this.notifyUser(user.id, 'パーティーから外れました', `「${party.name}」のメンバーから外れました。`);
+                    this.showToast(user ? `${user.name}さんをパーティーから外しました` : 'メンバーを外しました');
+                },
+                leaveParty(party) {
+                    if (!party || !(party.memberIds || []).includes(this.currentUser.id)) return;
+                    if (party.leaderId === this.currentUser.id) {
+                        this.showToast('リーダーは脱退できません。解散してください', 'warning');
+                        return;
+                    }
+                    party.memberIds = party.memberIds.filter(id => id !== this.currentUser.id);
+                    this.notifyUser(party.leaderId, 'パーティー脱退', `${this.currentUser.name}さんが「${party.name}」から脱退しました。`);
+                    this.showToast(`「${party.name}」から脱退しました`);
+                },
+                disbandParty(party) {
+                    if (!party || !this.isPartyLeader(party)) return;
+                    if (!confirm(`パーティー「${party.name}」を解散しますか？`)) return;
+                    const memberIds = (party.memberIds || []).filter(id => id !== this.currentUser.id);
+                    memberIds.forEach(id => this.notifyUser(id, 'パーティー解散', `「${party.name}」がリーダーにより解散されました。`));
+                    this.parties = this.parties.filter(p => p.id !== party.id);
+                    this.showToast(`「${party.name}」を解散しました`);
+                },
+
                 notifyUser(userId, title, message) {
                     const user = this.users.find(u => u.id === userId);
                     if (!user) return;
@@ -2276,6 +2747,23 @@
                     const count = quest.applications.filter(a => a.status === 'joined' || a.status === 'reported' || a.status === 'approved').length;
                     return Math.max(0, quest.capacity - count);
                 },
+                getQuestRequiredLevel(quest) {
+                    // 参加条件は対象空き家の成長LVと自動連動する。
+                    // 空き家LV.1→参加者LV.1以上、…、空き家LV.4→参加者LV.4。
+                    const house = quest ? this.getHouse(quest.houseId) : null;
+                    const level = house ? Number(house.level) : Number(quest?.requiredLevel);
+                    return Math.min(4, Math.max(1, Math.floor(level || 1)));
+                },
+                meetsQuestLevel(quest) {
+                    if (this.currentUser.role !== 'participant') return false;
+                    return (Number(this.currentUser.level) || 1) >= this.getQuestRequiredLevel(quest);
+                },
+                getLowestExistingQuestApplicantLevel(quest) {
+                    const levels = (quest?.applications || [])
+                        .filter(a => ['pending','joined','reported','approved'].includes(a.status))
+                        .map(a => Number(this.getUser(a.userId)?.level) || 1);
+                    return levels.length ? Math.min(...levels) : null;
+                },
                 getApprovedCount(quest) {
                     if (!quest || !quest.applications) return 0;
                     return quest.applications.filter(a => a.status === 'approved').length;
@@ -2357,9 +2845,205 @@
                     return false;
                 },
 
+                isPartyQuestApplication(app) {
+                    return !!(app && app.partyApplicationId && app.partyId);
+                },
+                getPartyApplicationName(app) {
+                    if (!this.isPartyQuestApplication(app)) return '';
+                    return app.partyNameSnapshot || this.parties.find(p => p.id === app.partyId)?.name || 'パーティー';
+                },
+                getPendingJoinRequestGroups(quest) {
+                    const pending = (quest?.applications || []).filter(app => app.status === 'pending');
+                    const groups = [];
+                    const seenPartyApplications = new Set();
+                    pending.forEach(app => {
+                        if (this.isPartyQuestApplication(app)) {
+                            if (seenPartyApplications.has(app.partyApplicationId)) return;
+                            seenPartyApplications.add(app.partyApplicationId);
+                            const apps = pending.filter(item => item.partyApplicationId === app.partyApplicationId);
+                            groups.push({
+                                key: 'party-' + app.partyApplicationId,
+                                isParty: true,
+                                partyApplicationId: app.partyApplicationId,
+                                partyId: app.partyId,
+                                label: this.getPartyApplicationName(app),
+                                apps
+                            });
+                        } else {
+                            groups.push({
+                                key: 'user-' + app.userId,
+                                isParty: false,
+                                label: this.getUserName(app.userId),
+                                apps: [app]
+                            });
+                        }
+                    });
+                    return groups;
+                },
+                getPartyQuestEligibility(quest) {
+                    const party = this.currentParty;
+                    if (this.currentUser.role !== 'participant') return { ok: false, reason: '参加者のみ利用できます' };
+                    if (!party) return { ok: false, reason: 'パーティーに所属していません' };
+                    if (!this.isPartyLeader(party)) return { ok: false, reason: 'パーティーリーダーのみ申請できます' };
+                    const members = this.getPartyMembers(party);
+                    if (members.length < 2) return { ok: false, reason: '2人以上のパーティーで申し込めます', party, members };
+                    const requiredLevel = this.getQuestRequiredLevel(quest);
+                    const qualifiedMembers = members.filter(member => (Number(member.level) || 1) >= requiredLevel);
+                    const lowLevelMembers = members.filter(member => (Number(member.level) || 1) < requiredLevel);
+                    if (!qualifiedMembers.length) {
+                        return { ok: false, reason: `パーティー内に参加者LV.${requiredLevel}以上のメンバーが1人以上必要です`, party, members, requiredLevel, qualifiedMembers, lowLevelMembers };
+                    }
+                    if (this.getRemainingSlots(quest) < members.length) {
+                        return { ok: false, reason: `残り${this.getRemainingSlots(quest)}枠のため${members.length}人では参加できません`, party, members };
+                    }
+                    const blocked = members.find(member => {
+                        const app = (quest?.applications || []).find(item => item.userId === member.id);
+                        return app && app.status !== 'rejected';
+                    });
+                    if (blocked) {
+                        return { ok: false, reason: `${blocked.name}さんはすでにこのクエストへ申請・参加しています`, party, members };
+                    }
+                    return { ok: true, reason: '', party, members, requiredLevel, qualifiedMembers, lowLevelMembers };
+                },
+                canApplyQuestAsParty(quest) {
+                    return this.getPartyQuestEligibility(quest).ok;
+                },
+                getPartyApplyButtonText(quest) {
+                    const eligibility = this.getPartyQuestEligibility(quest);
+                    if (eligibility.ok) {
+                        const lowCount = eligibility.lowLevelMembers?.length || 0;
+                        return lowCount
+                            ? `パーティーで申し込む（${eligibility.members.length}人・LV未達${lowCount}人）`
+                            : `パーティーで申し込む（${eligibility.members.length}人）`;
+                    }
+                    return eligibility.reason || 'パーティーで申し込めません';
+                },
+                applyQuestAsParty(quest) {
+                    const eligibility = this.getPartyQuestEligibility(quest);
+                    if (!eligibility.ok) {
+                        this.showToast(eligibility.reason, 'warning');
+                        return;
+                    }
+                    const { party, members, requiredLevel, lowLevelMembers } = eligibility;
+                    if (!quest.applications) quest.applications = [];
+                    const partyApplicationId = `partyapp_${party.id}_${Date.now()}`;
+                    const requestedAt = new Date().toLocaleString('ja-JP');
+                    const memberIds = members.map(member => member.id);
+
+                    members.forEach(member => {
+                        let app = quest.applications.find(item => item.userId === member.id);
+                        if (app && app.status === 'rejected') {
+                            app.status = 'pending';
+                            app.joinRejectionReason = '';
+                            app.joinRejectReasonDraft = '';
+                            app.showJoinRejectForm = false;
+                            app.requestedAt = requestedAt;
+                            app.joinApprovedAt = '';
+                            app.joinRejectedAt = '';
+                        } else {
+                            app = {
+                                userId: member.id, status: 'pending', requestedAt,
+                                joinApprovedAt: '', joinRejectionReason: '',
+                                reportPhoto: '', reportComment: '', reportedAt: '', messages: []
+                            };
+                            quest.applications.push(app);
+                        }
+                        app.applicationType = 'party';
+                        app.partyId = party.id;
+                        app.partyNameSnapshot = party.name;
+                        app.partyApplicationId = partyApplicationId;
+                        app.partyLeaderId = party.leaderId;
+                        app.partyMemberIdsSnapshot = [...memberIds];
+                    });
+
+                    const house = this.getHouse(quest.houseId);
+                    if (house) this.notifyUser(house.ownerId, '👥 パーティー参加申請が届きました', `「${party.name}」${members.length}人から「${quest.title}」への参加申請が届きました。`);
+                    members.filter(member => member.id !== this.currentUser.id).forEach(member => {
+                        this.notifyUser(member.id, '👥 パーティーでクエスト申請', `リーダーの${this.currentUser.name}さんが「${party.name}」として「${quest.title}」へ参加申請しました。`);
+                    });
+                    (lowLevelMembers || []).forEach(member => {
+                        this.notifyUser(
+                            member.id,
+                            '⚠️ 推奨レベル未達のクエストです',
+                            `「${quest.title}」は参加者LV.${requiredLevel}以上が目安です。あなたは現在LV.${Number(member.level) || 1}です。パーティー内に条件を満たすメンバーがいるため参加できますが、無理をせずメンバーと協力して活動してください。`
+                        );
+                    });
+                    const warningText = (lowLevelMembers || []).length
+                        ? ` LV未達の${lowLevelMembers.length}人には警告通知を送りました。`
+                        : '';
+                    this.showToast(`「${party.name}」${members.length}人で参加申請を送りました！${warningText}`, (lowLevelMembers || []).length ? 'warning' : 'success');
+                },
+                cancelPartyQuestApplication(quest, partyApplicationId) {
+                    if (!quest || !partyApplicationId) return;
+                    const groupApps = (quest.applications || []).filter(app => app.partyApplicationId === partyApplicationId && app.status === 'pending');
+                    if (!groupApps.length) return;
+                    const leaderId = groupApps[0].partyLeaderId;
+                    if (leaderId !== this.currentUser.id) {
+                        this.showToast('パーティー申請を取り消せるのは申請したリーダーです', 'warning');
+                        return;
+                    }
+                    const partyName = this.getPartyApplicationName(groupApps[0]);
+                    if (!window.confirm(`「${partyName}」の「${quest.title}」への参加申請を全員分取り消しますか？`)) return;
+                    const memberIds = groupApps.map(app => app.userId);
+                    quest.applications = (quest.applications || []).filter(app => !(app.partyApplicationId === partyApplicationId && app.status === 'pending'));
+                    memberIds.filter(id => id !== this.currentUser.id).forEach(id => this.notifyUser(id, 'パーティー申請を取り消しました', `リーダーが「${quest.title}」へのパーティー参加申請を取り消しました。`));
+                    this.showToast('パーティー参加申請を取り消しました', 'info');
+                },
+                approveQuestJoinGroup(quest, group) {
+                    if (!group || !group.apps?.length) return;
+                    if (!group.isParty) {
+                        this.approveQuestJoin(quest, group.apps[0]);
+                        return;
+                    }
+                    if (!this.isQuestOwner(quest)) return;
+                    const pendingApps = group.apps.filter(app => app.status === 'pending');
+                    if (this.getRemainingSlots(quest) < pendingApps.length) {
+                        this.showToast(`残り${this.getRemainingSlots(quest)}枠のため、${pendingApps.length}人のパーティーを一括承認できません`, 'warning');
+                        return;
+                    }
+                    const approvedAt = new Date().toLocaleString('ja-JP');
+                    pendingApps.forEach(app => {
+                        app.status = 'joined';
+                        app.joinApprovedAt = approvedAt;
+                        app.joinRejectionReason = '';
+                        app.showJoinRejectForm = false;
+                        this.notifyUser(app.userId, '✅ パーティーのクエスト参加が承認されました', `「${quest.title}」への「${group.label}」での参加が承認されました。`);
+                    });
+                    this.showToast(`「${group.label}」${pendingApps.length}人の参加を承認しました`);
+                    if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
+                },
+                rejectQuestJoinGroup(quest, group) {
+                    if (!group || !group.apps?.length) return;
+                    if (!group.isParty) {
+                        this.rejectQuestJoin(quest, group.apps[0]);
+                        return;
+                    }
+                    if (!this.isQuestOwner(quest)) return;
+                    const reason = String(group.apps[0].joinRejectReasonDraft || '').trim();
+                    if (!reason) {
+                        this.showToast('見送り理由を入力してください', 'warning');
+                        return;
+                    }
+                    const rejectedAt = new Date().toLocaleString('ja-JP');
+                    group.apps.filter(app => app.status === 'pending').forEach(app => {
+                        app.status = 'rejected';
+                        app.joinRejectionReason = reason;
+                        app.joinRejectedAt = rejectedAt;
+                        app.showJoinRejectForm = false;
+                        app.joinRejectReasonDraft = '';
+                        this.notifyUser(app.userId, 'パーティー参加申請の結果', `「${quest.title}」への「${group.label}」での参加申請は今回は見送りとなりました。理由：${reason}`);
+                    });
+                    this.showToast(`「${group.label}」の参加申請を見送りました`, 'info');
+                    if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
+                },
+
                 applyQuest(quest) {
                     if (this.currentUser.role !== 'participant') {
                         this.showToast('クエストに参加申請できるのは参加者です', 'error');
+                        return;
+                    }
+                    if (!this.meetsQuestLevel(quest)) {
+                        this.showToast(`このクエストは参加者LV.${this.getQuestRequiredLevel(quest)}以上から参加できます（現在LV.${Number(this.currentUser.level) || 1}）`, 'warning');
                         return;
                     }
                     if (this.getRemainingSlots(quest) <= 0) {
@@ -2378,6 +3062,12 @@
                         existing.joinRejectReasonDraft = '';
                         existing.showJoinRejectForm = false;
                         existing.requestedAt = new Date().toLocaleString('ja-JP');
+                        delete existing.applicationType;
+                        delete existing.partyId;
+                        delete existing.partyNameSnapshot;
+                        delete existing.partyApplicationId;
+                        delete existing.partyLeaderId;
+                        delete existing.partyMemberIdsSnapshot;
                     } else {
                         quest.applications.push({
                             userId: this.currentUser.id, status: 'pending',
@@ -2710,12 +3400,14 @@
                     }
                     this.editingQuestId = '';
                     this.modals.confirmQuest = false;
-                    this.newQuestForm.houseId = this.ownedHouses[0].id;
+                    // 新規作成時は所有者が対象物件を明示的に選ぶ。
+                    this.newQuestForm.houseId = '';
                     this.newQuestForm.title = '';
                     this.newQuestForm.description = '';
                     this.newQuestForm.date = '';
                     this.newQuestForm.startTime = '';
                     this.newQuestForm.capacity = 3;
+                    this.newQuestForm.requiredLevel = 1;
                     this.newQuestForm.points = 100;
                     this.newQuestForm.items = '軍手';
                     this.newQuestForm.conditions = '作業の完了';
@@ -2725,6 +3417,11 @@
                 },
                 getQuestById(questId) {
                     return this.quests.find(q => q.id === questId) || null;
+                },
+                isQuestHouseSelectionLocked() {
+                    if (!this.editingQuestId) return false;
+                    const quest = this.getQuestById(this.editingQuestId);
+                    return !!(quest && this.hasAnyApplications(quest));
                 },
                 getQuestParticipantCount(quest) {
                     if (!quest) return 0;
@@ -2746,14 +3443,12 @@
                     this.editingQuestId = quest.id;
                     this.modals.confirmQuest = false;
                     this.newQuestForm.houseId = quest.houseId;
-                    this.newQuestForm.title = this.questActivityNames.includes(quest.title) ? quest.title : 'その他';
-                    this.newQuestForm.customTitle = this.newQuestForm.title === 'その他' ? (quest.title || '') : '';
-                    this.newQuestForm.tasks = Array.isArray(quest.tasks) ? [...quest.tasks] : (quest.description ? ['その他'] : []);
-                    this.newQuestForm.customTask = quest.customTask || (Array.isArray(quest.tasks) ? '' : (quest.description || ''));
-                    this.newQuestForm.description = Array.isArray(quest.tasks) ? (quest.descriptionNote || '') : '';
+                    this.newQuestForm.title = quest.title || '';
+                    this.newQuestForm.description = quest.description || '';
                     this.newQuestForm.date = this.questDateForInput(quest.datetime);
                     this.newQuestForm.startTime = this.questTimeForInput(quest.datetime);
                     this.newQuestForm.capacity = Math.max(1, Number(quest.capacity) || 1);
+                    this.newQuestForm.requiredLevel = Math.min(4, Math.max(1, Number(this.getHouse(quest.houseId)?.level) || 1));
                     this.newQuestForm.points = 100;
                     this.newQuestForm.items = quest.items || '';
                     this.newQuestForm.conditions = quest.conditions || '';
@@ -2764,16 +3459,19 @@
                 },
                 openQuestConfirmation() {
                     const house = this.getHouse(this.newQuestForm.houseId);
-                    if (this.currentUser.role !== 'owner' || !house || house.ownerId !== this.currentUser.id) {
-                        this.showToast('自分が所有する空き家を選択してください', 'warning');
+                    if (this.currentUser.role !== 'owner') return;
+                    if (!this.newQuestForm.houseId || !house || house.ownerId !== this.currentUser.id) {
+                        this.showToast('対象の空き家を選択してください', 'warning');
                         return;
                     }
-                    if (!this.newQuestForm.title.trim() || (this.newQuestForm.title === 'その他' && !this.newQuestForm.customTitle.trim()) || !this.newQuestForm.tasks.length || (this.newQuestForm.tasks.includes('その他') && !this.newQuestForm.customTask.trim()) || !this.newQuestForm.date || !this.newQuestForm.startTime) {
+                    if (!this.newQuestForm.title.trim() || !this.newQuestForm.description.trim() || !this.newQuestForm.date || !this.newQuestForm.startTime) {
                         this.showToast('活動名・作業内容・開催日・開始時間を入力してください', 'warning');
                         return;
                     }
                     const capacity = Number(this.newQuestForm.capacity) || 0;
                     if (capacity < 1) { this.showToast('募集人数は1名以上にしてください', 'warning'); return; }
+                    const requiredLevel = Math.min(4, Math.max(1, Math.floor(Number(house.level) || 1)));
+                    this.newQuestForm.requiredLevel = requiredLevel;
                     if (this.editingQuestId) {
                         const q = this.getQuestById(this.editingQuestId);
                         if (!q || !this.isQuestOwner(q)) return;
@@ -3057,6 +3755,8 @@
                     house.level += 1;
                     house.levelName = levelNames[house.level] || '地域公開期';
                     house.nextLevelReq = this.getHouseNextLevelRequirement(house);
+                    // この空き家に紐づくクエストの参加条件も新しい空き家LVへ同期。
+                    this.quests.filter(q => q.houseId === house.id).forEach(q => { q.requiredLevel = house.level; });
                     if (!house.growthLogs) house.growthLogs = [];
                     house.growthLogs.unshift({
                         date: new Date().toISOString().split('T')[0],
@@ -3246,29 +3946,32 @@
 
                 saveNewQuest() {
                     const house = this.getHouse(this.newQuestForm.houseId);
-                    if (this.currentUser.role !== 'owner' || !house || house.ownerId !== this.currentUser.id) return;
-                    if (!this.newQuestForm.title.trim() || (this.newQuestForm.title === 'その他' && !this.newQuestForm.customTitle.trim()) || !this.newQuestForm.tasks.length || (this.newQuestForm.tasks.includes('その他') && !this.newQuestForm.customTask.trim()) || !this.newQuestForm.date || !this.newQuestForm.startTime) {
+                    if (this.currentUser.role !== 'owner') return;
+                    if (!this.newQuestForm.houseId || !house || house.ownerId !== this.currentUser.id) {
+                        this.showToast('対象の空き家を選択してください', 'warning');
+                        return;
+                    }
+                    if (!this.newQuestForm.title.trim() || !this.newQuestForm.description.trim() || !this.newQuestForm.date || !this.newQuestForm.startTime) {
                         this.showToast('活動名・作業内容・開催日・開始時間を入力してください', 'warning');
                         return;
                     }
 
                     const capacity = Math.max(1, Number(this.newQuestForm.capacity) || 1);
+                    const requiredLevel = Math.min(4, Math.max(1, Math.floor(Number(house.level) || 1)));
+                    this.newQuestForm.requiredLevel = requiredLevel;
                     const values = {
                         houseId: this.newQuestForm.houseId,
-                        title: this.newQuestForm.title === 'その他' ? this.newQuestForm.customTitle.trim() : this.newQuestForm.title.trim(),
-                        tasks: [...this.newQuestForm.tasks],
-                        customTask: this.newQuestForm.customTask.trim(),
-                        descriptionNote: this.newQuestForm.description.trim(),
-                        historyCollectionRequired: true,
+                        title: this.newQuestForm.title.trim(),
                         location: house.location,
                         datetime: `${this.newQuestForm.date} ${this.newQuestForm.startTime}〜`,
                         capacity,
+                        requiredLevel,
                         points: 100,
                         items: this.newQuestForm.items.trim() || '特になし',
                         conditions: this.newQuestForm.conditions.trim() || '作業の完了',
                         notes: this.newQuestForm.notes.trim(),
                         eventUtilization: this.newQuestForm.eventUtilization.trim(),
-                        description: this.newQuestForm.tasks.map(t => t === 'その他' ? this.newQuestForm.customTask.trim() : t).join('、') + (this.newQuestForm.description.trim() ? '\n' + this.newQuestForm.description.trim() : '') + '\n【共通活動】歴史・記憶の収集（新発見・情報追加・現地確認・発見なしの記録）',
+                        description: this.newQuestForm.description.trim(),
                         image: house.image
                     };
 
@@ -3322,7 +4025,6 @@
             }
         }).mount('#app');
     </script>
-
 <div id="menkoi-map-overlay" role="dialog" aria-modal="true" aria-label="めんこい探索マップ">
  <div class="menkoi-map-top">
   <span style="font-size:24px">🗺️</span>
@@ -3380,5 +4082,6 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('menkoi-map-overlay').classList.contains('open'))closeMenkoiMap();});
 })();
 </script>
+
 </body>
 </html>
