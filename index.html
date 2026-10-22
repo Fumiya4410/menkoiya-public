@@ -702,17 +702,27 @@
                         </div>
 
                         <div v-else class="p-4 md:p-5 space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div v-for="entry in participantRanking.slice(0,3)" :key="'podium-' + entry.user.id"
-                                     class="rounded-xl border p-4 text-center relative"
-                                     :class="entry.user.id === currentUser.id ? 'border-iwate-gold bg-amber-50 ring-1 ring-iwate-gold/30' : 'border-iwate-wood/10 bg-iwate-paper'">
-                                    <div class="text-2xl mb-1" aria-hidden="true">{{ entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : '🏅' }}</div>
-                                    <div class="text-xs font-black text-iwate-wood">{{ entry.rank }}位</div>
-                                    <div class="text-3xl mt-1">{{ entry.user.avatar || '🙂' }}</div>
-                                    <div class="font-bold text-sm text-gray-800 mt-1 truncate">{{ entry.user.name }}</div>
-                                    <div class="text-[10px] text-gray-500 mt-1">参加者 LV.{{ entry.user.level || 1 }}</div>
-                                    <div class="text-xl font-black text-iwate-darkgreen mt-2">{{ Number(entry.user.totalPoints) || 0 }}<span class="text-xs ml-0.5">pt</span></div>
-                                    <span v-if="entry.user.id === currentUser.id" class="inline-block mt-2 text-[10px] font-bold bg-iwate-darkgreen text-white px-2 py-0.5 rounded-full">あなた</span>
+                            <!-- 表彰台：左から2位・1位・3位 -->
+                            <div class="grid grid-cols-3 gap-2 sm:gap-4 items-end max-w-3xl mx-auto pt-4">
+                                <div v-for="entry in participantPodium" :key="'podium-' + entry.user.id" class="flex flex-col justify-end min-w-0">
+                                    <div class="rounded-xl border p-3 sm:p-4 text-center relative shadow-sm bg-white"
+                                         :class="[
+                                             entry.user.id === currentUser.id ? 'ring-2 ring-iwate-gold/40' : '',
+                                             entry.podiumPlace === 1 ? 'border-iwate-gold bg-amber-50' : 'border-iwate-wood/10'
+                                         ]">
+                                        <div class="text-2xl sm:text-3xl mb-1" aria-hidden="true">{{ entry.podiumPlace === 1 ? '🥇' : entry.podiumPlace === 2 ? '🥈' : '🥉' }}</div>
+                                        <div class="text-2xl sm:text-4xl mt-1">{{ entry.user.avatar || '🙂' }}</div>
+                                        <div class="font-bold text-xs sm:text-sm text-gray-800 mt-1 truncate">{{ entry.user.name }}</div>
+                                        <div class="text-[9px] sm:text-[10px] text-gray-500 mt-1">LV.{{ entry.user.level || 1 }}</div>
+                                        <div class="text-base sm:text-xl font-black text-iwate-darkgreen mt-2">{{ Number(entry.user.totalPoints) || 0 }}<span class="text-[10px] sm:text-xs ml-0.5">pt</span></div>
+                                        <span v-if="entry.user.id === currentUser.id" class="inline-block mt-2 text-[9px] sm:text-[10px] font-bold bg-iwate-darkgreen text-white px-2 py-0.5 rounded-full">あなた</span>
+                                    </div>
+
+                                    <div class="mt-2 rounded-t-xl flex flex-col items-center justify-center font-black text-white shadow-inner"
+                                         :class="entry.podiumPlace === 1 ? 'h-32 sm:h-40 bg-amber-500' : entry.podiumPlace === 2 ? 'h-24 sm:h-28 bg-gray-400' : 'h-20 sm:h-24 bg-amber-700'">
+                                        <div class="text-2xl sm:text-4xl">{{ entry.podiumPlace }}</div>
+                                        <div class="text-[10px] sm:text-xs opacity-90">位</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -824,13 +834,19 @@
                                 <p class="text-xs font-bold text-iwate-darkgreen">仲間を招待する</p>
                                 <p class="text-[10px] text-gray-500 mt-1">相手が承認するとパーティーに加入します。</p>
                             </div>
+                            <div v-if="availablePartyInvitees.length" class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input v-model="partyInviteSearch" type="search" placeholder="参加者名で検索" class="w-full border rounded-xl pl-9 pr-9 py-2 text-xs bg-white">
+                                <button v-if="partyInviteSearch" type="button" @click="partyInviteSearch=''" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700" aria-label="検索をクリア">×</button>
+                            </div>
                             <p v-if="!availablePartyInvitees.length" class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">現在招待できる参加者はいません。</p>
+                            <p v-else-if="!filteredPartyInvitees.length" class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">検索条件に一致する参加者はいません。</p>
                             <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div v-for="user in availablePartyInvitees" :key="'party-user-'+user.id" class="flex items-center gap-3 rounded-xl border p-3">
+                                <div v-for="user in filteredPartyInvitees" :key="'party-user-'+user.id" class="flex items-center gap-3 rounded-xl border p-3">
                                     <span class="text-xl">{{ user.avatar }}</span>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-bold truncate">{{ user.name }}</p>
-                                        <p class="text-[10px] text-gray-500">LV.{{ user.level || 1 }}</p>
+                                        <p class="text-[10px] text-gray-500">LV.{{ user.level || 1 }} · 累計 {{ Number(user.totalPoints) || 0 }}pt</p>
                                     </div>
                                     <button @click="inviteParticipantToParty(user.id)" class="bg-iwate-darkgreen text-white rounded-lg px-3 py-1.5 text-[10px] font-bold">招待</button>
                                 </div>
@@ -1710,8 +1726,18 @@
                         <p class="mt-1 text-[10px] text-gray-400">新規登録では写真の選択が必須です。編集時は現在の写真をそのまま利用するか、新しい写真へ差し替えられます。画像は自動で縮小・圧縮（目安70KB以下）し、デモ用としてFirestoreへ保存します。</p>
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">所在地 (市町村) <span class="text-red-500">*</span></label>
-                        <input v-model="newHouseForm.location" type="text" class="w-full border p-2 rounded-xl" placeholder="例: 岩手県花巻市大迫町">
+                        <label class="block font-bold text-gray-700 mb-1">郵便番号</label>
+                        <div class="flex gap-2">
+                            <input v-model="newHouseForm.postalCode" @input="handlePostalCodeInput" inputmode="numeric" maxlength="8" type="text" class="flex-1 border p-2 rounded-xl" placeholder="例: 025-0000">
+                            <button type="button" @click="lookupAddressFromPostalCode" :disabled="postalLookupLoading || postalCodeDigits.length !== 7" class="px-3 py-2 rounded-xl text-xs font-bold bg-iwate-lightgreen text-iwate-darkgreen border disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                <i v-if="postalLookupLoading" class="fa-solid fa-spinner fa-spin mr-1"></i>住所入力
+                            </button>
+                        </div>
+                        <p class="text-[10px] mt-1" :class="postalLookupError ? 'text-red-600' : 'text-gray-500'">{{ postalLookupError || '7桁入力すると、都道府県・市区町村・町域まで所在地へ自動入力します。' }}</p>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">所在地 <span class="text-red-500">*</span></label>
+                        <input v-model="newHouseForm.location" type="text" class="w-full border p-2 rounded-xl" placeholder="例: 岩手県花巻市大迫町（番地などを追加入力）">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">物件名称</label>
@@ -1730,14 +1756,29 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                             <label class="block font-bold text-gray-700 mb-1">現在の状態</label>
-                            <input v-model="newHouseForm.status" type="text" class="w-full border p-2 rounded-xl" placeholder="例：残置物あり・清掃前">
+                            <select v-model="newHouseForm.status" class="w-full border p-2 rounded-xl bg-white">
+                                <option v-if="newHouseForm.status && !houseStatusOptions.includes(newHouseForm.status)" :value="newHouseForm.status">{{ newHouseForm.status }}（既存データ）</option>
+                                <option v-for="status in houseStatusOptions" :key="status" :value="status">{{ status }}</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 mb-1">過去の用途</label>
                             <input v-model="newHouseForm.pastUse" type="text" class="w-full border p-2 rounded-xl" placeholder="例：農家住宅・店舗兼住宅">
                         </div>
                     </div>
-                    <div><label class="block font-bold text-gray-700 mb-1">開催を許可できるイベント（複数選択可）</label><div class="grid grid-cols-2 gap-2"><label v-for="event in eventOptions" :key="event" class="flex gap-2 items-center"><input type="checkbox" :value="event" v-model="newHouseForm.allowedEvents">{{ event }}</label></div><label class="block font-bold text-gray-700 mt-3 mb-1">その他のイベント・活用方法（自由記入）</label><textarea v-model="newHouseForm.customEvents" rows="3" class="w-full border p-2 rounded-xl" placeholder="例：季節の収穫祭、地域の写真展、週末の読書会など"></textarea><p class="text-[10px] text-gray-500 mt-1">選択肢にない活用方法や、所有者が希望するイベントを自由に書けます。</p></div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-2">開催を許可できるイベント（複数選択可）</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <label v-for="event in eventOptions" :key="event" class="flex items-center gap-2 rounded-xl border bg-white px-3 py-2 cursor-pointer hover:bg-iwate-paper transition">
+                                <input v-model="newHouseForm.allowedEvents" type="checkbox" :value="event" class="accent-iwate-green">
+                                <span class="text-xs font-bold text-gray-700">{{ event }}</span>
+                            </label>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-1">許可できるイベントにチェックを入れてください。複数選択できます。</p>
+                        <label class="block font-bold text-gray-700 mt-3 mb-1">その他のイベント・活用方法（自由記入）</label>
+                        <textarea v-model="newHouseForm.customEvents" rows="3" class="w-full border p-2 rounded-xl" placeholder="例：季節の収穫祭、地域の写真展、週末の読書会など"></textarea>
+                        <p class="text-[10px] text-gray-500 mt-1">選択肢にない活用方法や、所有者が希望するイベントを自由に書けます。</p>
+                    </div>
                     <div><label class="block font-bold text-gray-700 mb-1">開催にあたっての条件</label><textarea v-model="newHouseForm.eventConditions" rows="2" class="w-full border p-2 rounded-xl" placeholder="例：夜間利用不可、火気厳禁"></textarea></div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">所有者メッセージ</label>
@@ -1779,11 +1820,20 @@
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">活動名 <span class="text-red-500">*</span></label>
-                        <input v-model="newQuestForm.title" type="text" class="w-full border p-2 rounded-xl">
+                        <select v-model="newQuestForm.title" @change="applyQuestActivityTemplate" class="w-full border p-2 rounded-xl bg-white cursor-pointer">
+                            <option value="" disabled>活動名を選択してください</option>
+                            <option v-if="newQuestForm.title && !questTitleOptions.includes(newQuestForm.title)" :value="newQuestForm.title">{{ newQuestForm.title }}（既存データ）</option>
+                            <option v-for="title in questTitleOptions" :key="title" :value="title">{{ title }}</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">作業内容の説明 <span class="text-red-500">*</span></label>
-                        <textarea v-model="newQuestForm.description" rows="2" class="w-full border p-2 rounded-xl"></textarea>
+                        <select v-model="newQuestForm.description" class="w-full border p-2 rounded-xl bg-white cursor-pointer">
+                            <option value="" disabled>作業内容を選択してください</option>
+                            <option v-if="newQuestForm.description && !questDescriptionOptions.includes(newQuestForm.description)" :value="newQuestForm.description">{{ newQuestForm.description }}（既存データ）</option>
+                            <option v-for="description in questDescriptionOptions" :key="description" :value="description">{{ description }}</option>
+                        </select>
+                        <p class="text-[10px] text-gray-500 mt-1">活動名を選ぶと、対応する作業内容が自動で選択されます。必要に応じて別の候補へ変更できます。</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         <div>
@@ -1854,6 +1904,7 @@
                 <img :src="newHouseForm.imagePreview" class="w-full h-44 object-cover rounded-xl border" alt="確認用の空き家写真">
                 <div class="bg-iwate-paper border rounded-xl p-4 text-xs space-y-2">
                     <p><strong>物件名称：</strong>{{ newHouseForm.name.trim() || newHouseForm.location.trim() + 'の空き家' }}</p>
+                    <p v-if="newHouseForm.postalCode"><strong>郵便番号：</strong>〒{{ newHouseForm.postalCode }}</p>
                     <p><strong>所在地：</strong>{{ newHouseForm.location }}</p>
                     <p><strong>築年数 / 面積：</strong>{{ newHouseForm.age }}年 / {{ newHouseForm.area }}㎡</p>
                     <p><strong>現在の状態：</strong>{{ newHouseForm.status || '作業着手前' }}</p>
@@ -2004,6 +2055,7 @@
                     ],
                     parties: [],
                     newPartyName: '',
+                    partyInviteSearch: '',
                     currentUserId: 'u2',
 
                     houses: [
@@ -2148,9 +2200,23 @@
                     model3dInputKey: 0,
 
                     eventOptions: ['地域交流会','カフェ','ワークショップ','展示会','子どもの居場所','その他'],
+                    houseStatusOptions: ['作業着手前','初期点検・片付け段階','清掃・片付け中','清掃済み・内装補修中','利用準備中','利用可能'],
+                    postalLookupLoading: false,
+                    postalLookupError: '',
+                    questTitleOptions: ['室内清掃','草刈り・庭の整備','不用品の整理・搬出','DIY・修繕','外観・周辺清掃','イベント準備・運営','空き家の記録・撮影'],
+                    questDescriptionOptions: [
+                        '室内の掃除や拭き掃除を行い、利用できる状態に整えます。',
+                        '敷地内の草刈りや枝の整理を行い、周辺環境を整えます。',
+                        '残置物を分別・整理し、必要に応じて搬出します。',
+                        '壁や床、家具などの簡単な補修・DIY作業を行います。',
+                        '建物の外回りや玄関周辺を清掃し、安全に利用できる状態にします。',
+                        '地域交流イベントなどに向けて、会場準備や当日の運営を行います。',
+                        '空き家の写真撮影や記録づくりを行い、地域の記憶を残します。'
+                    ],
                     participantReplyDraft: '',
                     newIdeaText: '',
                     newHouseForm: {
+                        postalCode: '',
                         location: '',
                         name: '',
                         age: 40,
@@ -2192,7 +2258,7 @@
                 houses: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 quests: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 parties: { handler() { this.scheduleFirebaseSave(); }, deep: true },
-                currentUserId() { this.scheduleFirebaseSave(); }
+                currentUserId() { this.partyInviteSearch = ''; this.scheduleFirebaseSave(); }
             },
             async mounted() {
                 try {
@@ -2269,6 +2335,17 @@
                         !this.getPartyForUser(user.id)
                     );
                 },
+                filteredPartyInvitees() {
+                    const query = String(this.partyInviteSearch || '').trim().toLowerCase();
+                    if (!query) return this.availablePartyInvitees;
+                    return this.availablePartyInvitees.filter(user => {
+                        const haystack = `${user.name || ''} LV${user.level || 1} ${Number(user.totalPoints) || 0}`.toLowerCase();
+                        return haystack.includes(query);
+                    });
+                },
+                postalCodeDigits() {
+                    return String(this.newHouseForm.postalCode || '').replace(/\D/g, '').slice(0, 7);
+                },
                 participantRanking() {
                     const sorted = this.users
                         .filter(user => user.role === 'participant')
@@ -2287,6 +2364,15 @@
                         lastRank = rank;
                         return { user, rank };
                     });
+                },
+                participantPodium() {
+                    const top = this.participantRanking.slice(0, 3);
+                    // 表彰台の見た目は順位の同点処理とは分け、上位3人を左から2位・1位・3位に配置する。
+                    return [
+                        top[1] ? { ...top[1], podiumPlace: 2 } : null,
+                        top[0] ? { ...top[0], podiumPlace: 1 } : null,
+                        top[2] ? { ...top[2], podiumPlace: 3 } : null
+                    ].filter(Boolean);
                 },
                 currentGrowthLog() {
                     const logs = this.activeHouse?.growthLogs || [];
@@ -3341,6 +3427,39 @@
                     this.showToast('歴史投稿を非公開にしました', 'info');
                 },
 
+                handlePostalCodeInput() {
+                    const digits = String(this.newHouseForm.postalCode || '').replace(/\D/g, '').slice(0, 7);
+                    this.newHouseForm.postalCode = digits.length > 3 ? `${digits.slice(0, 3)}-${digits.slice(3)}` : digits;
+                    this.postalLookupError = '';
+                    if (digits.length === 7) this.lookupAddressFromPostalCode();
+                },
+                async lookupAddressFromPostalCode() {
+                    const digits = this.postalCodeDigits;
+                    if (digits.length !== 7 || this.postalLookupLoading) return;
+                    this.postalLookupLoading = true;
+                    this.postalLookupError = '';
+                    try {
+                        const response = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${digits}`);
+                        if (!response.ok) throw new Error('住所検索に失敗しました');
+                        const data = await response.json();
+                        const result = Array.isArray(data.results) ? data.results[0] : null;
+                        if (!result) {
+                            this.postalLookupError = '該当する住所が見つかりませんでした。所在地を手入力してください。';
+                            return;
+                        }
+                        const address = `${result.address1 || ''}${result.address2 || ''}${result.address3 || ''}`;
+                        if (address) {
+                            this.newHouseForm.location = address;
+                            this.showToast('郵便番号から所在地を途中まで入力しました', 'info');
+                        }
+                    } catch (error) {
+                        console.warn('郵便番号検索エラー:', error);
+                        this.postalLookupError = '住所の自動入力に失敗しました。所在地を手入力してください。';
+                    } finally {
+                        this.postalLookupLoading = false;
+                    }
+                },
+
                 openCreateHouseModal() {
                     if (this.currentUser.role !== 'owner') {
                         this.showToast('空き家を登録できるのは所有者です', 'error');
@@ -3348,7 +3467,9 @@
                     }
                     this.editingHouseId = '';
                     this.modals.confirmHouse = false;
+                    this.newHouseForm.postalCode = '';
                     this.newHouseForm.location = '';
+                    this.postalLookupError = '';
                     this.newHouseForm.name = '';
                     this.newHouseForm.age = 40;
                     this.newHouseForm.area = 100;
@@ -3362,7 +3483,9 @@
                     if (!house || !this.isHouseOwner(house)) return;
                     this.editingHouseId = house.id;
                     this.modals.confirmHouse = false;
+                    this.newHouseForm.postalCode = house.postalCode || '';
                     this.newHouseForm.location = house.location || '';
+                    this.postalLookupError = '';
                     this.newHouseForm.name = house.name || '';
                     this.newHouseForm.age = Number(house.age) || 0;
                     this.newHouseForm.area = Number(house.area) || 1;
@@ -3457,6 +3580,21 @@
                     this.modals.questDetail = false;
                     this.modals.createQuest = true;
                 },
+                applyQuestActivityTemplate() {
+                    const templates = {
+                        '室内清掃': '室内の掃除や拭き掃除を行い、利用できる状態に整えます。',
+                        '草刈り・庭の整備': '敷地内の草刈りや枝の整理を行い、周辺環境を整えます。',
+                        '不用品の整理・搬出': '残置物を分別・整理し、必要に応じて搬出します。',
+                        'DIY・修繕': '壁や床、家具などの簡単な補修・DIY作業を行います。',
+                        '外観・周辺清掃': '建物の外回りや玄関周辺を清掃し、安全に利用できる状態にします。',
+                        'イベント準備・運営': '地域交流イベントなどに向けて、会場準備や当日の運営を行います。',
+                        '空き家の記録・撮影': '空き家の写真撮影や記録づくりを行い、地域の記憶を残します。'
+                    };
+                    if (templates[this.newQuestForm.title]) {
+                        this.newQuestForm.description = templates[this.newQuestForm.title];
+                    }
+                },
+
                 openQuestConfirmation() {
                     const house = this.getHouse(this.newQuestForm.houseId);
                     if (this.currentUser.role !== 'owner') return;
@@ -3900,6 +4038,7 @@
 
                     const values = {
                         name: this.newHouseForm.name.trim() || `${this.newHouseForm.location.trim()}の空き家`,
+                        postalCode: String(this.newHouseForm.postalCode || '').trim(),
                         location: this.newHouseForm.location.trim(),
                         age: Math.max(0, Number(this.newHouseForm.age) || 0),
                         area: Math.max(1, Number(this.newHouseForm.area) || 1),
