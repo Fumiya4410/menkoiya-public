@@ -3166,11 +3166,14 @@
                                 await batch.commit();
                             }
                         };
-                        const [posts, houses] = await Promise.all([
+                        const [postsByAuthor, postsByUser, houses] = await Promise.all([
                             db.collection('mapPosts').where('authorUid','==',uid).get(),
+                            db.collection('mapPosts').where('userId','==',uid).get(),
                             db.collection('mapHouses').where('authorUid','==',uid).get()
                         ]);
-                        await removeDocs(posts.docs);
+                        const ownedPosts = new Map();
+                        [...postsByAuthor.docs, ...postsByUser.docs].forEach(doc => ownedPosts.set(doc.id, doc));
+                        await removeDocs([...ownedPosts.values()]);
                         await removeDocs(houses.docs);
                         const [usersSnap, housesSnap, questsSnap, stateSnap] = await Promise.all([
                             workspace.collection('users').get(),
