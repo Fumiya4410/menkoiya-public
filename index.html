@@ -3167,7 +3167,7 @@
                             }
                         };
                         const [posts, houses] = await Promise.all([
-                            db.collection('mapPosts').where('userId','==',uid).get(),
+                            db.collection('mapPosts').where('authorUid','==',uid).get(),
                             db.collection('mapHouses').where('authorUid','==',uid).get()
                         ]);
                         await removeDocs(posts.docs);
