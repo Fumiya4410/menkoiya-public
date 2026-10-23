@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- めんこい家 Vol.31: 探索マップ + Vol.30機能統合 -->
+<!-- めんこい家 Vol.37: Vol.35ベース・クエスト承認連動地域図鑑 MVP -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -1268,6 +1268,41 @@
                         <label class="block font-bold text-gray-700 mb-1">作業コメント・報告事項 <span class="text-red-500">*</span></label>
                         <textarea v-model="reportForm.comment" rows="3" class="w-full border p-2 rounded-xl text-xs" placeholder="どのような作業を行ったか、状態の変化等を記入"></textarea>
                     </div>
+                    <section class="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-3 space-y-3">
+                        <div class="font-black text-emerald-900">📖 歴史・記憶の収集 <span class="text-[10px] bg-emerald-200 px-2 py-1 rounded">全クエスト共通・必須</span></div>
+                        <p class="text-[11px] text-emerald-800">今回の活動で確認したことを記録してください。新しい発見がない場合も記録できます。</p>
+                        <label class="block font-bold">発見の有無
+                          <select v-model="reportForm.discoveryStatus" class="w-full border rounded-lg p-2 mt-1 bg-white"><option value="found">新しい発見・記録がある</option><option value="none">新しい情報なし</option></select>
+                        </label>
+                        <template v-if="reportForm.discoveryStatus === 'found'">
+                          <label class="block font-bold">図鑑の分類
+                            <select v-model="reportForm.discoveryKind" class="w-full border rounded-lg p-2 mt-1 bg-white"><option value="house">🏠 空き家の歴史・記憶</option><option value="history">🏛️ 周辺地域の歴史・文化</option><option value="nature">🌿 自然・植物</option><option value="animal">🐾 生き物</option><option value="spot">📷 地域の魅力・風景</option></select>
+                          </label>
+                          <div class="rounded-xl border border-emerald-300 bg-white p-3 space-y-2">
+                            <label class="block font-bold text-emerald-950">📷 図鑑専用の写真（任意）</label>
+                            <p class="text-[11px] text-gray-600">石碑・昔の写真・植物など、発見したものを選んでください。上の作業報告写真とは別に保存されます。</p>
+                            <label class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl font-bold cursor-pointer">
+                              <i class="fa-solid fa-camera"></i> 図鑑の写真を選択
+                              <input :key="discoveryImageInputKey" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="handleDiscoveryImage">
+                            </label>
+                            <span v-if="reportForm.discoveryFileName" class="text-[11px] text-gray-500 ml-2">{{ reportForm.discoveryFileName }}</span>
+                            <div v-if="reportForm.discoveryPhoto" class="relative rounded-xl overflow-hidden border bg-gray-100">
+                              <img :src="reportForm.discoveryPhoto" alt="図鑑用写真プレビュー" class="w-full max-h-52 object-contain">
+                              <button type="button" @click="reportForm.discoveryPhoto='';reportForm.discoveryFileName='';discoveryImageInputKey++" class="absolute right-2 top-2 bg-white/90 rounded-lg px-3 py-1 text-xs font-bold">写真を外す</button>
+                            </div>
+                          </div>
+                          <label class="block font-bold">発見タイトル <input v-model="reportForm.discoveryTitle" maxlength="80" class="w-full border rounded-lg p-2 mt-1" placeholder="例：この家に残る昔の暮らし"></label>
+                          <label class="block font-bold">記録した内容 <textarea v-model="reportForm.discoveryDescription" maxlength="1000" rows="3" class="w-full border rounded-lg p-2 mt-1" placeholder="いつ・どこで・何を確認したか"></textarea></label>
+                          <label class="block font-bold">情報の入手方法
+                            <select v-model="reportForm.discoverySource" class="w-full border rounded-lg p-2 mt-1 bg-white"><option value="observed">現地で確認・発見した</option><option value="interview">地域の人から聞いた</option><option value="document">資料・写真で確認した</option></select>
+                          </label>
+                          <label class="block font-bold">発見場所（任意・公開位置）
+                            <input v-model="reportForm.discoveryPlace" maxlength="100" class="w-full border rounded-lg p-2 mt-1" placeholder="例：集落の入口付近（正確な住所は不要）">
+                          </label>
+                          <label class="flex items-center gap-2"><input type="checkbox" v-model="reportForm.publishDiscovery">所有者の承認後、地域図鑑にも公開を希望する</label>
+                          <p class="text-[10px] text-emerald-800">作業写真は図鑑に掲載されません。図鑑専用写真のみ、公開希望かつ承認後に掲載されます。公開位置は現状仮位置です。</p>
+                        </template>
+                    </section>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
@@ -2021,6 +2056,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        window.db = db; // 地域図鑑の共有購読から参照
 
         const { createApp } = Vue;
 
@@ -2177,7 +2213,9 @@
                     reportForm: {
                         photo: '',
                         fileName: '',
-                        comment: ''
+                        comment: '',
+                        discoveryStatus: 'found', discoveryKind: 'house', discoveryTitle: '',
+                        discoveryDescription: '', discoverySource: 'observed', discoveryPlace: '', discoveryPhoto: '', discoveryFileName: '', publishDiscovery: true
                     },
 
                     // ★ 歴史投稿用フォームオブジェクト
@@ -2195,6 +2233,7 @@
                     model3dObjectUrls: {},
 
                     reportImageInputKey: 0,
+                    discoveryImageInputKey: 0,
                     houseImageInputKey: 0,
                     historyImageInputKey: 0,
                     model3dInputKey: 0,
@@ -3327,7 +3366,9 @@
                     this.reportForm.photo = '';
                     this.reportForm.fileName = '';
                     this.reportForm.comment = '';
+                    Object.assign(this.reportForm, {discoveryStatus:'found',discoveryKind:'house',discoveryTitle:'',discoveryDescription:'',discoverySource:'observed',discoveryPlace:'',discoveryPhoto:'',discoveryFileName:'',publishDiscovery:true});
                     this.reportImageInputKey += 1;
+                    this.discoveryImageInputKey += 1;
                     this.modals.report = true;
                 },
                 openApprovalModal(quest) {
@@ -3707,6 +3748,17 @@
                     });
                 },
 
+                // 図鑑の写真はクエスト作業写真とは別管理する
+                handleDiscoveryImage(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    this.readImageFile(file, (dataUrl) => {
+                        this.reportForm.discoveryPhoto = dataUrl;
+                        this.reportForm.discoveryFileName = file.name;
+                        this.showToast('図鑑用の写真を読み込みました');
+                    });
+                },
+
                 // ★ 追加：歴史写真のハンドラー
                 handleHistoryImage(event) {
                     const file = event.target.files && event.target.files[0];
@@ -3723,6 +3775,9 @@
                         this.showToast('写真とコメントを入力してください', 'warning');
                         return;
                     }
+                    if (this.reportForm.discoveryStatus === 'found' && (!this.reportForm.discoveryTitle.trim() || !this.reportForm.discoveryDescription.trim())) {
+                        this.showToast('発見タイトルと記録内容を入力してください', 'warning'); return;
+                    }
                     const app = this.activeQuest?.applications?.find(a => a.userId === this.currentUser.id);
                     if (!app || app.status !== 'joined') {
                         this.showToast('報告できる参加状態ではありません', 'warning');
@@ -3733,6 +3788,17 @@
                     app.approvedAt = null;
                     app.reportPhoto = this.reportForm.photo;
                     app.reportComment = this.reportForm.comment.trim();
+                    app.discoveryRecord = {
+                        status:this.reportForm.discoveryStatus,
+                        kind:this.reportForm.discoveryKind,
+                        title:this.reportForm.discoveryTitle.trim(),
+                        description:this.reportForm.discoveryDescription.trim(),
+                        source:this.reportForm.discoverySource,
+                        place:this.reportForm.discoveryPlace.trim(),
+                        photo:this.reportForm.discoveryStatus === 'found' ? this.reportForm.discoveryPhoto : '',
+                        publish:this.reportForm.discoveryStatus === 'found' && this.reportForm.publishDiscovery,
+                        published:false
+                    };
                     app.reportedAt = new Date().toLocaleString('ja-JP');
                     app.rejectionReason = '';
                     const reportHouse = this.getHouse(this.activeQuest.houseId);
@@ -3775,6 +3841,21 @@
                         if (!targetUser) return;
 
                         app.status = 'approved';
+                        // Vol.37 MVP: 所有者承認後に図鑑へ記録する（Firestore投稿は非同期）。
+                        // この画面のデモ利用者IDはFirebase Auth UIDとは別物なので、
+                        // 本番での達成者制限はサーバー側の検証が別途必要。
+                        if (app.discoveryRecord?.publish && !app.discoveryRecord.published) {
+                            app.discoveryRecord.published = true;
+                            window.menkoiPublishDiscovery?.({
+                                ...app.discoveryRecord, questId:quest.id, houseId:quest.houseId,
+                                reporterName:targetUser.name
+                            }).catch(err => {
+                                app.discoveryRecord.published = false;
+                                console.error('図鑑の公開に失敗',err);
+                                this.showToast('クエストは承認しましたが、図鑑の公開に失敗しました。Firebase設定を確認してください。','warning');
+                            });
+                        }
+
                         app.approvedAt = new Date().toLocaleString('ja-JP'); // 所有者が手動承認した時だけ記録
                         targetUser.points += 100;
                         targetUser.totalPoints += 100;
@@ -4165,62 +4246,94 @@
         }).mount('#app');
     </script>
 <div id="menkoi-map-overlay" role="dialog" aria-modal="true" aria-label="めんこい探索マップ">
- <div class="menkoi-map-top">
-  <span style="font-size:24px">🗺️</span>
-  <div><strong style="font-size:18px">めんこい探索マップ</strong><div style="font-size:12px;opacity:.85">岩手県庁周辺｜みんなで育てる地域図鑑</div></div>
-  <span style="flex:1"></span>
-  <button onclick="closeMenkoiMap()">✕ 閉じる</button>
- </div>
+ <div class="menkoi-map-top"><span style="font-size:24px">🗺️</span><strong>めんこい地域図鑑｜Vol.37</strong><span style="flex:1"></span><button onclick="closeMenkoiMap()">✕ 閉じる</button></div>
  <div class="menkoi-map-controls">
   <button class="menkoi-map-chip" data-kind="house" onclick="toggleMenkoiKind(this)">🏠 空き家</button>
-  <button class="menkoi-map-chip" data-kind="history" onclick="toggleMenkoiKind(this)">🏛️ 歴史・建物</button>
+  <button class="menkoi-map-chip" data-kind="history" onclick="toggleMenkoiKind(this)">🏛️ 歴史</button>
   <button class="menkoi-map-chip" data-kind="animal" onclick="toggleMenkoiKind(this)">🐾 生き物</button>
   <button class="menkoi-map-chip" data-kind="nature" onclick="toggleMenkoiKind(this)">🌿 自然</button>
-  <span class="menkoi-map-legend">※県庁以外のピンはサンプル・位置は仮</span>
+  <button class="menkoi-map-chip" data-kind="spot" onclick="toggleMenkoiKind(this)">📷 地域の魅力</button>
+  <span class="menkoi-map-legend">🔒 投稿はクエスト達成報告から（所有者承認後に公開）</span>
+  <span id="menkoi-map-status" class="menkoi-map-legend">地図を準備しています…</span>
  </div>
  <div id="menkoi-map-canvas"></div>
- <div style="padding:8px 15px;font-size:12px;background:#fff;color:#66776a">ピンをタップすると詳細が開きます。地図表示にはインターネット接続が必要です。</div>
+ <div style="padding:7px 14px;background:white;font-size:12px;color:#526554">クエストの達成申告から発見を記録し、所有者承認後に図鑑へ反映します。住所・希少生物の詳細位置は公開しないでください。</div>
+ <div id="menkoi-map-post" style="display:none;position:absolute;z-index:10001;top:110px;left:50%;transform:translateX(-50%);width:min(94vw,410px);max-height:75vh;overflow:auto;background:white;border-radius:14px;padding:18px;box-shadow:0 6px 28px #0005">
+  <strong>📍 地域の発見を投稿</strong><button type="button" style="float:right" onclick="menkoiMapCancelPost()">✕</button>
+  <p style="font-size:12px">地図をクリックして位置を選択してください（位置は公開されます）。</p>
+  <form id="menkoi-map-form" onsubmit="menkoiMapSave(event)" style="display:grid;gap:9px">
+   <label>種類 <select name="kind" required style="width:100%;padding:8px"><option value="history">🏛️ 歴史・記憶</option><option value="nature">🌿 自然</option><option value="animal">🐾 生き物</option><option value="house">🏠 空き家（公開許可がある場合のみ）</option></select></label>
+   <label>タイトル <input name="title" maxlength="80" required style="width:100%;padding:8px" placeholder="例：地域に伝わる昔話"></label>
+   <label>説明 <textarea name="description" maxlength="1000" required rows="3" style="width:100%;padding:8px" placeholder="発見したこと・地域の記憶など"></textarea></label>
+   <label>写真URL（任意） <input name="photo" type="url" maxlength="500" style="width:100%;padding:8px" placeholder="https://..."></label>
+   <div id="menkoi-map-selected" style="font-size:12px">位置：未選択</div>
+   <button type="submit" style="padding:10px;background:#315c46;color:white;border:0;border-radius:8px">Firestoreに投稿する</button>
+  </form>
+ </div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
-  let map=null;
-  const layers={};
-  const pins=[
-    {kind:'house',lat:39.7055,lng:141.1485,title:'空き家A（デモ）',desc:'清掃クエスト募集中。実在する空き家の登録データではありません。',photo:''},
-    {kind:'history',lat:39.703526,lng:141.152696,title:'岩手県庁',desc:'岩手県盛岡市内丸10-1。県庁舎は1965年4月竣工。',photo:''},
-    {kind:'history',lat:39.7013,lng:141.1505,title:'地域の記憶（デモ）',desc:'この地点は歴史投稿の表示例です。場所と説明は仮のデータです。',photo:''},
-    {kind:'animal',lat:39.7075,lng:141.157,title:'野鳥の観察（デモ）',desc:'生き物の発見記録の表示例。実際の観察情報ではありません。',photo:''},
-    {kind:'nature',lat:39.6995,lng:141.154,title:'自然の発見（デモ）',desc:'植物・巨木などの投稿例。実際の発見情報ではありません。',photo:''}
-  ];
-  const icons={house:'🏠',history:'🏛️',animal:'🐾',nature:'🌿'};
-  function safe(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function makeIcon(kind){return L.divIcon({className:'',html:'<div style="background:white;border:2px solid #315c46;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;font-size:21px;box-shadow:0 3px 10px #0003">'+icons[kind]+'</div>',iconSize:[39,39],iconAnchor:[19,39]});}
-  window.openMenkoiMap=function(){
-    document.getElementById('menkoi-map-overlay').classList.add('open');
-    document.body.style.overflow='hidden';
-    if(!window.L){document.getElementById('menkoi-map-canvas').innerHTML='<p style="padding:24px">地図ライブラリを読み込めません。インターネット接続を確認してください。</p>';return;}
-    if(!map){
-      map=L.map('menkoi-map-canvas').setView([39.703526,141.152696],15);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap contributors', maxZoom:19, referrerPolicy:'strict-origin-when-cross-origin'}).addTo(map);
-      for(const kind of Object.keys(icons))layers[kind]=L.layerGroup().addTo(map);
-      for(const p of pins){
-        const img=p.photo?'<img src="'+safe(p.photo)+'" alt="投稿写真">':'<div style="background:#f0ede3;border-radius:8px;text-align:center;padding:14px;color:#6c766e;margin:8px 0">📷 写真は未登録</div>';
-        L.marker([p.lat,p.lng],{icon:makeIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<div>'+safe(p.desc)+'</div></div>').addTo(layers[p.kind]);
-      }
-    }
-    setTimeout(()=>map.invalidateSize(),60);
-  };
-  window.closeMenkoiMap=function(){document.getElementById('menkoi-map-overlay').classList.remove('open');document.body.style.overflow='';};
-  window.toggleMenkoiKind=function(btn){
-    const kind=btn.dataset.kind;
-    if(!map)return;
-    if(map.hasLayer(layers[kind])){map.removeLayer(layers[kind]);btn.classList.add('off');}
-    else{layers[kind].addTo(map);btn.classList.remove('off');}
-  };
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('menkoi-map-overlay').classList.contains('open'))closeMenkoiMap();});
+'use strict';
+const icons={house:'🏠',history:'🏛️',animal:'🐾',nature:'🌿',spot:'📷'};
+const sample=[{kind:'history',lat:39.703526,lng:141.152696,title:'岩手県庁（参考地点）',description:'岩手県盛岡市内丸10-1。参考表示用のピンです。',sample:true}];
+let map=null,groups={},unsubscribe=null,selected=null,postMode=false,live=[],authReady=null;
+const status=(v)=>{document.getElementById('menkoi-map-status').textContent=v};
+const safe=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const validPhoto=(url)=>{if(typeof url==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(url)&&url.length<95000)return url;try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
+const markerIcon=(kind)=>L.divIcon({className:'',html:'<div style="background:#fff;border:2px solid #315c46;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;font-size:21px;box-shadow:0 3px 10px #0003">'+icons[kind]+'</div>',iconSize:[39,39],iconAnchor:[19,39]});
+function render(){if(!map)return;Object.values(groups).forEach(g=>g.clearLayers());for(const p of [...sample,...live]){
+if(!icons[p.kind]||!Number.isFinite(p.lat)||!Number.isFinite(p.lng))continue;
+const photo=validPhoto(p.photo);const img=photo?'<img loading="lazy" referrerpolicy="no-referrer" src="'+safe(photo)+'" alt="投稿写真">':'';
+const own=!p.sample&&window.firebase&&firebase.auth().currentUser&&p.authorUid===firebase.auth().currentUser.uid;
+const del=own?'<button type="button" onclick="menkoiMapDelete(\''+safe(p.id)+'\')">自分の投稿を削除</button>':'';
+L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>参考地点</small>':del)+'</div>').addTo(groups[p.kind]);}}
+function subscribe(){if(unsubscribe)return;try{
+ unsubscribe=db.collection('mapPosts').orderBy('createdAt','desc').limit(300).onSnapshot(snapshot=>{
+ live=snapshot.docs.map(d=>({id:d.id,...d.data()})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));render();status('地域図鑑 '+live.length+'件｜位置は仮表示を含みます');
+ },err=>{console.error('mapPosts read:',err);status('共有投稿の取得に失敗：Firestoreルールを確認してください');});
+}catch(e){console.error(e);status('Firebase接続に失敗しました');}}
+function connect(){if(!window.firebase||!window.db){status('Firebaseが読み込めません');return;}
+ if(!authReady){authReady=(async()=>{if(!firebase.auth().currentUser)await firebase.auth().signInAnonymously();return firebase.auth().currentUser})().catch(e=>{authReady=null;throw e});}
+ authReady.then(subscribe).catch(e=>{console.error(e);status('匿名ログインに失敗：Firebase Authentication設定を確認');});}
+window.openMenkoiMap=function(){document.getElementById('menkoi-map-overlay').classList.add('open');document.body.style.overflow='hidden';
+ if(!window.L){status('Leafletを読み込めません（ネットワークを確認）');return;}
+ if(!map){map=L.map('menkoi-map-canvas').setView([39.703526,141.152696],13);
+ // CARTOの公開タイル。利用条件・アクセス上限を確認して運用すること。
+ const tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}).addTo(map);
+ tiles.on('tileerror',()=>status('背景地図を取得できません。ネットワーク・タイル配信条件を確認してください'));
+ for(const k of Object.keys(icons))groups[k]=L.layerGroup().addTo(map);
+ map.on('click',e=>{if(!postMode)return;selected=e.latlng;document.getElementById('menkoi-map-selected').textContent='位置：'+selected.lat.toFixed(5)+', '+selected.lng.toFixed(5);});render();}
+ setTimeout(()=>map.invalidateSize(),100);connect();};
+window.closeMenkoiMap=function(){document.getElementById('menkoi-map-overlay').classList.remove('open');document.body.style.overflow='';window.menkoiMapCancelPost();};
+window.toggleMenkoiKind=function(btn){const k=btn.dataset.kind;if(!map)return;if(map.hasLayer(groups[k])){map.removeLayer(groups[k]);btn.classList.add('off')}else{groups[k].addTo(map);btn.classList.remove('off')}};
+window.menkoiMapStartPost=function(){postMode=true;selected=null;document.getElementById('menkoi-map-selected').textContent='位置：未選択';document.getElementById('menkoi-map-post').style.display='block';status('投稿位置を地図上でクリックしてください')};
+window.menkoiMapCancelPost=function(){postMode=false;selected=null;document.getElementById('menkoi-map-post').style.display='none'};
+window.menkoiMapSave=async function(event){event.preventDefault();alert('クエスト達成報告から投稿してください。');return;if(!selected){alert('地図をクリックして位置を選択してください');return;}
+const f=event.target;const kind=f.elements.kind.value,title=f.elements.title.value.trim(),description=f.elements.description.value.trim();if(!icons[kind]||!title||!description)return;
+const button=f.querySelector('button[type=submit]');button.disabled=true;
+try{if(!firebase.auth().currentUser)await firebase.auth().signInAnonymously();await db.collection('mapPosts').add({kind,title,description,photo:validPhoto(f.elements.photo.value),lat:selected.lat,lng:selected.lng,authorUid:firebase.auth().currentUser.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});f.reset();window.menkoiMapCancelPost();status('投稿を保存しました');}
+catch(e){console.error('mapPosts write:',e);alert('投稿できませんでした。Firestoreのセキュリティルール・匿名認証を確認してください。')}finally{button.disabled=false}};
+// Vol.37: 図鑑登録の入口は達成申告のみ。デモ用の承認後公開。
+window.menkoiPublishDiscovery=async function(record){
+ if(!window.firebase || !window.db) throw new Error('Firebaseが読み込まれていません');
+ if(!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
+ const uid=firebase.auth().currentUser.uid;
+ const photo=validPhoto(record.photo);
+ await db.collection('mapPosts').add({
+   kind:record.kind,title:record.title,description:record.description,
+   source:record.source,place:record.place,photo,
+   // 初期版は正確な位置を収集せず、盛岡市中心部に仮配置。位置の審査・調整は今後実装。
+   lat:39.703526,lng:141.152696,locationPending:true,
+   houseId:record.houseId,questId:record.questId,reporterName:record.reporterName,
+   sourceType:'approvedQuestReport',authorUid:uid,userId:uid,
+   createdAt:firebase.firestore.FieldValue.serverTimestamp()
+ });
+};
+window.menkoiMapStartPost=function(){alert('Vol.37では図鑑への自由投稿はできません。クエスト達成報告から発見を記録してください。');};
+window.menkoiMapDelete=async function(id){if(!confirm('この投稿を削除しますか？'))return;try{await db.collection('mapPosts').doc(id).delete()}catch(e){console.error(e);alert('削除できませんでした。権限を確認してください。')}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('menkoi-map-overlay').classList.contains('open'))window.closeMenkoiMap()});
 })();
 </script>
-
 </body>
 </html>
