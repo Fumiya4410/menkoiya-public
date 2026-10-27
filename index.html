@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- めんこい家 Vol.43 MERGED: Vol.42機能 + Vol.38レイアウト -->
+<!-- めんこい家 Vol.60: Vol.53ベース・個人アルバム機能統合 -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -244,6 +244,738 @@
         @media(max-width:480px){.menkoi-book-rings{gap:14px}.menkoi-book-controls button{padding:10px 9px;font-size:11px}}
 
 
+        /* Vol.57: 家に起きた出来事が1ページずつ増える「年代記」 */
+        .chronicle-book-modal{
+            width:min(980px,96vw);
+            height:min(88vh,760px);
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            border-radius:24px;
+            background:#F1E6D3;
+            box-shadow:0 28px 80px #0006;
+        }
+        .chronicle-head{
+            flex:0 0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:14px;
+            padding:10px 16px;
+            border-bottom:1px solid #D7C5A8;
+            background:#fffdf8;
+        }
+        .chronicle-head-meta{
+            display:flex;
+            align-items:center;
+            gap:9px;
+            min-width:0;
+        }
+        .chronicle-head-icon{
+            width:34px;height:34px;
+            flex:0 0 34px;
+            display:grid;place-items:center;
+            border-radius:10px;
+            background:#315C46;
+            color:#fff;
+        }
+        .chronicle-head-title{
+            min-width:0;
+        }
+        .chronicle-head-title p{
+            color:#946442;
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.16em;
+        }
+        .chronicle-head-title h3{
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            color:#254B39;
+            font-size:14px;
+            font-weight:900;
+        }
+        .chronicle-head-count{
+            flex:0 0 auto;
+            padding:5px 9px;
+            border:1px solid #DED0BC;
+            border-radius:999px;
+            background:#F7F2E8;
+            color:#76634D;
+            font-size:9px;
+            font-weight:900;
+        }
+        .chronicle-book-shell{
+            flex:1 1 auto;
+            min-height:0;
+            display:grid;
+            grid-template-columns:minmax(210px,.72fr) 18px minmax(0,1.28fr);
+            margin:10px 14px 7px;
+            padding:10px;
+            border:1px solid #BDA57D;
+            border-radius:17px;
+            background:linear-gradient(180deg,#DCC8A8,#C9AE82);
+            perspective:1600px;
+            overflow:hidden;
+        }
+        .chronicle-index,
+        .chronicle-page-stage{
+            position:relative;
+            height:100%;
+            min-height:0;
+            border:1px solid #CBB792;
+            background:
+                linear-gradient(90deg,#F7F0E4 0%,#FFFDF7 11%,#FFFDF7 100%);
+            box-shadow:0 8px 22px #4B351F18;
+        }
+        .chronicle-index{
+            border-right:none;
+            border-radius:13px 0 0 13px;
+            overflow:hidden;
+        }
+        .chronicle-page-stage{
+            border-left:none;
+            border-radius:0 13px 13px 0;
+            overflow:hidden;
+            transform-style:preserve-3d;
+        }
+        .chronicle-gutter{
+            position:relative;
+            margin:0 -2px;
+            background:linear-gradient(90deg,#BDA47B,#F4E8D7 48%,#AD8F63);
+            border-top:1px solid #B89B70;
+            border-bottom:1px solid #B89B70;
+            box-shadow:inset 0 0 8px #6E4E2525;
+        }
+        .chronicle-index-inner{
+            height:100%;
+            display:flex;
+            flex-direction:column;
+            padding:17px 13px 15px 18px;
+        }
+        .chronicle-index-intro{
+            flex:0 0 auto;
+            padding-bottom:9px;
+            border-bottom:1px dashed #DCCCAF;
+        }
+        .chronicle-index-intro .small{
+            color:#946442;
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.14em;
+        }
+        .chronicle-index-intro h4{
+            margin-top:2px;
+            color:#254B39;
+            font-size:15px;
+            font-weight:900;
+            line-height:1.35;
+        }
+        .chronicle-index-intro p{
+            margin-top:4px;
+            color:#7D7569;
+            font-size:8px;
+            line-height:1.5;
+        }
+        .chronicle-toc{
+            flex:1 1 auto;
+            min-height:0;
+            overflow-y:auto;
+            margin-top:9px;
+            padding-right:3px;
+            scrollbar-width:thin;
+        }
+        .chronicle-toc button{
+            position:relative;
+            display:grid;
+            grid-template-columns:34px 1fr;
+            gap:7px;
+            width:100%;
+            padding:7px 7px;
+            border-radius:9px;
+            color:#6A6257;
+            text-align:left;
+            transition:.14s ease;
+        }
+        .chronicle-toc button::before{
+            content:"";
+            position:absolute;
+            left:16px;
+            top:-5px;
+            bottom:-5px;
+            width:1px;
+            background:#D7C5AA;
+            z-index:0;
+        }
+        .chronicle-toc button:first-child::before{top:16px}
+        .chronicle-toc button:last-child::before{bottom:16px}
+        .chronicle-toc button:hover{background:#F8F1E5;color:#315C46}
+        .chronicle-toc button.is-active{background:#315C46;color:#fff;box-shadow:0 5px 14px #315C4620}
+        .chronicle-toc-dot{
+            position:relative;
+            z-index:1;
+            width:20px;height:20px;
+            margin-left:0;
+            display:grid;place-items:center;
+            border-radius:999px;
+            background:#EFE5D3;
+            border:1px solid #D2BD9D;
+            color:#315C46;
+            font-size:8px;
+        }
+        .chronicle-toc button.is-active .chronicle-toc-dot{
+            background:#fff;color:#315C46;border-color:#fff;
+        }
+        .chronicle-toc-date{
+            display:block;
+            font-size:7px;
+            font-weight:900;
+            opacity:.72;
+        }
+        .chronicle-toc-title{
+            display:block;
+            margin-top:1px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            font-size:8px;
+            font-weight:900;
+        }
+        .chronicle-index-foot{
+            flex:0 0 auto;
+            margin-top:8px;
+            padding-top:8px;
+            border-top:1px dashed #DCCCAF;
+            color:#897A66;
+            font-size:7px;
+            line-height:1.5;
+        }
+
+        .chronicle-page{
+            position:relative;
+            height:100%;
+            min-height:100%;
+            padding:22px 28px 28px 32px;
+            overflow:hidden;
+            background:
+                radial-gradient(circle at 92% 7%,#EFD8A94A 0 36px,transparent 37px),
+                repeating-linear-gradient(180deg,transparent 0 28px,rgba(148,100,66,.035) 28px 29px),
+                linear-gradient(90deg,#FFFDF6,#FFF9ED);
+        }
+        .chronicle-page::before{
+            content:"";
+            position:absolute;
+            left:0;top:0;bottom:0;
+            width:22px;
+            background:linear-gradient(90deg,#CDB58D55,transparent);
+            pointer-events:none;
+        }
+        .chronicle-page::after{
+            content:"";
+            position:absolute;
+            top:0;right:0;
+            width:48px;height:48px;
+            clip-path:polygon(100% 0,0 0,100% 100%);
+            background:linear-gradient(135deg,#EADDC7 49%,transparent 50%);
+            box-shadow:-1px 1px 0 #D0B996;
+            opacity:.85;
+            pointer-events:none;
+        }
+        .chronicle-cover{
+            display:grid;
+            grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr);
+            gap:18px;
+            align-items:center;
+        }
+        .chronicle-cover-photo{
+            position:relative;
+            width:min(100%,195px);
+            aspect-ratio:3/4;
+            justify-self:center;
+            overflow:hidden;
+            border:1px solid #B79B70;
+            border-radius:10px 15px 15px 10px;
+            background:#315C46;
+            box-shadow:inset 5px 0 #D7C39F,0 10px 22px #3928182b;
+        }
+        .chronicle-cover-photo img{width:100%;height:100%;object-fit:cover}
+        .chronicle-cover-photo::after{
+            content:"";position:absolute;inset:0;
+            background:linear-gradient(180deg,transparent 42%,#14251DDB);
+        }
+        .chronicle-cover-name{
+            position:absolute;z-index:2;
+            left:10px;right:10px;bottom:12px;
+            padding:8px 7px;
+            border-top:1px solid #fff8;border-bottom:1px solid #fff8;
+            background:#F7F2E8EE;
+            color:#254B39;
+            text-align:center;
+            font-size:12px;font-weight:900;
+        }
+        .chronicle-kicker{
+            color:#946442;
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.15em;
+        }
+        .chronicle-title{
+            margin-top:3px;
+            color:#254B39;
+            font-size:clamp(18px,2.4vw,25px);
+            font-weight:900;
+            line-height:1.3;
+        }
+        .chronicle-lead{
+            margin-top:6px;
+            color:#666E66;
+            font-size:10px;
+            line-height:1.65;
+        }
+        .chronicle-cover-stats{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:6px;
+            margin-top:12px;
+        }
+        .chronicle-cover-stat{
+            padding:8px 5px;
+            border:1px solid #E3D4BD;
+            border-radius:9px;
+            background:#FFFDF9;
+            text-align:center;
+        }
+        .chronicle-cover-stat strong{display:block;color:#254B39;font-size:14px}
+        .chronicle-cover-stat span{display:block;color:#8B7961;font-size:7px;margin-top:1px}
+
+        .chronicle-entry-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+        }
+        .chronicle-date{
+            color:#946442;
+            font-family:'Yomogi','Kiwi Maru','Noto Sans JP',sans-serif;
+            font-size:clamp(22px,3vw,31px);
+            font-weight:900;
+            line-height:1.05;
+        }
+        .chronicle-type{
+            flex:0 0 auto;
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            padding:5px 8px;
+            border-radius:999px;
+            background:#EDF2E8;
+            border:1px solid #CEDDC8;
+            color:#315C46;
+            font-size:8px;
+            font-weight:900;
+        }
+        .chronicle-entry-title{
+            margin-top:8px;
+            color:#254B39;
+            font-family:'Yomogi','Kiwi Maru','Noto Sans JP',sans-serif;
+            font-size:clamp(19px,2.6vw,27px);
+            font-weight:900;
+            line-height:1.35;
+        }
+        .chronicle-entry-meta{
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px 12px;
+            margin-top:6px;
+            padding-bottom:8px;
+            border-bottom:1px dashed #D7C5A8;
+            color:#8C7B65;
+            font-size:8px;
+            font-weight:800;
+        }
+        .chronicle-entry-body{
+            display:grid;
+            grid-template-columns:minmax(0,1fr) minmax(150px,.72fr);
+            gap:16px;
+            align-items:start;
+            margin-top:12px;
+        }
+        .chronicle-entry-body.no-photo{grid-template-columns:1fr}
+        .chronicle-entry-text{
+            color:#514F47;
+            font-family:'Yomogi','Kiwi Maru','Noto Sans JP',sans-serif;
+            font-size:clamp(11px,1.45vw,14px);
+            line-height:1.85;
+            white-space:pre-wrap;
+            overflow-wrap:anywhere;
+            display:-webkit-box;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:10;
+            overflow:hidden;
+        }
+        .chronicle-photo{
+            position:relative;
+            align-self:center;
+            width:100%;
+            max-height:230px;
+            padding:6px 6px 16px;
+            background:white;
+            border:1px solid #E6DDD0;
+            box-shadow:0 6px 17px #0002;
+            transform:rotate(1deg);
+        }
+        .chronicle-photo::before{
+            content:"";
+            position:absolute;
+            width:70px;height:17px;
+            top:-11px;left:50%;
+            transform:translateX(-50%) rotate(-2deg);
+            background:#E6C985AA;
+            border:1px solid #DEC17A;
+        }
+        .chronicle-photo img{display:block;width:100%;max-height:200px;object-fit:cover}
+        .chronicle-page-no{
+            position:absolute;
+            right:22px;bottom:10px;
+            color:#8D7A62;
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.08em;
+        }
+        .chronicle-empty{
+            display:grid;
+            place-items:center;
+            min-height:320px;
+            text-align:center;
+            color:#897A66;
+        }
+        .chronicle-empty i{font-size:38px;color:#315C46;margin-bottom:10px}
+
+        .chronicle-footer{
+            flex:0 0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:0 14px 10px;
+        }
+        .chronicle-footer button{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:7px;
+            min-width:108px;
+            padding:7px 10px;
+            border-radius:9px;
+            background:#315C46;
+            color:white;
+            font-size:9px;
+            font-weight:900;
+        }
+        .chronicle-footer button:disabled{background:#D6D1C7;color:#8D887F;cursor:not-allowed}
+        .chronicle-progress{
+            text-align:center;
+            color:#8A765C;
+            font-size:8px;
+            font-weight:900;
+        }
+        .chronicle-progress strong{display:block;color:#315C46;font-size:10px}
+
+        @media(max-width:700px){
+            .chronicle-book-modal{width:100%;height:94vh;border-radius:20px}
+            .chronicle-book-shell{display:block;margin:8px 9px 6px;padding:8px}
+            .chronicle-index,.chronicle-gutter{display:none}
+            .chronicle-page-stage{height:100%;border:1px solid #CBB792;border-radius:13px}
+            .chronicle-page{padding:18px 19px 26px 24px}
+            .chronicle-cover{grid-template-columns:1fr;gap:10px}
+            .chronicle-cover-photo{width:145px}
+            .chronicle-entry-body{grid-template-columns:1fr}
+            .chronicle-photo{width:min(230px,86%);margin:0 auto;max-height:150px}
+            .chronicle-photo img{max-height:128px}
+            .chronicle-entry-text{-webkit-line-clamp:7;font-size:11px;line-height:1.65}
+        }
+
+    
+        /* Vol.58: 最初は「閉じた表紙」から始める */
+        .chronicle-cover-stage{
+            flex:1 1 auto;
+            min-height:0;
+            display:grid;
+            place-items:center;
+            padding:18px 24px 14px;
+            perspective:1600px;
+            background:
+                radial-gradient(circle at 50% 38%,#fff8e8 0 18%,transparent 55%),
+                linear-gradient(180deg,#EEE1CD,#DDC7A5);
+        }
+        .chronicle-closed-book{
+            position:relative;
+            width:min(360px,55vw);
+            aspect-ratio:3/4.15;
+            border:1px solid #7C5A37;
+            border-radius:12px 22px 22px 12px;
+            overflow:hidden;
+            background:#315C46;
+            box-shadow:
+                inset 9px 0 0 #B99263,
+                inset 14px 0 0 #254B39,
+                12px 15px 0 -8px #F3E8D5,
+                16px 20px 0 -12px #C8B28F,
+                0 26px 55px #3928184A;
+            transform:rotateY(-3deg) rotateZ(-.4deg);
+            transform-origin:left center;
+        }
+        .chronicle-closed-book::before{
+            content:"";
+            position:absolute;
+            inset:14px 12px 14px 20px;
+            z-index:3;
+            border:1px solid #EAD4A788;
+            border-radius:5px 12px 12px 5px;
+            pointer-events:none;
+        }
+        .chronicle-closed-book::after{
+            content:"";
+            position:absolute;
+            top:0;right:0;bottom:0;
+            width:12px;
+            z-index:4;
+            background:repeating-linear-gradient(
+                180deg,
+                #F6EDDF 0 4px,
+                #DCC7A7 4px 5px
+            );
+            box-shadow:-2px 0 6px #0002;
+        }
+        .chronicle-closed-cover-image{
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .chronicle-closed-cover-shade{
+            position:absolute;
+            inset:0;
+            z-index:1;
+            background:
+                linear-gradient(180deg,#102C2015 0%,#102C2040 42%,#102C20E8 100%);
+        }
+        .chronicle-closed-cover-content{
+            position:absolute;
+            z-index:2;
+            left:32px;
+            right:25px;
+            top:30px;
+            bottom:30px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            color:white;
+        }
+        .chronicle-closed-cover-kicker{
+            font-size:9px;
+            font-weight:900;
+            letter-spacing:.18em;
+            color:#F2C884;
+            text-shadow:0 1px 5px #0008;
+        }
+        .chronicle-closed-cover-titlebox{
+            padding:15px 12px;
+            border-top:1px solid #FFF9;
+            border-bottom:1px solid #FFF9;
+            background:#F7F2E8EE;
+            color:#254B39;
+            text-align:center;
+            box-shadow:0 3px 12px #0003;
+        }
+        .chronicle-closed-cover-titlebox h2{
+            font-family:'Yomogi','Kiwi Maru','Noto Sans JP',sans-serif;
+            font-size:clamp(18px,2.7vw,27px);
+            font-weight:900;
+            line-height:1.45;
+        }
+        .chronicle-closed-cover-titlebox p{
+            margin-top:4px;
+            color:#806A50;
+            font-size:9px;
+            font-weight:800;
+        }
+        .chronicle-closed-cover-bottom{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-end;
+            gap:8px;
+            font-size:9px;
+            font-weight:800;
+            text-shadow:0 1px 4px #000A;
+        }
+        .chronicle-open-book-button{
+            flex:0 0 auto;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            margin:0 auto 13px;
+            padding:9px 17px;
+            border-radius:999px;
+            background:#315C46;
+            color:#fff;
+            font-size:10px;
+            font-weight:900;
+            box-shadow:0 7px 18px #315C4633;
+            transition:transform .15s ease,background .15s ease;
+        }
+        .chronicle-open-book-button:hover{
+            transform:translateY(-1px);
+            background:#254B39;
+        }
+
+        .chronicle-cover-open-enter-active,
+        .chronicle-cover-open-leave-active{
+            transition:opacity .28s ease,transform .38s cubic-bezier(.2,.72,.28,1);
+            transform-origin:left center;
+        }
+        .chronicle-cover-open-enter-from{
+            opacity:0;
+            transform:perspective(1500px) rotateY(16deg) scale(.98);
+        }
+        .chronicle-cover-open-leave-to{
+            opacity:0;
+            transform:perspective(1500px) rotateY(-22deg) scale(.985);
+        }
+
+        @media(max-width:700px){
+            .chronicle-cover-stage{padding:13px 10px 10px}
+            .chronicle-closed-book{width:min(285px,76vw)}
+            .chronicle-closed-cover-content{left:28px;right:22px;top:24px;bottom:24px}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .chronicle-cover-open-enter-active,
+            .chronicle-cover-open-leave-active{transition:none}
+        }
+
+    
+        /* Vol.59: モーダルの表紙もホームの本カードと同じ装丁に統一 */
+        .chronicle-cover-stage{
+            flex:1 1 auto;
+            min-height:0;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:12px 22px 6px;
+            perspective:none;
+            background:
+                radial-gradient(circle at 50% 42%,#FFF9EC 0 20%,transparent 55%),
+                linear-gradient(180deg,#EEE1CD,#DDC7A5);
+        }
+        .chronicle-home-cover{
+            flex:0 1 auto;
+            width:auto!important;
+            height:min(100%,420px);
+            max-width:min(320px,72vw);
+            aspect-ratio:3/4.1!important;
+            transform:none!important;
+            margin:0 auto;
+        }
+        .chronicle-home-cover:hover{
+            transform:translateY(-3px) rotate(-.4deg)!important;
+        }
+        .chronicle-home-cover .menkoi-house-book-story-label{
+            left:18px;
+            right:18px;
+            top:16px;
+        }
+        .chronicle-home-cover .menkoi-house-book-meta{
+            padding:0 20px 9px;
+            font-size:10px;
+        }
+        .chronicle-home-cover .menkoi-house-book-title{
+            margin:0 16px 20px;
+            padding:12px 10px;
+            font-size:clamp(15px,2vw,19px);
+        }
+
+        /* 表紙表示時はフッターを完全に別レーンに置き、表紙と干渉させない */
+        .chronicle-cover-footer{
+            flex:0 0 52px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:4px 14px 10px;
+            background:#F1E6D3;
+        }
+        .chronicle-cover-footer button{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            min-width:150px;
+            padding:8px 16px;
+            border-radius:999px;
+            background:#315C46;
+            color:#fff;
+            font-size:10px;
+            font-weight:900;
+            box-shadow:0 6px 16px #315C4630;
+        }
+        .chronicle-cover-footer button:hover{background:#254B39}
+
+        @media(max-width:700px){
+            .chronicle-cover-stage{padding:8px 10px 4px}
+            .chronicle-home-cover{
+                height:min(100%,360px);
+                max-width:74vw;
+            }
+            .chronicle-cover-footer{
+                flex-basis:48px;
+                padding-bottom:8px;
+            }
+        }
+
+    
+        .menkoi-pageflip-next-enter-active,
+        .menkoi-pageflip-next-leave-active,
+        .menkoi-pageflip-prev-enter-active,
+        .menkoi-pageflip-prev-leave-active{
+            transition:
+                transform .30s cubic-bezier(.22,.72,.28,1),
+                opacity .22s ease,
+                box-shadow .30s ease;
+            backface-visibility:hidden;
+            transform-style:preserve-3d;
+            will-change:transform,opacity;
+        }
+        .menkoi-pageflip-next-enter-from{
+            opacity:.25;
+            transform:perspective(1400px) translateX(5%) rotateY(-10deg);
+            transform-origin:left center;
+            box-shadow:-14px 0 22px #00000014;
+        }
+        .menkoi-pageflip-next-leave-to{
+            opacity:0;
+            transform:perspective(1400px) translateX(-3%) rotateY(5deg);
+            transform-origin:left center;
+        }
+        .menkoi-pageflip-prev-enter-from{
+            opacity:.25;
+            transform:perspective(1400px) translateX(-5%) rotateY(10deg);
+            transform-origin:right center;
+            box-shadow:14px 0 22px #00000014;
+        }
+        .menkoi-pageflip-prev-leave-to{
+            opacity:0;
+            transform:perspective(1400px) translateX(3%) rotateY(-5deg);
+            transform-origin:right center;
+        }
+        @media(prefers-reduced-motion:reduce){
+            .menkoi-pageflip-next-enter-active,
+            .menkoi-pageflip-next-leave-active,
+            .menkoi-pageflip-prev-enter-active,
+            .menkoi-pageflip-prev-leave-active{transition:none}
+        }
         /* Vol.27 SIMPLE：新機能は足さず、見せ方だけ整理 */
         .simple-card{
             background:#fff;border:1px solid #E8DECE;border-radius:18px;padding:18px;
@@ -380,7 +1112,26 @@
             padding:0;
         }
 
-    </style>
+    
+        /* Vol.60: マイページのアルバムは小さな本の表紙として表示 */
+        .personal-album-compact-cover{
+            flex:0 0 112px !important; width:112px !important; height:154px !important;
+            min-width:112px; max-width:112px; aspect-ratio:auto !important;
+            align-self:center;
+        }
+        .personal-album-compact-cover .menkoi-house-book-title{
+            margin:0 7px 9px; padding:5px 3px; font-size:9px; line-height:1.35;
+        }
+        .personal-album-compact-cover .menkoi-house-book-meta{
+            padding:0 10px 5px; font-size:7px; gap:3px;
+        }
+        .personal-album-compact-cover .menkoi-house-book-story-label{
+            left:9px;right:8px;top:9px;font-size:7px;
+        }
+        @media(max-width:639px){
+            .personal-album-compact-cover{width:104px !important;height:143px !important;min-width:104px;max-width:104px;flex-basis:104px !important;}
+        }
+</style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <style>
@@ -421,6 +1172,85 @@
             <button @click="toast.show = false" class="opacity-70 hover:opacity-100" aria-label="通知を閉じる">
                 <i class="fa-solid fa-xmark"></i>
             </button>
+        </div>
+
+
+        <!-- Vol.47：初回だけ表示する使い方チュートリアル -->
+        <div v-if="tutorialOpen"
+             class="fixed inset-0 z-[120] bg-black/55 backdrop-blur-[2px] flex items-center justify-center p-4"
+             role="dialog" aria-modal="true" aria-label="めんこい家の使い方">
+            <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden border border-iwate-wood/20">
+                <div class="bg-iwate-darkgreen text-white px-5 py-4 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-[9px] font-black tracking-[.2em] text-iwate-gold">WELCOME TO MENKOIYA</p>
+                        <h2 class="font-black text-lg mt-1">めんこい家の使い方</h2>
+                        <p class="text-[10px] text-iwate-lightgreen mt-1">3つだけ覚えれば、すぐに使い始められます。</p>
+                    </div>
+                    <button @click="dismissTutorial"
+                            class="w-8 h-8 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                            aria-label="チュートリアルを閉じる">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="px-5 pt-4">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button v-for="(step,index) in tutorialSteps" :key="step.title"
+                                @click="tutorialStep=index"
+                                class="rounded-xl border px-2 py-2 text-left transition"
+                                :class="tutorialStep===index ? 'border-iwate-green bg-iwate-lightgreen' : 'border-gray-200 bg-white text-gray-400'">
+                            <div class="text-[9px] font-black">0{{ index + 1 }}</div>
+                            <div class="text-[10px] font-bold mt-0.5 truncate"
+                                 :class="tutorialStep===index ? 'text-iwate-darkgreen' : 'text-gray-500'">{{ step.short }}</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-6 py-6 text-center min-h-[245px] flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-2xl bg-iwate-paper border border-iwate-wood/15 grid place-items-center text-4xl shadow-sm">
+                        {{ tutorialSteps[tutorialStep].icon }}
+                    </div>
+                    <p class="text-[10px] font-black tracking-widest text-iwate-wood mt-4">STEP 0{{ tutorialStep + 1 }}</p>
+                    <h3 class="text-xl font-black text-iwate-darkgreen mt-1">{{ tutorialSteps[tutorialStep].title }}</h3>
+                    <p class="text-sm text-gray-600 leading-7 mt-3 max-w-sm">{{ tutorialSteps[tutorialStep].description }}</p>
+
+                    <button v-if="tutorialSteps[tutorialStep].action"
+                            @click="runTutorialAction(tutorialSteps[tutorialStep].action)"
+                            class="mt-5 inline-flex items-center gap-2 rounded-xl border border-iwate-green/25 bg-iwate-lightgreen px-4 py-2 text-xs font-black text-iwate-darkgreen hover:bg-green-100 transition">
+                        <i :class="tutorialSteps[tutorialStep].actionIcon"></i>
+                        {{ tutorialSteps[tutorialStep].actionLabel }}
+                    </button>
+                </div>
+
+                <div class="border-t bg-iwate-paper/70 px-5 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <button @click="tutorialStep=Math.max(0,tutorialStep-1)"
+                                :disabled="tutorialStep===0"
+                                class="px-3 py-2 text-xs font-bold text-gray-500 disabled:opacity-30">
+                            <i class="fa-solid fa-chevron-left mr-1"></i>前へ
+                        </button>
+
+                        <div class="flex items-center gap-1.5">
+                            <span v-for="(_,index) in tutorialSteps" :key="index"
+                                  class="h-1.5 rounded-full transition-all"
+                                  :class="tutorialStep===index ? 'w-6 bg-iwate-green' : 'w-1.5 bg-gray-300'"></span>
+                        </div>
+
+                        <button v-if="tutorialStep < tutorialSteps.length - 1"
+                                @click="tutorialStep++"
+                                class="rounded-xl bg-iwate-darkgreen text-white px-4 py-2 text-xs font-black">
+                            次へ<i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                        <button v-else @click="completeTutorial"
+                                class="rounded-xl bg-iwate-darkgreen text-white px-4 py-2 text-xs font-black">
+                            はじめる<i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                    <p class="text-center text-[9px] text-gray-400 mt-3">
+                        一度閉じると自動では表示されません。「使い方」からいつでも見直せます。
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- 1. ヘッダー／デモユーザー切替 -->
@@ -589,66 +1419,20 @@
             <div v-if="currentTab === 'home'" class="space-y-5">
 
                 <section class="bg-gradient-to-r from-iwate-green to-iwate-darkgreen rounded-2xl p-6 md:p-7 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black">岩手</div>
-                    <div class="relative z-10 max-w-2xl">
+                    <button @click="openTutorial"
+                            class="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 px-2.5 py-1.5 text-[10px] font-bold text-white transition"
+                            title="めんこい家の使い方を見る">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span class="hidden sm:inline">使い方</span>
+                    </button>
+                    <div class="relative z-10 max-w-none pr-8 sm:pr-20">
                         <p class="text-[10px] font-black tracking-[.18em] text-iwate-gold">MENKOIYA</p>
-                        <h2 class="text-2xl md:text-3xl font-black mt-1 leading-tight">
-                            空き家を知って、関わって、<br class="hidden sm:inline">地域に愛される家へ。
+                        <h2 class="text-xl sm:text-2xl md:text-3xl font-black mt-1 leading-tight whitespace-nowrap">
+                            空き家を知って、関わって、地域に愛される家へ。
                         </h2>
                         <p class="text-sm text-iwate-lightgreen mt-2 leading-relaxed">
                             家の記憶を残し、地域の活動を通して手入れし、これからの使い方をみんなで考えるサービスです。
                         </p>
-                    </div>
-                </section>
-
-                <!-- 役割ごとの「次にすること」だけを前面に -->
-                <section class="simple-card">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <p class="text-[10px] font-bold tracking-widest text-iwate-wood">まずはここから</p>
-                            <h3 class="simple-card-title mt-1">
-                                {{
-                                    currentUser.role === 'owner'
-                                    ? '空き家を登録するか、地域の人にクエストを作成しましょう'
-                                    : currentUser.role === 'resident'
-                                    ? '地域の空き家を見て、記憶や活用案に参加しましょう'
-                                    : '気になる空き家や、参加できる活動を探しましょう'
-                                }}
-                            </h3>
-                            <p class="simple-muted mt-1">
-                                {{
-                                    currentUser.role === 'owner'
-                                    ? '管理や申請対応は必要なときだけ確認できます。'
-                                    : currentUser.role === 'resident'
-                                    ? '空き家の詳細から、家の記憶・活用案・イベント利用を確認できます。'
-                                    : '空き家の物語を知ってから活動を選ぶことも、活動から探すこともできます。'
-                                }}
-                            </p>
-                        </div>
-
-                        <div class="flex flex-wrap gap-2">
-                            <template v-if="currentUser.role === 'owner'">
-                                <button @click="openCreateHouseModal" class="simple-action simple-action-primary">
-                                    <i class="fa-solid fa-house-circle-check"></i>空き家を登録
-                                </button>
-                                <button @click="openCreateQuestModal" class="simple-action simple-action-secondary">
-                                    <i class="fa-solid fa-list-check"></i>クエストを作成
-                                </button>
-                            </template>
-                            <template v-else-if="currentUser.role === 'resident'">
-                                <button @click="currentTab='houses'" class="simple-action simple-action-primary">
-                                    <i class="fa-solid fa-building-user"></i>空き家を見る
-                                </button>
-                            </template>
-                            <template v-else>
-                                <button @click="currentTab='houses'" class="simple-action simple-action-primary">
-                                    <i class="fa-solid fa-building-user"></i>空き家を探す
-                                </button>
-                                <button @click="currentTab='quests'" class="simple-action simple-action-secondary">
-                                    <i class="fa-solid fa-list-check"></i>活動を探す
-                                </button>
-                            </template>
-                        </div>
                     </div>
                 </section>
 
@@ -689,33 +1473,6 @@
                         </div>
                     </div>
                 </details>
-
-                <!-- 3ステップだけ残す -->
-                <section class="simple-card">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                        <div>
-                            <h3 class="simple-card-title"><i class="fa-solid fa-route text-iwate-gold mr-1"></i>めんこい家の流れ</h3>
-                            <p class="simple-muted mt-1">機能ではなく、体験の順番だけを簡単に示します。</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button @click="currentTab='houses'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
-                            <div class="text-iwate-gold font-black text-lg">01</div>
-                            <div class="font-bold text-sm text-iwate-darkgreen">知る</div>
-                            <p class="text-[11px] text-gray-500 mt-1">家の歴史や今の状態を見る。</p>
-                        </button>
-                        <button @click="currentTab='quests'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
-                            <div class="text-iwate-gold font-black text-lg">02</div>
-                            <div class="font-bold text-sm text-iwate-darkgreen">関わる</div>
-                            <p class="text-[11px] text-gray-500 mt-1">清掃・草刈り・聞き取りなどに参加する。</p>
-                        </button>
-                        <button @click="currentTab='houses'" class="text-left rounded-xl bg-iwate-paper p-4 border border-iwate-wood/10 hover:border-iwate-green transition">
-                            <div class="text-iwate-gold font-black text-lg">03</div>
-                            <div class="font-bold text-sm text-iwate-darkgreen">活かす</div>
-                            <p class="text-[11px] text-gray-500 mt-1">活用案やイベント利用につなげる。</p>
-                        </button>
-                    </div>
-                </section>
 
                 <!-- ホーム画面の最下部：登録済みの空き家 -->
                 <section class="simple-card space-y-4" aria-labelledby="home-registered-houses-title">
@@ -986,6 +1743,58 @@
                         <button @click="currentTab='ranking'" class="simple-action simple-action-secondary">
                             <i class="fa-solid fa-ranking-star"></i>ランキングを見る
                         </button>
+                    </div>
+                </section>
+
+                <!-- Vol.60: コンパクトな個人アルバムカード -->
+                <section class="simple-card">
+                    <div class="flex flex-col sm:flex-row items-center sm:items-center gap-5">
+                        <button type="button"
+                                @click="openPersonalAlbum"
+                                class="menkoi-house-book house-hub-book-cover personal-album-compact-cover shrink-0"
+                                :aria-label="currentUser.name + 'のマイアルバムを開く'">
+                            <img v-if="personalAlbumCoverImage"
+                                 :src="personalAlbumCoverImage"
+                                 :alt="''"
+                                 class="menkoi-house-book-image">
+                            <span v-else class="absolute inset-0 bg-iwate-darkgreen" aria-hidden="true"></span>
+                            <span class="menkoi-house-book-shade" aria-hidden="true"></span>
+                            <span class="menkoi-house-book-story-label">
+                                <span><i class="fa-solid fa-images mr-1"></i>MY ALBUM</span>
+                                <span>自分の記録</span>
+                            </span>
+                            <span class="menkoi-house-book-meta">
+                                <span>{{ currentUser.name }}</span>
+                                <span>{{ personalAlbumPages.length }} RECORDS</span>
+                            </span>
+                            <span class="menkoi-house-book-title">わたしの活動アルバム</span>
+                        </button>
+
+                        <div class="flex-1 min-w-0 flex flex-col justify-center">
+                            <p class="text-[10px] font-black tracking-widest text-iwate-wood">MY ACTIVITY ALBUM</p>
+                            <h3 class="simple-card-title mt-1 text-base">
+                                <i class="fa-solid fa-images text-iwate-green mr-1"></i>わたしの活動アルバム
+                            </h3>
+                            <p class="simple-muted mt-2">
+                                自分が残した記憶やクエストの活動報告だけを、家をまたいで一冊にまとめます。
+                                ほかの人の記録はここには表示されません。
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <span class="text-[10px] font-bold rounded-full bg-iwate-paper border border-iwate-wood/10 px-2.5 py-1">
+                                    <i class="fa-solid fa-book-open mr-1 text-iwate-wood"></i>{{ personalAlbumPages.length }}件の記録
+                                </span>
+                                <span class="text-[10px] font-bold rounded-full bg-green-50 border border-green-200 text-iwate-darkgreen px-2.5 py-1">
+                                    <i class="fa-solid fa-user-check mr-1"></i>自分だけ
+                                </span>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="button" @click="openPersonalAlbum" class="simple-action simple-action-primary">
+                                    <i class="fa-solid fa-book-open"></i>アルバムを開く
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -1597,6 +2406,175 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Vol.65: マイページの個人アルバム（自分の記録だけ） -->
+        <div v-if="modals.personalAlbum"
+             class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2 sm:p-4"
+             @click.self="modals.personalAlbum = false">
+            <div class="chronicle-book-modal">
+                <div class="chronicle-head">
+                    <div class="chronicle-head-meta">
+                        <div class="chronicle-head-icon"><i class="fa-solid fa-images"></i></div>
+                        <div class="chronicle-head-title">
+                            <p>MY ACTIVITY ALBUM</p>
+                            <h3>{{ currentUser.name }}の記録</h3>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="chronicle-head-count">自分の記録 {{ personalAlbumPages.length }}ページ</span>
+                        <button type="button"
+                                @click="modals.personalAlbum = false"
+                                class="w-8 h-8 rounded-full bg-white border text-gray-500 text-xl font-bold shadow-sm"
+                                aria-label="閉じる">&times;</button>
+                    </div>
+                </div>
+
+                <!-- 記録がまだない場合 -->
+                <div v-if="personalAlbumPages.length === 0" class="flex-1 min-h-0 grid place-items-center p-6 bg-iwate-paper">
+                    <div class="max-w-md w-full rounded-2xl border-2 border-dashed border-iwate-wood/30 bg-white/80 p-8 text-center">
+                        <div class="text-4xl text-iwate-green mb-3"><i class="fa-regular fa-images"></i></div>
+                        <h4 class="font-black text-iwate-darkgreen">まだ自分の記録はありません</h4>
+                        <p class="text-xs text-gray-500 mt-2 leading-relaxed">
+                            クエストで活動報告を送ったり、家の記憶を投稿したりすると、
+                            ここに自分だけのページが増えていきます。
+                        </p>
+                    </div>
+                </div>
+
+                <template v-else>
+                    <!-- 閉じた表紙 -->
+                    <transition name="chronicle-cover-open" mode="out-in">
+                        <div v-if="personalAlbumPage===0" key="personal-closed-cover" class="chronicle-cover-stage">
+                            <button type="button"
+                                    @click="nextPersonalAlbumPage"
+                                    class="menkoi-house-book chronicle-home-cover"
+                                    :aria-label="currentUser.name + 'のマイアルバムを開く'">
+                                <img v-if="personalAlbumCoverImage"
+                                     :src="personalAlbumCoverImage"
+                                     :alt="currentUser.name + 'のアルバム表紙写真'"
+                                     class="menkoi-house-book-image">
+                                <span v-else class="absolute inset-0 bg-iwate-darkgreen" aria-hidden="true"></span>
+                                <span class="menkoi-house-book-shade" aria-hidden="true"></span>
+                                <span class="menkoi-house-book-story-label">
+                                    <span><i class="fa-solid fa-images mr-1"></i>MY ALBUM</span>
+                                    <span>自分の記録</span>
+                                </span>
+                                <span class="menkoi-house-book-meta">
+                                    <span>{{ currentUser.name }}</span>
+                                    <span>{{ personalAlbumPages.length }} RECORDS</span>
+                                </span>
+                                <span class="menkoi-house-book-title">わたしの活動アルバム</span>
+                            </button>
+                        </div>
+                    </transition>
+
+                    <!-- 本を開いた後：既存の年代記と同じ構成 -->
+                    <div v-if="personalAlbumPage>0" class="chronicle-book-shell">
+                        <aside class="chronicle-index">
+                            <div class="chronicle-index-inner">
+                                <div class="chronicle-index-intro">
+                                    <p class="small">MY RECORDS</p>
+                                    <h4>わたしの記録</h4>
+                                    <p>自分が関わった家で残した活動と記憶を、日付順にたどれます。</p>
+                                </div>
+
+                                <div class="chronicle-toc custom-scrollbar" aria-label="自分の活動アルバム目次">
+                                    <button v-for="(page,index) in personalAlbumPages"
+                                            :key="'personal-album-index-'+page.id"
+                                            type="button"
+                                            @click="goPersonalAlbumPage(index + 1)"
+                                            :class="personalAlbumPage===index+1 ? 'is-active' : ''">
+                                        <span class="chronicle-toc-dot"><i :class="page.icon"></i></span>
+                                        <span>
+                                            <span class="chronicle-toc-date">{{ page.dateLabel }}</span>
+                                            <span class="chronicle-toc-title">{{ page.title }}</span>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <div class="chronicle-index-foot">
+                                    <i class="fa-solid fa-user-check mr-1"></i>
+                                    この本には、{{ currentUser.name }}さん自身の記録だけが残ります。
+                                </div>
+                            </div>
+                        </aside>
+
+                        <div class="chronicle-gutter" aria-hidden="true"></div>
+
+                        <div class="chronicle-page-stage">
+                            <transition :name="personalAlbumTurnDirection === 'prev' ? 'menkoi-pageflip-prev' : 'menkoi-pageflip-next'"
+                                        mode="out-in">
+                                <section v-if="currentPersonalAlbumPage"
+                                         :key="'personal-album-page-'+currentPersonalAlbumPage.id"
+                                         class="chronicle-page">
+                                    <div class="chronicle-entry-top">
+                                        <div>
+                                            <p class="chronicle-kicker">{{ currentPersonalAlbumPage.kicker }}</p>
+                                            <div class="chronicle-date">{{ currentPersonalAlbumPage.dateLabel }}</div>
+                                        </div>
+                                        <span class="chronicle-type">
+                                            <i :class="currentPersonalAlbumPage.icon"></i>{{ currentPersonalAlbumPage.typeLabel }}
+                                        </span>
+                                    </div>
+
+                                    <h2 class="chronicle-entry-title">{{ currentPersonalAlbumPage.title }}</h2>
+
+                                    <div class="chronicle-entry-meta">
+                                        <span><i class="fa-solid fa-house mr-1"></i>{{ currentPersonalAlbumPage.houseName }}</span>
+                                        <span v-if="currentPersonalAlbumPage.meta">
+                                            <i class="fa-solid fa-tag mr-1"></i>{{ currentPersonalAlbumPage.meta }}
+                                        </span>
+                                    </div>
+
+                                    <div class="chronicle-entry-body"
+                                         :class="!currentPersonalAlbumPage.photo ? 'no-photo' : ''">
+                                        <p class="chronicle-entry-text">{{ currentPersonalAlbumPage.text }}</p>
+                                        <figure v-if="currentPersonalAlbumPage.photo" class="chronicle-photo">
+                                            <img :src="currentPersonalAlbumPage.photo"
+                                                 :alt="currentPersonalAlbumPage.title + 'の記録写真'"
+                                                 loading="lazy">
+                                        </figure>
+                                    </div>
+
+                                    <div class="story-book-status mt-3">
+                                        <i class="fa-solid fa-user-check"></i>
+                                        <div>
+                                            <strong>自分の記録</strong>
+                                            <span>このページは {{ currentUser.name }}さん自身が残した活動・記憶です。</span>
+                                        </div>
+                                    </div>
+
+                                    <span class="chronicle-page-no">
+                                        {{ personalAlbumPage }} / {{ personalAlbumPages.length }}
+                                    </span>
+                                </section>
+                            </transition>
+                        </div>
+                    </div>
+
+                    <div v-if="personalAlbumPage===0" class="chronicle-cover-footer">
+                        <button type="button" @click="nextPersonalAlbumPage">
+                            本を開く<i class="fa-solid fa-book-open"></i>
+                        </button>
+                    </div>
+
+                    <div v-else class="chronicle-footer">
+                        <button type="button" @click="prevPersonalAlbumPage">
+                            <i class="fa-solid fa-arrow-left"></i>{{ personalAlbumPage===1 ? '表紙へ戻る' : 'ページを戻す' }}
+                        </button>
+                        <div class="chronicle-progress">
+                            <strong>{{ currentPersonalAlbumPage?.dateLabel || 'MY ALBUM' }}</strong>
+                            {{ personalAlbumPage }} / {{ personalAlbumPages.length }}
+                        </div>
+                        <button type="button"
+                                @click="nextPersonalAlbumPage"
+                                :disabled="personalAlbumPage>=personalAlbumPages.length">
+                            ページをめくる<i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -2386,12 +3364,17 @@
                     currentTab: 'home',
                     homeHousePreviewId: null,
                     questFilter: 'all',
+                    personalAlbumPage: 0,
+                    personalAlbumTurnDirection: 'next',
                     questSearch: '',
                     houseSearch: '',
                     houseTab: 'history',
                     growthPageIndex: 0,
                     historyPageIndex: 0,
                     
+                    tutorialOpen: false,
+                    tutorialStep: 0,
+
                     toast: {
                         show: false,
                         message: '',
@@ -2413,6 +3396,7 @@
                     houses: [
                         {
                             id: 'h1',
+                            lat: 39.325, lng: 141.530, locationApproximate: true,
                             name: '遠野の曲り家風 古民家 (遠野市松崎町)',
                             location: '岩手県遠野市松崎町',
                             age: 68,
@@ -2456,6 +3440,7 @@
                         },
                         {
                             id: 'h2',
+                            lat: 38.986, lng: 141.117, locationApproximate: true,
                             name: '平泉 街道沿いの和風町家 (平泉町平泉)',
                             location: '岩手県西磐井郡平泉町',
                             age: 52,
@@ -2510,6 +3495,7 @@
                         houseDetail: false,
                         houseBook: false,
                         houseHistory: false,
+                        personalAlbum: false,
                         createHouse: false,
                         createQuest: false,
                         createUser: false,
@@ -2612,7 +3598,7 @@
             },
             watch: {
                 users: { handler() { this.scheduleFirebaseSave(); }, deep: true },
-                houses: { handler() { this.scheduleFirebaseSave(); }, deep: true },
+                houses: { handler() { this.scheduleFirebaseSave(); window.menkoiSyncExistingHouses?.(this.houses); }, deep: true },
                 quests: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 parties: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 currentUserId() { this.partyInviteSearch = ''; this.scheduleFirebaseSave(); }
@@ -2656,20 +3642,66 @@
                     }
 
                     this.applyVersion12Fixes();
+                    window.menkoiSyncExistingHouses?.(this.houses);
                     this.firebaseReady = true;
                     this.firebaseHydrating = false;
                     await this.saveToFirebase();
+                    this.refreshTutorialVisibility();
                     console.log('Firebase接続成功！');
                 } catch (error) {
                     this.firebaseHydrating = false;
                     this.firebaseError = error.message;
                     console.error('Firebase接続エラー:', error);
                     this.showToast('Firebase接続エラー: ' + error.message, 'error');
+                    this.refreshTutorialVisibility();
                 }
             },
             computed: {
                 currentUser() {
                     return this.users.find(u => u.id === this.currentUserId) || this.users[0];
+                },
+                tutorialSteps() {
+                    const role = this.currentUser?.role || 'participant';
+
+                    if (role === 'owner') {
+                        return [
+                            { short:'登録する', icon:'🏠', title:'空き家を登録する',
+                              description:'まずは家の情報・写真・場所を登録します。登録した家は、地域の人が知る入口になります。',
+                              action:'createHouse', actionLabel:'空き家登録を見る', actionIcon:'fa-solid fa-house-circle-check' },
+                            { short:'仲間を募る', icon:'📣', title:'クエストで関わる人を募る',
+                              description:'清掃や草刈り、聞き取りなど「今この家に必要なこと」をクエストとして地域へ届けます。',
+                              action:'createQuest', actionLabel:'クエスト作成を見る', actionIcon:'fa-solid fa-list-check' },
+                            { short:'育てる', icon:'📖', title:'活動を家の物語に残す',
+                              description:'承認された活動や地域の記憶を積み重ね、これからの活用やイベントにつなげていきます。',
+                              action:'houses', actionLabel:'空き家を見る', actionIcon:'fa-solid fa-building-user' }
+                        ];
+                    }
+
+                    if (role === 'resident') {
+                        return [
+                            { short:'知る', icon:'🗺️', title:'地域の家を知る',
+                              description:'マップや空き家一覧から、近くにある家と、その家に残っている物語を見つけます。',
+                              action:'map', actionLabel:'マップを見る', actionIcon:'fa-solid fa-map-location-dot' },
+                            { short:'残す', icon:'📖', title:'記憶やアイデアを残す',
+                              description:'知っている昔の出来事や写真、これからの使い方のアイデアを家のページに残せます。',
+                              action:'houses', actionLabel:'空き家を見る', actionIcon:'fa-solid fa-building-user' },
+                            { short:'つなげる', icon:'🤝', title:'家の未来につなげる',
+                              description:'集まった記憶や活用案、イベント利用を通して、空き家を地域に愛される場所へつなげます。',
+                              action:'houses', actionLabel:'家の未来を見る', actionIcon:'fa-solid fa-seedling' }
+                        ];
+                    }
+
+                    return [
+                        { short:'見つける', icon:'🗺️', title:'気になる家を見つける',
+                          description:'マップや空き家一覧から、気になる家を探します。家の歴史や今の状態も見ることができます。',
+                          action:'map', actionLabel:'マップを見る', actionIcon:'fa-solid fa-map-location-dot' },
+                        { short:'関わる', icon:'🌱', title:'クエストに参加する',
+                          description:'清掃・草刈り・聞き取りなど、家に必要な活動を選び、参加申請して現地で関わります。',
+                          action:'quests', actionLabel:'クエストを見る', actionIcon:'fa-solid fa-list-check' },
+                        { short:'残る', icon:'📖', title:'活動が家の物語になる',
+                          description:'完了した活動は家の成長記録に残ります。関わるほど、その家の過去・今・未来がつながっていきます。',
+                          action:'houses', actionLabel:'家の記録を見る', actionIcon:'fa-solid fa-book-open' }
+                    ];
                 },
                 currentParty() {
                     if (this.currentUser?.role !== 'participant') return null;
@@ -2735,6 +3767,80 @@
                     const logs = this.activeHouse?.growthLogs || [];
                     return logs[Math.min(Math.max(this.growthPageIndex, 0), logs.length - 1)] || {};
                 },
+                personalAlbumPages() {
+                    const user = this.currentUser;
+                    if (!user?.id) return [];
+
+                    const pages = [];
+
+                    // 自分が投稿した「家の記憶」。
+                    // 個人アルバムなので、自分の投稿は確認待ちでも見返せる。
+                    this.houses.forEach(house => {
+                        (house.historyLogs || [])
+                            .filter(log => log.authorId === user.id)
+                            .forEach(log => {
+                                const rawDate = String(log.date || '');
+                                const pending = (log.verificationStatus || 'verified') === 'pending';
+                                pages.push({
+                                    id: `my-history-${house.id}-${log.id}`,
+                                    sourceType: 'history',
+                                    houseId: house.id,
+                                    houseName: house.name,
+                                    typeLabel: pending ? '記憶・確認待ち' : '記憶',
+                                    kicker: 'MY MEMORY',
+                                    icon: 'fa-solid fa-landmark',
+                                    sortKey: `${rawDate || '9999-12-31'}-09-${String(log.id || '')}`,
+                                    dateLabel: rawDate ? rawDate.replaceAll('-', '/') : '日付未設定',
+                                    title: log.kind === 'story' ? '地域の記憶を残した' : '家の記憶を残した',
+                                    text: log.content || '記録内容はまだありません。',
+                                    photo: log.photo || null,
+                                    meta: `${house.location || ''}${pending ? ' ／ 所有者確認待ち' : ' ／ 公開済み'}`
+                                });
+                            });
+                    });
+
+                    // 自分が送ったクエスト活動報告。
+                    // 「reported」と「approved」だけを記録として残し、申請中・参加待ちは含めない。
+                    this.quests.forEach(quest => {
+                        const house = this.getHouse(quest.houseId);
+                        (quest.applications || [])
+                            .filter(app => app.userId === user.id && ['reported','approved'].includes(app.status))
+                            .forEach(app => {
+                                const rawDateTime = String(app.approvedAt || app.reportedAt || quest.completedAt || quest.date || '');
+                                const datePart = rawDateTime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/)?.[0] || rawDateTime.slice(0,10);
+                                const normalizedDate = datePart.replaceAll('/', '-');
+                                const approved = app.status === 'approved';
+                                pages.push({
+                                    id: `my-quest-${quest.id}-${app.userId}-${app.reportedAt || app.approvedAt || ''}`,
+                                    sourceType: 'quest',
+                                    houseId: house?.id || quest.houseId,
+                                    houseName: house?.name || '空き家',
+                                    typeLabel: approved ? 'クエスト達成' : '活動報告',
+                                    kicker: approved ? 'QUEST COMPLETED' : 'ACTIVITY REPORTED',
+                                    icon: approved ? 'fa-solid fa-check-double' : 'fa-solid fa-camera',
+                                    sortKey: `${normalizedDate || '9999-12-31'}-12-${quest.id}`,
+                                    dateLabel: normalizedDate ? normalizedDate.replaceAll('-', '/') : '日付未設定',
+                                    title: quest.title || 'クエストの活動記録',
+                                    text: app.reportComment || '活動報告を残しました。',
+                                    photo: app.reportPhoto || null,
+                                    meta: `${house?.location || ''}${approved ? ' ／ 承認済み' : ' ／ 所有者確認待ち'}`
+                                });
+                            });
+                    });
+
+                    return pages.sort((a,b) => a.sortKey.localeCompare(b.sortKey, 'ja'));
+                },
+                personalAlbumCoverImage() {
+                    const withPhoto = this.personalAlbumPages.find(page => page.photo);
+                    if (withPhoto?.photo) return withPhoto.photo;
+                    const firstHouseId = this.personalAlbumPages[0]?.houseId;
+                    return this.houses.find(house => house.id === firstHouseId)?.image || this.houses[0]?.image || '';
+                },
+                currentPersonalAlbumPage() {
+                    if (this.personalAlbumPage <= 0) return null;
+                    return this.personalAlbumPages[this.personalAlbumPage - 1] || null;
+                },
+
                 visibleHistoryLogs() { return this.getVisibleHistoryLogs(this.activeHouse); },
                 currentHistoryLog() {
                     return this.visibleHistoryLogs[Math.min(Math.max(this.historyPageIndex, 0), this.visibleHistoryLogs.length - 1)] || {};
@@ -2849,6 +3955,64 @@
                 }
             },
             methods: {
+                tutorialStorageKey(userId = this.currentUserId) {
+                    return `menkoiya_tutorial_seen_v1_${userId || 'guest'}`;
+                },
+                refreshTutorialVisibility(force = false) {
+                    this.tutorialStep = 0;
+                    if (force) {
+                        this.tutorialOpen = true;
+                        return;
+                    }
+                    try {
+                        this.tutorialOpen = localStorage.getItem(this.tutorialStorageKey()) !== '1';
+                    } catch (e) {
+                        this.tutorialOpen = true;
+                    }
+                },
+                markTutorialSeen() {
+                    try {
+                        localStorage.setItem(this.tutorialStorageKey(), '1');
+                    } catch (e) {
+                        console.warn('チュートリアル状態を保存できません:', e);
+                    }
+                },
+                dismissTutorial() {
+                    this.markTutorialSeen();
+                    this.tutorialOpen = false;
+                    this.tutorialStep = 0;
+                },
+                completeTutorial() {
+                    this.dismissTutorial();
+                },
+                openTutorial() {
+                    this.refreshTutorialVisibility(true);
+                },
+                runTutorialAction(action) {
+                    this.markTutorialSeen();
+                    this.tutorialOpen = false;
+                    this.tutorialStep = 0;
+
+                    if (action === 'map') {
+                        this.$nextTick(() => window.openMenkoiMap?.());
+                        return;
+                    }
+                    if (action === 'houses') {
+                        this.currentTab = 'houses';
+                        return;
+                    }
+                    if (action === 'quests') {
+                        this.currentTab = 'quests';
+                        return;
+                    }
+                    if (action === 'createHouse') {
+                        this.openCreateHouseModal();
+                        return;
+                    }
+                    if (action === 'createQuest') {
+                        this.openCreateQuestModal();
+                    }
+                },
                 scheduleFirebaseSave() {
                     if (this.firebaseHydrating || !this.firebaseReady || !this.firebaseUid) return;
                     clearTimeout(this.firebaseSaveTimer);
@@ -3196,6 +4360,7 @@
                     if (this.currentUser.role !== 'participant' && ['confirmedMine','pendingMine'].includes(this.questFilter)) {
                         this.questFilter = 'all';
                     }
+                    this.refreshTutorialVisibility();
                     this.showToast(`ユーザーを「${this.currentUser.name}」に切り替えました`);
                 },
                 getHouse(houseId) {
@@ -3741,6 +4906,31 @@
                     }
                 },
                 nextHistoryPage() { if (this.historyPageIndex < this.visibleHistoryLogs.length - 1) this.historyPageIndex++; },
+                openPersonalAlbum() {
+                    this.personalAlbumPage = 0;
+                    this.personalAlbumTurnDirection = 'next';
+                    this.modals.personalAlbum = true;
+                },
+                goPersonalAlbumPage(page) {
+                    const maxPage = this.personalAlbumPages.length;
+                    const target = Math.min(Math.max(Number(page) || 0, 0), maxPage);
+                    if (target === this.personalAlbumPage) return;
+                    this.personalAlbumTurnDirection = target > this.personalAlbumPage ? 'next' : 'prev';
+                    this.personalAlbumPage = target;
+                },
+                prevPersonalAlbumPage() {
+                    if (this.personalAlbumPage > 0) {
+                        this.personalAlbumTurnDirection = 'prev';
+                        this.personalAlbumPage--;
+                    }
+                },
+                nextPersonalAlbumPage() {
+                    if (this.personalAlbumPage < this.personalAlbumPages.length) {
+                        this.personalAlbumTurnDirection = 'next';
+                        this.personalAlbumPage++;
+                    }
+                },
+
                 openHouseBook(house) {
                     this.activeHouse = house;
                     this.historyPageIndex = 0;
@@ -4578,7 +5768,7 @@
                             q.location = house.location;
                             if (!q.image || q.image === oldImage) q.image = house.image;
                         });
-                        window.menkoiPublishHouse?.(house).catch(console.error);
+                        if (!house.locationApproximate) window.menkoiPublishHouse?.(house).catch(console.error);
                         this.showToast(`空き家「${house.name}」を更新しました`);
                     } else {
                         const newHouse = {
@@ -4720,17 +5910,36 @@
 'use strict';
 const icons={house:'🏠',trace:'🐾',animal:'🌿',spot:'📷'};
 const sample=[];
-let map=null,groups={},unsubscribe=null,unsubscribeHouses=null,selected=null,postMode=false,live=[],housePosts=[],authReady=null,pickCallback=null,pickMarker=null;
+let map=null,groups={},unsubscribe=null,unsubscribeHouses=null,selected=null,postMode=false,live=[],housePosts=[],localHousePosts=[],authReady=null,pickCallback=null,pickMarker=null;
 const status=(v)=>{document.getElementById('menkoi-map-status').textContent=v};
 const safe=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const validPhoto=(url)=>{if(typeof url==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(url)&&url.length<95000)return url;try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
+const validPhoto=(url)=>{if(typeof url==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(url)&&url.length<400000)return url;try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
 const markerIcon=(kind)=>L.divIcon({className:'',html:'<div style="background:#fff;border:2px solid #315c46;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;font-size:21px;box-shadow:0 3px 10px #0003">'+icons[kind]+'</div>',iconSize:[39,39],iconAnchor:[19,39]});
-function render(){if(!map)return;Object.values(groups).forEach(g=>g.clearLayers());for(const p of [...sample,...live,...housePosts]){
+function render(){if(!map)return;Object.values(groups).forEach(g=>g.clearLayers());
+// Firebaseの公開ピンが初期デモの家と重複した場合も、写真を持つデモデータを優先して補完する。
+const localById=new Map(localHousePosts.map(h=>[String(h.houseId||h.id),h]));
+const publishedIds=new Set(housePosts.map(p=>String(p.houseId||p.id)));
+const mergedPublished=housePosts.map(p=>{
+ const local=localById.get(String(p.houseId||p.id));
+ if(!local)return p;
+ return {...p,photo:validPhoto(p.photo)?p.photo:local.photo,
+  title:p.title||local.title,description:p.description||local.description};
+});
+for(const p of [...sample,...live,...mergedPublished,...localHousePosts.filter(p=>!publishedIds.has(String(p.houseId||p.id)))]){
 if(!icons[p.kind]||!Number.isFinite(p.lat)||!Number.isFinite(p.lng))continue;
 const photo=validPhoto(p.photo);const img=photo?'<img loading="lazy" referrerpolicy="no-referrer" src="'+safe(photo)+'" alt="投稿写真">':'';
-const own=!p.sample&&window.firebase&&firebase.auth().currentUser&&p.authorUid===firebase.auth().currentUser.uid;
+const own=!p.sample&&p.kind!=='house'&&window.firebase&&firebase.auth().currentUser&&p.authorUid===firebase.auth().currentUser.uid;
 const del=own?'<button type="button" onclick="menkoiMapDelete(\''+safe(p.id)+'\')">自分の投稿を削除</button>':'';
-L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>参考地点</small>':del)+'</div>').addTo(groups[p.kind]);}}
+L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.locationApproximate?'<small>※市町村付近の参考位置です。正確な場所ではありません。</small>':(p.sample?'<small>参考地点</small>':del))+'</div>').addTo(groups[p.kind]);}}
+// Vueの保存済み空き家も表示する。公開済みmapHousesと重複させない。
+window.menkoiSyncExistingHouses=function(houses){
+ localHousePosts=(Array.isArray(houses)?houses:[]).filter(h=>Number.isFinite(Number(h.lat))&&Number.isFinite(Number(h.lng))&&Number(h.lat)!==0&&Number(h.lng)!==0).map(h=>({
+  id:String(h.id),houseId:String(h.id),kind:'house',title:String(h.name||'空き家'),
+  description:String(h.location||''),photo:h.image||'',lat:Number(h.lat),lng:Number(h.lng),
+  locationApproximate:!!h.locationApproximate,sample:true
+ }));
+ render();
+};
 function subscribe(){if(unsubscribe)return;try{
  unsubscribe=db.collection('mapPosts').orderBy('createdAt','desc').limit(300).onSnapshot(snapshot=>{
  live=snapshot.docs.map(d=>({id:d.id,...d.data()})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&!p.locationPending&&icons[p.kind]&&p.kind!=='house');render();status('発見 '+live.length+'件・空き家 '+housePosts.length+'件');
@@ -4773,7 +5982,7 @@ window.menkoiPublishHouse=async function(house){
  if(!window.db||!window.firebase)throw new Error('Firebaseが読み込まれていません');
  if(!Number.isFinite(house.lat)||!Number.isFinite(house.lng))throw new Error('空き家の公開位置が未指定です');
  if(!firebase.auth().currentUser)await firebase.auth().signInAnonymously();
- await db.collection('mapHouses').doc(String(house.id)).set({kind:'house',title:house.name,description:house.location,lat:house.lat,lng:house.lng,photo:validPhoto(house.image),houseId:house.id,authorUid:firebase.auth().currentUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+ await db.collection('mapHouses').doc(String(house.id)).set({kind:'house',title:house.name,description:house.location,lat:house.lat,lng:house.lng,photo:(String(house.image||'').startsWith('data:')&&String(house.image).length>=95000?'':validPhoto(house.image)),houseId:house.id,authorUid:firebase.auth().currentUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
 };
 window.menkoiPublishDiscovery=async function(record){
  if(!window.firebase||!window.db)throw new Error('Firebaseが読み込まれていません');
