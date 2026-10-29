@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- めんこい家 shido: 機能・画面を維持したまま未使用コードと旧版の残骸を整理したクリーン版 -->
+<!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
+<!-- めんこい家 Vol.85: Vol.84 + 通知/アルバム/クエスト写真復元 + ポイント100pt単位統一 -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -1512,7 +1513,7 @@
             .book-compact-form .wide{grid-column:auto}
         }
 
-        /* 本の中から「書き足す」「参加する」 */
+        /* 本の中から「記憶を残す」「参加する」 */
 
         
         .book-history-form .wide{grid-column:1/-1}
@@ -1549,7 +1550,7 @@
             
         }
 
-        /* 「書き足す・関わる」は本のページではなく必要時だけ開く操作パネル */
+        /* 「記憶を残す・関わる」は本のページではなく必要時だけ開く操作パネル */
         .chronicle-book-modal{position:relative}
 
         
@@ -2579,6 +2580,27 @@
 }
 
 .personal-album-record-page{position:relative}
+
+/* Vol.72: マイページ通知・アルバム整理・本のデコレーション・写真なしクエスト */
+.profile-notification-card{border:1px solid #ead8b8;background:linear-gradient(180deg,#fffdf8,#fff9ed);border-radius:18px;overflow:hidden;box-shadow:0 4px 14px #6a4c2d0d}
+.profile-notification-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;border-bottom:1px solid #eee2d0}
+.profile-notification-head strong{color:#254b39;font-size:13px}.profile-notification-head span{font-size:9px;color:#946442;font-weight:900}
+.profile-notification-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;max-height:260px;overflow:auto}
+.album-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.album-filter-row{display:flex;gap:6px;flex-wrap:wrap}
+.album-filter-chip{padding:6px 9px;border:1px solid #ddd2c1;border-radius:999px;background:#fff;color:#726759;font-size:8px;font-weight:900;transition:.15s}
+.album-filter-chip:hover{border-color:#91a87c;background:#f6f8f2}.album-filter-chip.is-active{background:#315c46;border-color:#315c46;color:#fff}
+.album-library-button{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:9px;background:#fff1d9;color:#725039;border:1px solid #e8cfa5;font-size:9px;font-weight:900}
+.personal-house-story-item{position:relative}.personal-book-decoration-button{margin-top:6px;padding:5px 8px;border:1px solid #dfd3c2;border-radius:8px;background:#fff;color:#75644f;font-size:7px;font-weight:900}
+.personal-book-sticker{position:absolute;z-index:8;right:11px;top:7px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#fff7dc;border:2px solid #e6ad68;box-shadow:0 3px 7px #0002;font-size:18px;transform:rotate(7deg);pointer-events:none}
+.personal-book-note{position:absolute;z-index:7;left:7px;bottom:16px;width:74px;max-height:48px;overflow:hidden;padding:6px 7px;background:#fff0a8;border:1px solid #e0c768;box-shadow:2px 3px 7px #0002;color:#67572d;font-size:7px;font-weight:800;line-height:1.35;transform:rotate(-3deg);pointer-events:none}
+.album-library-modal{width:min(920px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;border-radius:22px;background:#f7f2e8;box-shadow:0 28px 80px #0006}
+.album-library-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:17px 19px;border-bottom:1px solid #e3d6c4;background:#fffdf8}.album-library-head h3{font-size:18px;font-weight:900;color:#254b39}.album-library-head p{font-size:9px;color:#777166;margin-top:3px}
+.album-library-body{padding:16px 18px 22px;overflow:auto}.album-library-search{position:relative}.album-library-search input{width:100%;padding:10px 36px;border:1px solid #ddd3c6;border-radius:12px;background:#fff;font-size:12px}.album-library-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9a9186}
+.album-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}.album-library-card{display:grid;grid-template-columns:78px 1fr;gap:11px;padding:10px;border:1px solid #e2d6c4;border-radius:14px;background:#fff}.album-library-cover{position:relative;height:104px;border-radius:5px 10px 10px 5px;overflow:hidden;background:#315c46;box-shadow:4px 5px 9px #0002}.album-library-cover img{width:100%;height:100%;object-fit:cover}.album-library-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#183326b5)}.album-library-card h4{font-size:11px;font-weight:900;color:#254b39}.album-library-card p{font-size:8px;color:#766e63;line-height:1.55;margin-top:3px}.album-library-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.album-library-actions button{padding:5px 7px;border-radius:7px;font-size:7px;font-weight:900}.album-library-actions .primary{background:#315c46;color:#fff}.album-library-actions .secondary{border:1px solid #d7c8b0;color:#315c46;background:#fff}
+.album-decoration-modal{width:min(430px,94vw);border-radius:20px;background:#fff;box-shadow:0 24px 70px #0005;overflow:hidden}.album-decoration-head{padding:16px 18px;border-bottom:1px solid #eee3d5;background:#fffaf1}.album-decoration-head h3{color:#254b39;font-size:16px;font-weight:900}.album-sticker-picker{display:flex;gap:8px;flex-wrap:wrap}.album-sticker-picker button{width:42px;height:42px;border-radius:12px;border:1px solid #ded4c7;background:#fff;font-size:22px}.album-sticker-picker button.is-active{border:2px solid #315c46;background:#edf2e8}
+.quest-default-image{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#edf2e8,#f7f2e8);border:1px dashed #b8c8b2;color:#315c46;text-align:center}.quest-default-image i{font-size:28px}.quest-default-image span{font-size:9px;font-weight:900;letter-spacing:.08em}.quest-default-card-image{width:82px;min-height:92px;height:100%}
+@media(max-width:700px){.album-library-grid{grid-template-columns:1fr}.album-library-card{grid-template-columns:68px 1fr}.album-library-cover{height:92px}.personal-book-note{width:64px}.profile-notification-body{max-height:220px}}
 </style>
 
 </head>
@@ -2763,7 +2785,7 @@
                             class="px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1.5 whitespace-nowrap">
                         <span>{{ user.avatar }}</span>
                         <span>{{ user.name }}</span>
-                        <span class="text-[10px] opacity-80">({{ user.role === 'owner' ? '所有者' : user.role === 'resident' ? '地域住民' : '参加者' }})</span>
+                        <span class="text-[10px] opacity-80">({{ user.role === 'owner' ? '所有者' : '参加者' }})</span>
                     </button>
 
                     <button @click="openCreateUserModal" 
@@ -2799,7 +2821,7 @@
                 <div class="flex items-center gap-4">
                     <div class="bg-iwate-green/80 border border-iwate-gold/30 rounded-xl px-3 py-1.5 text-right hidden sm:block">
                         <div class="text-[10px] text-iwate-lightgreen">
-                            {{ currentUser.name }} ({{ currentUser.role === 'owner' ? 'LV.' + getOwnerLevel(currentUser) + ' 所有者' : currentUser.role === 'resident' ? '地域住民' : 'LV.' + currentUser.level + ' 参加者' }})
+                            {{ currentUser.name }} ({{ currentUser.role === 'owner' ? 'LV.' + getOwnerLevel(currentUser) + ' 所有者' : 'LV.' + currentUser.level + ' 参加者' }})
                         </div>
                         <div v-if="currentUser.role === 'participant'" class="text-xs font-bold text-iwate-gold flex items-center justify-end gap-1">
                             <i class="fa-solid fa-coins"></i> {{ currentUser.points }} pt
@@ -2807,9 +2829,6 @@
                         </div>
                         <div v-else-if="currentUser.role === 'owner'" class="text-xs font-bold text-iwate-gold flex items-center justify-end gap-1">
                             <i class="fa-solid fa-house-user"></i> 所有者管理モード
-                        </div>
-                        <div v-else class="text-xs font-bold text-iwate-gold flex items-center justify-end gap-1">
-                            <i class="fa-solid fa-people-roof"></i> 地域住民モード
                         </div>
                     </div>
 
@@ -2879,7 +2898,7 @@
                     <span class="text-2xl">{{ currentUser.avatar }}</span>
                     <div>
                         <div class="font-bold text-sm">{{ currentUser.name }}</div>
-                        <div class="text-[10px] text-gray-500">{{ currentUser.role === 'owner' ? '所有者 LV.' + getOwnerLevel(currentUser) : currentUser.role === 'resident' ? '地域住民・閲覧と投票' : '参加者 LV.' + currentUser.level }}</div>
+                        <div class="text-[10px] text-gray-500">{{ currentUser.role === 'owner' ? '所有者 LV.' + getOwnerLevel(currentUser) : '参加者 LV.' + currentUser.level }}</div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -2892,7 +2911,7 @@
                         </template>
                         <template v-else>
                             <div class="text-xs font-bold text-iwate-wood flex items-center gap-1 justify-end">
-                                <i class="fa-solid fa-house-user text-iwate-gold"></i> {{ currentUser.role === 'owner' ? '管理モード' : '地域住民' }}
+                                <i class="fa-solid fa-house-user text-iwate-gold"></i>管理モード
                             </div>
                         </template>
                     </div>
@@ -3098,10 +3117,42 @@
                         </div>
                     </div>
 
-                    <div v-if="currentUser.role !== 'resident'" class="mt-4 bg-green-50 border border-green-200 rounded-xl p-3">
+                    <div class="mt-4 bg-green-50 border border-green-200 rounded-xl p-3">
                         <p class="text-xs font-bold text-iwate-darkgreen">
                             {{ currentUser.role === 'owner' ? getOwnerLevelCondition(currentUser) : getParticipantLevelCondition(currentUser) }}
                         </p>
+                    </div>
+                </section>
+
+                <section class="profile-notification-card">
+                    <div class="profile-notification-head">
+                        <strong><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>通知</strong>
+                        <span>{{ userNotifications(currentUser).filter(n => !n.read).length }}件未読</span>
+                    </div>
+                    <div class="profile-notification-body custom-scrollbar">
+                        <p v-if="!userNotifications(currentUser).length" class="text-xs text-gray-500">通知はまだありません。</p>
+                        <div v-for="n in userNotifications(currentUser)" :key="n.id"
+                             class="rounded-xl border p-3 text-sm transition"
+                             :class="[
+                                 n.read ? 'bg-gray-50' : 'bg-amber-50 border-amber-200',
+                                 notificationHasTarget(n) ? 'cursor-pointer hover:border-iwate-green hover:shadow-sm' : ''
+                             ]"
+                             :role="notificationHasTarget(n) ? 'button' : null"
+                             :tabindex="notificationHasTarget(n) ? 0 : null"
+                             @click="notificationHasTarget(n) && openNotification(n)"
+                             @keydown.enter.prevent="notificationHasTarget(n) && openNotification(n)">
+                            <div class="flex justify-between gap-2 items-start">
+                                <strong class="text-xs">{{ n.title }}</strong>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button v-if="notificationHasTarget(n)" @click.stop="openNotification(n)" class="text-[10px] text-iwate-darkgreen font-black inline-flex items-center gap-1">
+                                        {{ notificationActionLabel(n) }}<i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                    <button v-if="!n.read" @click.stop="n.read=true" class="text-[10px] text-iwate-green font-bold">既読にする</button>
+                                </div>
+                            </div>
+                            <p class="text-xs mt-1">{{ n.message }}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">{{ n.date }}</p>
+                        </div>
                     </div>
                 </section>
 
@@ -3127,9 +3178,14 @@
                             </h3>
                             <p class="simple-muted mt-2">上の一冊では自分の活動を振り返り、下の本棚では自分が関わった家そのものの年代記を読めます。</p>
                         </div>
-                        <span class="personal-activity-count">
-                            <i class="fa-solid fa-book-open"></i>{{ personalAlbumStats.totalRecords }}件の記録
-                        </span>
+                        <div class="flex items-center gap-2 flex-wrap justify-end">
+                            <button type="button" @click="openAlbumLibrary" class="album-library-button">
+                                <i class="fa-solid fa-table-list"></i>アルバム一覧
+                            </button>
+                            <span class="personal-activity-count">
+                                <i class="fa-solid fa-book-open"></i>{{ personalAlbumStats.totalRecords }}件の記録
+                            </span>
+                        </div>
                     </div>
 
                     <template v-if="personalAlbumPages.length > 0">
@@ -3219,9 +3275,21 @@
                                 <span class="text-[9px] font-bold text-gray-400">{{ personalAlbumBooks.length }}冊</span>
                             </div>
 
+                            <div class="album-toolbar">
+                                <div class="album-filter-row" aria-label="本棚の絞り込み">
+                                    <button v-for="option in albumShelfFilterOptions" :key="option.value" type="button"
+                                            @click="albumShelfFilter=option.value"
+                                            class="album-filter-chip"
+                                            :class="albumShelfFilter===option.value ? 'is-active' : ''">
+                                        {{ option.label }}
+                                    </button>
+                                </div>
+                                <span class="text-[8px] font-bold text-gray-400">{{ filteredPersonalAlbumBooks.length }} / {{ personalAlbumBooks.length }}冊</span>
+                            </div>
+
                             <div class="personal-house-story-shelf">
-                                <div class="personal-house-story-grid">
-                                    <article v-for="book in personalAlbumBooks"
+                                <div v-if="filteredPersonalAlbumBooks.length" class="personal-house-story-grid">
+                                    <article v-for="book in filteredPersonalAlbumBooks"
                                              :key="'related-house-story-'+book.id"
                                              class="personal-house-story-item">
 
@@ -3255,7 +3323,13 @@
                                                     </span>
                                                 </span>
                                             </button>
+                                            <span v-if="getAlbumDecoration(book.id).sticker" class="personal-book-sticker" aria-hidden="true">{{ getAlbumDecoration(book.id).sticker }}</span>
+                                            <span v-if="getAlbumDecoration(book.id).note" class="personal-book-note">{{ getAlbumDecoration(book.id).note }}</span>
                                         </div>
+
+                                        <button type="button" @click="openAlbumDecoration(book)" class="personal-book-decoration-button">
+                                            <i class="fa-solid fa-note-sticky mr-1"></i>付箋・シール
+                                        </button>
 
                                         <div class="story-shelf-meta">
                                             <span><i class="fa-solid fa-pen-nib"></i>あなたの記録 {{ book.pages.length }}件</span>
@@ -3268,6 +3342,10 @@
                                             表紙をクリックして、この家全体の年代記を読む
                                         </p>
                                     </article>
+                                </div>
+                                <div v-else class="py-10 text-center text-xs text-gray-400">
+                                    <i class="fa-solid fa-filter text-2xl mb-2"></i>
+                                    <p>この条件に合う本はありません。</p>
                                 </div>
                             </div>
                         </div>
@@ -3372,25 +3450,6 @@
                     </div>
                 </section>
 
-                <details class="simple-details" :open="userNotifications(currentUser).filter(n => !n.read).length > 0">
-                    <summary>
-                        <span><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>通知</span>
-                        <span class="text-[10px] text-gray-500">{{ userNotifications(currentUser).filter(n => !n.read).length }}件未読</span>
-                    </summary>
-                    <div class="border-t p-4 space-y-2">
-                        <p v-if="!userNotifications(currentUser).length" class="text-xs text-gray-500">通知はまだありません。</p>
-                        <div v-for="n in userNotifications(currentUser)" :key="n.id"
-                             class="rounded-xl border p-3 text-sm"
-                             :class="n.read ? 'bg-gray-50' : 'bg-amber-50 border-amber-200'">
-                            <div class="flex justify-between gap-2">
-                                <strong class="text-xs">{{ n.title }}</strong>
-                                <button v-if="!n.read" @click="n.read=true" class="text-[10px] text-iwate-green font-bold">既読にする</button>
-                            </div>
-                            <p class="text-xs mt-1">{{ n.message }}</p>
-                            <p class="text-[10px] text-gray-400 mt-1">{{ n.date }}</p>
-                        </div>
-                    </div>
-                </details>
 
                 <details class="simple-details">
                     <summary>
@@ -3772,7 +3831,10 @@
                     <button @click="modals.questDetail = false" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
                 </div>
 
-                <img :src="activeQuest.image" class="w-full h-40 object-cover rounded-xl">
+                <img v-if="getQuestDisplayImage(activeQuest)" :src="getQuestDisplayImage(activeQuest)" class="w-full h-40 object-cover rounded-xl" alt="クエスト写真">
+                <div v-else class="quest-default-image h-40 rounded-xl">
+                    <i class="fa-solid fa-scroll"></i><span>QUEST · 写真未登録</span>
+                </div>
 
                 <div class="space-y-2 text-xs text-gray-700 bg-iwate-paper p-4 rounded-xl">
                     <p><strong><i class="fa-solid fa-location-dot text-iwate-wood"></i> 実施場所:</strong> {{ activeQuest.location }}</p>
@@ -4090,6 +4152,85 @@
             </div>
         </div>
 
+        <!-- Vol.72: アルバム一覧 -->
+        <div v-if="modals.albumLibrary" class="fixed inset-0 z-[96] bg-black/60 flex items-center justify-center p-3 sm:p-5" @click.self="modals.albumLibrary=false">
+            <div class="album-library-modal">
+                <div class="album-library-head">
+                    <div>
+                        <p class="text-[8px] font-black tracking-[.15em] text-iwate-wood">MY ALBUM LIBRARY</p>
+                        <h3><i class="fa-solid fa-book-open text-iwate-gold mr-1"></i>アルバム一覧</h3>
+                        <p>自分が関わった家の本を、家名・地域・記録内容から探せます。</p>
+                    </div>
+                    <button @click="modals.albumLibrary=false" class="house-library-close" aria-label="アルバム一覧を閉じる">&times;</button>
+                </div>
+                <div class="album-library-body custom-scrollbar">
+                    <div class="album-library-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input v-model="albumLibrarySearch" type="search" placeholder="家名・地域・クエスト・記憶の内容で検索">
+                    </div>
+                    <div class="album-filter-row mt-3">
+                        <button v-for="option in albumShelfFilterOptions" :key="'library-'+option.value" type="button"
+                                @click="albumLibraryFilter=option.value" class="album-filter-chip"
+                                :class="albumLibraryFilter===option.value ? 'is-active' : ''">{{ option.label }}</button>
+                    </div>
+                    <div v-if="filteredAlbumLibraryBooks.length" class="album-library-grid">
+                        <article v-for="book in filteredAlbumLibraryBooks" :key="'album-library-'+book.id" class="album-library-card">
+                            <div class="album-library-cover">
+                                <img v-if="book.image" :src="book.image" alt="" loading="lazy">
+                                <span v-if="getAlbumDecoration(book.id).sticker" class="personal-book-sticker">{{ getAlbumDecoration(book.id).sticker }}</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="truncate">{{ book.houseName }}</h4>
+                                <p>{{ book.location || '所在地未設定' }}</p>
+                                <p>あなたの記録 {{ book.pages.length }}件 · 活動 {{ book.questCount }} · 記憶 {{ book.memoryCount }}</p>
+                                <p v-if="getAlbumDecoration(book.id).note" class="mt-1 bg-amber-50 border border-amber-200 rounded-lg p-1.5 text-amber-900">📝 {{ getAlbumDecoration(book.id).note }}</p>
+                                <div class="album-library-actions">
+                                    <button class="primary" @click="openPersonalAlbumForHouse(book)"><i class="fa-solid fa-user-bookmark mr-1"></i>自分の記録</button>
+                                    <button v-if="book.house" class="secondary" @click="modals.albumLibrary=false; openHouseBook(book.house)"><i class="fa-solid fa-book-open mr-1"></i>家の年代記</button>
+                                    <button class="secondary" @click="openAlbumDecoration(book)"><i class="fa-solid fa-note-sticky mr-1"></i>飾る</button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    <div v-else class="py-14 text-center text-gray-400 text-xs">
+                        <i class="fa-solid fa-magnifying-glass text-3xl mb-3"></i>
+                        <p>条件に合うアルバムはありません。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vol.72: 本に付箋・シールを貼る -->
+        <div v-if="modals.albumDecoration" class="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4" @click.self="modals.albumDecoration=false">
+            <div class="album-decoration-modal">
+                <div class="album-decoration-head flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[8px] font-black tracking-[.14em] text-iwate-wood">DECORATE YOUR BOOK</p>
+                        <h3>{{ albumDecorationBookName || '本' }}を飾る</h3>
+                    </div>
+                    <button @click="modals.albumDecoration=false" class="text-gray-400 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="p-5 space-y-5">
+                    <div>
+                        <label class="block text-xs font-black text-iwate-darkgreen mb-2">シール</label>
+                        <div class="album-sticker-picker">
+                            <button type="button" @click="albumDecorationSticker=''" :class="albumDecorationSticker==='' ? 'is-active' : ''" title="シールなし">×</button>
+                            <button v-for="sticker in albumStickerOptions" :key="sticker" type="button" @click="albumDecorationSticker=sticker" :class="albumDecorationSticker===sticker ? 'is-active' : ''">{{ sticker }}</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-iwate-darkgreen mb-2">付箋メモ <span class="text-gray-400 font-normal">（40文字まで）</span></label>
+                        <textarea v-model="albumDecorationNote" maxlength="40" rows="3" class="w-full border rounded-xl p-3 text-sm resize-none" placeholder="例：また行きたい、思い出の家"></textarea>
+                        <p class="text-right text-[9px] text-gray-400 mt-1">{{ albumDecorationNote.length }}/40</p>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 border-t">
+                        <button @click="clearAlbumDecoration" class="px-4 py-2 rounded-xl border text-xs font-bold text-gray-600">はがす</button>
+                        <button @click="saveAlbumDecoration" class="px-5 py-2 rounded-xl bg-iwate-darkgreen text-white text-xs font-black">保存する</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- マイページの個人アルバム（自分の記録だけ） -->
         <div v-if="modals.personalAlbum"
              class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2 sm:p-4"
@@ -4362,7 +4503,7 @@
                                 type="button"
                                 @click="openBookMemoryEditor(currentHouseBookPage?.kind==='chronicle' ? currentHouseBookPage : null)"
                                 class="chronicle-ribbon memory"
-                                aria-label="この家の記憶を書き足す">
+                                aria-label="この家の記憶を残す">
                             <i class="fa-solid fa-pen-nib"></i>
                             <span>記憶＋</span>
                         </button>
@@ -4550,7 +4691,6 @@
                                            class="flex-1 border rounded-lg px-2 py-1.5 text-[9px]">
                                     <button @click="submitIdea" class="book-inline-action"><i class="fa-solid fa-plus"></i>提案</button>
                                 </div>
-                                <p v-else-if="currentUser.role==='resident'" class="book-special-note">地域住民は、集まったアイデアに投票できます。</p>
 
                                 <div class="book-future-use-card">
                                     <div class="book-future-use-card-head">
@@ -4585,7 +4725,7 @@
                             <div class="book-quick-panel-head">
                                 <div>
                                     <p class="kicker">{{ bookQuickPanel==='memory' ? 'ADD A MEMORY' : (bookQuickPanel==='event' ? 'USE THIS HOUSE' : 'GET INVOLVED') }}</p>
-                                    <h3>{{ bookQuickPanel==='memory' ? 'この本に記憶を書き足す' : (bookQuickPanel==='event' ? 'この家を使ってみる' : 'この家で今できること') }}</h3>
+                                    <h3>{{ bookQuickPanel==='memory' ? 'この家の記憶を残す' : (bookQuickPanel==='event' ? 'この家を使ってみる' : 'この家で今できること') }}</h3>
                                 </div>
                                 <button @click="closeBookQuickPanel" class="book-quick-panel-close" aria-label="閉じる">&times;</button>
                             </div>
@@ -4644,7 +4784,7 @@
                                     </div>
 
                                     <div v-else class="book-special-note">
-                                        記憶を投稿できるのは、所有者・地域住民・この家のクエスト達成者です。
+                                        記憶を投稿できるのは、所有者・参加者です。所有者以外の投稿は確認後に公開されます。
                                     </div>
                                 </template>
 
@@ -4658,7 +4798,8 @@
                                         <article v-for="quest in activeHouseQuests"
                                                  :key="'quick-book-quest-'+quest.id"
                                                  class="book-quick-quest">
-                                            <img :src="quest.image || activeHouse.image" :alt="quest.title">
+                                            <img v-if="getQuestDisplayImage(quest)" :src="getQuestDisplayImage(quest)" :alt="quest.title">
+                                            <div v-else class="quest-default-image w-full h-full min-h-[120px]"><i class="fa-solid fa-scroll"></i><span>QUEST · 写真未登録</span></div>
                                             <div>
                                                 <div class="flex items-center justify-between gap-2">
                                                     <span class="house-quest-status" :class="getStatusBadgeClass(quest)">{{ getStatusText(quest) }}</span>
@@ -4917,7 +5058,8 @@
                             <article v-for="quest in activeHouseQuests" :key="'house-hub-quest-'+quest.id"
                                      class="house-quest-card" :class="isQuestCompleted(quest) ? 'is-complete' : ''">
                                 <div class="house-quest-card-top">
-                                    <img :src="quest.image || activeHouse.image" :alt="quest.title" class="house-quest-card-image">
+                                    <img v-if="getQuestDisplayImage(quest)" :src="getQuestDisplayImage(quest)" :alt="quest.title" class="house-quest-card-image">
+                                    <div v-else class="quest-default-image quest-default-card-image"><i class="fa-solid fa-scroll"></i><span>NO PHOTO</span></div>
                                     <div class="house-quest-card-main">
                                         <span class="house-quest-status" :class="getStatusBadgeClass(quest)">
                                             {{ getStatusText(quest) }}
@@ -4988,8 +5130,8 @@
                                 </div>
                                 <div class="house-story-actions">
                                     <button @click="openHouseBook(activeHouse)" class="primary"><i class="fa-solid fa-book-open"></i>年代記を読む</button>
-                                    <button v-if="currentUser.role==='participant' && canPostHistory(activeHouse)"
-                                            @click="openParticipantMemoryPost(activeHouse)"
+                                    <button v-if="canPostHistory(activeHouse)"
+                                            @click="openCreateHistoryModal"
                                             class="secondary">
                                         <i class="fa-solid fa-pen-nib"></i>記憶を投稿
                                     </button>
@@ -5187,7 +5329,7 @@
             <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center border-b pb-2">
                     <h3 class="font-bold text-base text-iwate-darkgreen">
-                        <i class="fa-solid fa-scroll mr-1"></i> {{ editingQuestId ? 'クエストを編集' : '新しい地域活動を登録' }}
+                        <i class="fa-solid fa-scroll mr-1"></i> {{ editingQuestId ? 'クエストを編集' : '新しいクエストを登録' }}
                     </h3>
                     <button @click="modals.createQuest = false" class="text-gray-400 text-xl font-bold">&times;</button>
                 </div>
@@ -5204,6 +5346,26 @@
                         </select>
                         <p v-if="!editingQuestId" class="text-[10px] text-gray-500 mt-1">登録した空き家の中から、活動を行う家を選択してください。</p>
                         <p v-if="isQuestHouseSelectionLocked()" class="text-[10px] text-amber-700 mt-1">参加申請・参加者がいるため、編集中は対象の空き家を変更できません。</p>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">クエスト写真 <span class="text-gray-400 font-normal">（任意）</span></label>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="inline-flex items-center gap-2 bg-iwate-wood hover:bg-iwate-darkgreen text-white px-4 py-2 rounded-xl font-bold cursor-pointer transition">
+                                <i class="fa-solid fa-camera"></i> 写真を選択
+                                <input :key="questImageInputKey" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="handleQuestImage">
+                            </label>
+                            <button type="button" @click="useHousePhotoForQuest" :disabled="!getHouse(newQuestForm.houseId)?.image" class="px-3 py-2 rounded-xl border text-[11px] font-bold text-iwate-darkgreen bg-white disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-house mr-1"></i>空き家写真を使用
+                            </button>
+                            <span v-if="newQuestForm.imageFileName" class="text-[11px] text-gray-500">{{ newQuestForm.imageFileName }}</span>
+                        </div>
+                        <div v-if="newQuestForm.imagePreview || getHouse(newQuestForm.houseId)?.image" class="mt-2 h-40 rounded-xl overflow-hidden border bg-gray-100 relative">
+                            <img :src="newQuestForm.imagePreview || getHouse(newQuestForm.houseId)?.image" class="w-full h-full object-cover" alt="クエスト写真のプレビュー">
+                            <span class="absolute left-2 bottom-2 rounded-full bg-black/65 text-white px-2 py-1 text-[9px] font-bold">
+                                {{ newQuestForm.imagePreview ? 'クエスト専用写真' : '登録済みの空き家写真' }}
+                            </span>
+                        </div>
+                        <p class="mt-1 text-[10px] text-gray-500">専用写真を選ばない場合は、対象の空き家に登録されている写真を自動で表示します。</p>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">活動名 <span class="text-red-500">*</span></label>
@@ -5320,6 +5482,10 @@
                     </div>
                     <button @click="modals.confirmQuest = false" class="text-gray-400 text-2xl font-bold">&times;</button>
                 </div>
+                <div v-if="newQuestForm.imagePreview || getHouse(newQuestForm.houseId)?.image" class="h-44 rounded-xl overflow-hidden border bg-gray-100 relative">
+                    <img :src="newQuestForm.imagePreview || getHouse(newQuestForm.houseId)?.image" class="w-full h-full object-cover" alt="確認用のクエスト写真">
+                    <span class="absolute left-2 bottom-2 rounded-full bg-black/65 text-white px-2 py-1 text-[9px] font-bold">{{ newQuestForm.imagePreview ? 'クエスト専用写真' : '空き家写真を使用' }}</span>
+                </div>
                 <div class="bg-iwate-paper border rounded-xl p-4 text-xs space-y-2">
                     <p><strong>対象の空き家：</strong>{{ getHouse(newQuestForm.houseId)?.name }}</p>
                     <p><strong>活動名：</strong>{{ newQuestForm.title }}</p>
@@ -5362,7 +5528,7 @@
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">アカウント種別 <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-3 gap-2 mt-1">
+                        <div class="grid grid-cols-2 gap-2 mt-1">
                             <label class="border p-3 rounded-xl cursor-pointer flex flex-col items-center gap-1 transition"
                                    :class="newUserForm.role === 'participant' ? 'border-iwate-green bg-iwate-lightgreen text-iwate-darkgreen font-bold' : 'border-gray-200 text-gray-600'">
                                 <input type="radio" v-model="newUserForm.role" value="participant" class="hidden">
@@ -5375,7 +5541,6 @@
                                 <span class="text-lg">🏡</span>
                                 <span>空き家所有者</span>
                             </label>
-                            <label class="border p-3 rounded-xl cursor-pointer flex flex-col items-center gap-1" :class="newUserForm.role === 'resident' ? 'border-iwate-green bg-iwate-lightgreen font-bold' : 'border-gray-200'"><input type="radio" v-model="newUserForm.role" value="resident" class="hidden"><span class="text-lg">🏘️</span><span>地域住民</span></label>
                         </div>
                     </div>
                 </div>
@@ -5427,6 +5592,14 @@
                     personalAlbumPage: 0,
                     personalAlbumHouseId: null,
                     personalAlbumTurnDirection: "next",
+                    albumShelfFilter: 'all',
+                    albumLibrarySearch: '',
+                    albumLibraryFilter: 'all',
+                    albumDecorationBookId: '',
+                    albumDecorationBookName: '',
+                    albumDecorationSticker: '',
+                    albumDecorationNote: '',
+                    albumStickerOptions: ['⭐','❤️','🌱','📌','✅','🏆'],
                     book3DFormOpen: false,
                     bookEventApplyOpen: false,
                     bookQuickPanel: null,
@@ -5455,11 +5628,11 @@
 
                     users: [
                         { id: 'u1', name: '岩手 太郎', role: 'owner', points: 0, totalPoints: 0, level: 1, avatar: '🌾' },
-                        { id: 'u2', name: '岩手 花子', role: 'participant', points: 350, totalPoints: 550, level: 2, avatar: '🍎' },
-                        { id: 'u3', name: '盛岡 次郎', role: 'participant', points: 100, totalPoints: 150, level: 1, avatar: '🌲' },
-                        { id: 'u4', name: '遠野の地域住民', role: 'resident', points: 0, totalPoints: 0, level: 1, avatar: '🏘️' },
+                        { id: 'u2', name: '岩手 花子', role: 'participant', points: 300, totalPoints: 600, level: 2, avatar: '🍎' },
+                        { id: 'u3', name: '盛岡 次郎', role: 'participant', points: 100, totalPoints: 100, level: 1, avatar: '🌲' },
+                        { id: 'u4', name: '遠野 みどり', role: 'participant', points: 0, totalPoints: 0, level: 1, avatar: '🌾' },
                         { id: 'u5', name: '盛岡 さくら', role: 'owner', points: 0, totalPoints: 0, level: 1, avatar: '🏡' },
-                        { id: 'u6', name: '花巻 みのり', role: 'participant', points: 720, totalPoints: 980, level: 3, avatar: '🌼' }
+                        { id: 'u6', name: '花巻 みのり', role: 'participant', points: 700, totalPoints: 1000, level: 3, avatar: '🌼' }
                     ],
                     parties: [],
                     newPartyName: '',
@@ -5622,7 +5795,7 @@
                                 { date:'2026-10-01', title:'空き家登録完了', desc:'畑と納屋を含めて、めんこい家に登録しました。', photo:'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=500&q=80' }
                             ],
                             historyLogs: [
-                                { id:'hist-h4-1', author:'遠野の地域住民', role:'地域住民', date:'2026-10-08', content:'昔は秋になると近所の人が集まり、納屋の前で収穫した豆を選別していたと聞きました。', kind:'story', historyYear:1972, era:'昭和40年代後半', source:'近隣住民への聞き取り', authorId:'u4', verificationStatus:'verified', verifiedAt:'2026-10-09', rewardGranted:true, photo:'' }
+                                { id:'hist-h4-1', author:'遠野 みどり', role:'参加者', date:'2026-10-08', content:'昔は秋になると近所の人が集まり、納屋の前で収穫した豆を選別していたと聞きました。', kind:'story', historyYear:1972, era:'昭和40年代後半', source:'近隣住民への聞き取り', authorId:'u4', verificationStatus:'verified', verifiedAt:'2026-10-09', rewardGranted:true, photo:'' }
                             ],
                             ideas: [
                                 { id:'i-h4-1', author:'岩手 花子', text:'親子向けの季節野菜づくり体験', votes:['u2','u6'] }
@@ -5705,7 +5878,7 @@
                             location: '岩手県遠野市松崎町字白和野',
                             datetime: '2026年10月10日(土) 10:00〜14:00',
                             capacity: 4,
-                            points: 100,
+                            points:100,
                             requiredLevel: 1,
                             items: '軍手、マスク、動きやすい服',
                             conditions: '縁側および主屋床面の掃除機がけ＆乾拭き完了',
@@ -5727,7 +5900,7 @@
                             id:'q2', houseId:'h1', category:'記憶・撮影',
                             title:'昔の写真を見ながら「この家の記憶」を聞き取ろう',
                             location:'岩手県遠野市松崎町', datetime:'2026年11月1日(日) 13:00〜15:00',
-                            capacity:2, points:120, requiredLevel:1,
+                            capacity:2, points:100, requiredLevel:1,
                             items:'筆記用具、スマートフォン', conditions:'聞き取り内容を年代記用に整理して提出',
                             description:'近隣の方と昔の写真を見ながら、この家での暮らしや地域の思い出を聞き取ります。',
                             notes:'聞き取り相手への配慮を最優先にしてください。',
@@ -5739,7 +5912,7 @@
                             id:'q3', houseId:'h2', category:'片付け',
                             title:'町家の残置物を仕分けて、使える部屋を増やそう',
                             location:'岩手県西磐井郡平泉町', datetime:'2026年10月31日(土) 09:30〜12:30',
-                            capacity:3, points:90, requiredLevel:1,
+                            capacity:3, points:100, requiredLevel:1,
                             items:'軍手、マスク、汚れてもよい服', conditions:'指定された2部屋の仕分け完了',
                             description:'残す物・処分する物・所有者確認が必要な物に分けて、次の活用に向けた空間をつくります。',
                             notes:'重量物は無理に運ばず所有者へ声をかけてください。',
@@ -5751,7 +5924,7 @@
                             id:'q4', houseId:'h2', category:'イベント準備',
                             title:'街道の休憩処オープンに向けた暖簾・案内づくり',
                             location:'岩手県西磐井郡平泉町', datetime:'2026年11月7日(土) 13:00〜16:00',
-                            capacity:4, points:110, requiredLevel:1,
+                            capacity:4, points:100, requiredLevel:1,
                             items:'筆記用具', conditions:'入口案内と簡易暖簾の試作品を完成',
                             description:'観光客にも地域の人にも入りやすい入口を考え、案内表示や暖簾をみんなで試作します。',
                             notes:'デザイン経験は不要です。',
@@ -5775,7 +5948,7 @@
                             id:'q6', houseId:'h3', category:'DIY',
                             title:'格子戸をみんなで磨いて、木部を保護塗装しよう',
                             location:'岩手県盛岡市鉈屋町', datetime:'2026年10月18日(日) 09:00〜13:00',
-                            capacity:2, points:150, requiredLevel:2,
+                            capacity:2, points:100, requiredLevel:2,
                             items:'汚れてもよい服、軍手', conditions:'格子戸2枚の研磨・保護塗装完了',
                             description:'町家の顔である格子戸を傷めないように手入れし、木の表情を残します。',
                             notes:'塗料は所有者が準備します。',
@@ -5790,7 +5963,7 @@
                             id:'q7', houseId:'h4', category:'草刈り',
                             title:'畑までの通路と家まわりの草刈り',
                             location:'岩手県花巻市東和町', datetime:'2026年11月8日(日) 09:00〜11:30',
-                            capacity:5, points:80, requiredLevel:1,
+                            capacity:5, points:100, requiredLevel:1,
                             items:'長靴、軍手、長袖', conditions:'玄関から畑までの通路を安全に歩ける状態にする',
                             description:'家と畑をつなぐ通路を中心に、背の高い草を刈って安全な動線をつくります。',
                             notes:'草刈機は経験者のみ使用します。',
@@ -5802,7 +5975,7 @@
                             id:'q8', houseId:'h4', category:'記憶・撮影',
                             title:'昔の農作業と納屋の使い方を聞き取って記録',
                             location:'岩手県花巻市東和町', datetime:'2026年11月14日(土) 14:00〜16:00',
-                            capacity:2, points:130, requiredLevel:1,
+                            capacity:2, points:100, requiredLevel:1,
                             items:'筆記用具、スマートフォン', conditions:'聞き取り内容と写真5枚以上を記録',
                             description:'納屋に残る農具を見ながら、昔の農作業や季節ごとの暮らしを聞き取ります。',
                             notes:'人物を撮影する場合は必ず許可を取ってください。',
@@ -5814,7 +5987,7 @@
                             id:'q9', houseId:'h5', category:'清掃',
                             title:'潮風で汚れた窓と外壁をやさしく清掃',
                             location:'岩手県宮古市田老', datetime:'2026年10月25日(日) 10:00〜12:30',
-                            capacity:2, points:120, requiredLevel:2,
+                            capacity:2, points:100, requiredLevel:2,
                             items:'防水手袋、動きやすい服', conditions:'1階の窓・玄関側外壁の清掃完了',
                             description:'海沿い特有の汚れを落としながら、傷みがないかも確認します。',
                             notes:'高所作業は行いません。',
@@ -5826,7 +5999,7 @@
                             id:'q10', houseId:'h5', category:'イベント準備',
                             title:'海の暮らしと防災を語る交流会の会場準備',
                             location:'岩手県宮古市田老', datetime:'2026年11月15日(日) 12:00〜15:00',
-                            capacity:4, points:160, requiredLevel:2,
+                            capacity:4, points:100, requiredLevel:2,
                             items:'筆記用具', conditions:'展示・椅子配置・受付スペースの準備完了',
                             description:'写真や記録を並べ、地域の方と来訪者が話しやすい小さな交流会場をつくります。',
                             notes:'展示物は丁寧に扱ってください。',
@@ -5838,7 +6011,7 @@
                             id:'q11', houseId:'h6', category:'片付け',
                             title:'蔵の1階を「残す物／調べる物／整理する物」に仕分け',
                             location:'岩手県一関市厳美町', datetime:'2026年11月1日(日) 09:30〜12:30',
-                            capacity:3, points:110, requiredLevel:1,
+                            capacity:3, points:100, requiredLevel:1,
                             items:'軍手、マスク', conditions:'蔵1階の指定範囲を3分類に仕分け',
                             description:'古い道具を捨てずに価値を確認できるよう、写真を撮りながら丁寧に仕分けます。',
                             notes:'判断できない物は必ず「調べる物」に入れてください。',
@@ -5850,7 +6023,7 @@
                             id:'q12', houseId:'h6', category:'記憶・撮影',
                             title:'太い梁と柱を写真で記録して「家の骨格」を残そう',
                             location:'岩手県一関市厳美町', datetime:'2026年10月12日(月) 13:00〜15:00',
-                            capacity:1, points:140, requiredLevel:2,
+                            capacity:1, points:100, requiredLevel:2,
                             items:'スマートフォンまたはカメラ', conditions:'指定箇所10点以上の撮影と簡単な説明作成',
                             description:'改修前の梁・柱・建具を写真に残し、年代記と今後の3D記録につなげます。',
                             notes:'フラッシュ利用は所有者の指示に従ってください。',
@@ -5868,6 +6041,8 @@
                         houseDetail: false,
                         houseBook: false,
                         personalAlbum: false,
+                        albumLibrary: false,
+                        albumDecoration: false,
                         houseHistory: false,
                         createHouse: false,
                         createQuest: false,
@@ -5913,6 +6088,7 @@
                     reportImageInputKey: 0,
                     discoveryImageInputKey: 0,
                     houseImageInputKey: 0,
+                    questImageInputKey: 0,
                     historyImageInputKey: 0,
                     model3dInputKey: 0,
 
@@ -5954,7 +6130,9 @@
                         items: '軍手',
                         conditions: '作業の完了',
                         notes: '',
-                        eventUtilization: ''
+                        eventUtilization: '',
+                        imagePreview: '',
+                        imageFileName: ''
                     },
                     useApplicationForm: {
                         eventType: '', eventName: '',
@@ -5975,7 +6153,7 @@
                 houses: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 quests: { handler() { this.scheduleFirebaseSave(); }, deep: true },
                 parties: { handler() { this.scheduleFirebaseSave(); }, deep: true },
-                currentUserId() { this.partyInviteSearch = ''; this.scheduleFirebaseSave(); }
+                currentUserId() { this.partyInviteSearch = ''; this.albumShelfFilter = 'all'; this.albumLibrarySearch = ''; this.albumLibraryFilter = 'all'; this.scheduleFirebaseSave(); }
             },
             async mounted() {
                 try {
@@ -6050,20 +6228,6 @@
                             { short:'育てる', icon:'📖', title:'活動を家の物語に残す',
                               description:'承認された活動や地域の記憶を積み重ね、これからの活用やイベントにつなげていきます。',
                               action:'houses', actionLabel:'家の年代記を見る', actionIcon:'fa-solid fa-book-open' }
-                        ];
-                    }
-
-                    if (role === 'resident') {
-                        return [
-                            { short:'知る', icon:'🗺️', title:'地域の家を知る',
-                              description:'マップや家を探す画面から、近くにある家と、その家に残っている物語を見つけます。',
-                              action:'map', actionLabel:'マップを見る', actionIcon:'fa-solid fa-map-location-dot' },
-                            { short:'残す', icon:'📖', title:'記憶やアイデアを残す',
-                              description:'知っている昔の出来事や写真、これからの使い方のアイデアを家のページに残せます。',
-                              action:'houses', actionLabel:'家を見る', actionIcon:'fa-solid fa-building-user' },
-                            { short:'つなげる', icon:'🤝', title:'家の未来につなげる',
-                              description:'集まった記憶や活用案、イベント利用を通して、空き家を地域に愛される場所へつなげます。',
-                              action:'houses', actionLabel:'この家のこれからを見る', actionIcon:'fa-solid fa-seedling' }
                         ];
                     }
 
@@ -6239,6 +6403,35 @@
                             return book;
                         })
                         .sort((a,b) => String(b.latestPage?.sortKey || '').localeCompare(String(a.latestPage?.sortKey || ''),'ja'));
+                },
+                albumShelfFilterOptions() {
+                    return [
+                        { value:'all', label:'すべて' },
+                        { value:'quest', label:'活動あり' },
+                        { value:'memory', label:'記憶あり' },
+                        { value:'pending', label:'確認待ち' }
+                    ];
+                },
+                filteredPersonalAlbumBooks() {
+                    const filter = this.albumShelfFilter || 'all';
+                    return this.personalAlbumBooks.filter(book => {
+                        if (filter === 'quest') return book.questCount > 0;
+                        if (filter === 'memory') return book.memoryCount > 0;
+                        if (filter === 'pending') return book.pendingCount > 0;
+                        return true;
+                    });
+                },
+                filteredAlbumLibraryBooks() {
+                    const query = String(this.albumLibrarySearch || '').trim().toLowerCase();
+                    const filter = this.albumLibraryFilter || 'all';
+                    return this.personalAlbumBooks.filter(book => {
+                        if (filter === 'quest' && book.questCount <= 0) return false;
+                        if (filter === 'memory' && book.memoryCount <= 0) return false;
+                        if (filter === 'pending' && book.pendingCount <= 0) return false;
+                        if (!query) return true;
+                        const recordText = (book.pages || []).map(page => `${page.title || ''} ${page.text || ''} ${page.typeLabel || ''}`).join(' ');
+                        return `${book.houseName || ''} ${book.location || ''} ${recordText}`.toLowerCase().includes(query);
+                    });
                 },
                 personalAlbumRecentPages() {
                     return [...this.personalAlbumPages]
@@ -6736,9 +6929,24 @@
                             }
                         });
                     });
+                    // Vol.83: 旧「地域住民」アカウントは参加者へ統合する。
                     this.users.filter(user => user.role === 'resident').forEach(user => {
-                        user.points = 0; user.totalPoints = 0; user.level = 1;
+                        user.role = 'participant';
+                        user.points = Number(user.points) || 0;
+                        user.totalPoints = Number(user.totalPoints) || 0;
+                        user.level = Number(user.level) || 1;
+                        if (!user.avatar || user.avatar === '🏘️') user.avatar = '🌾';
                     });
+
+                    // Vol.85: ポイントは100pt単位に統一する。
+                    // 旧保存データの50pt刻みなども、現在値は切り下げ・累計は四捨五入して補正する。
+                    this.users.filter(user => user.role === 'participant').forEach(user => {
+                        const current = Math.max(0, Number(user.points) || 0);
+                        const total = Math.max(0, Number(user.totalPoints) || 0);
+                        user.points = Math.floor(current / 100) * 100;
+                        user.totalPoints = Math.max(user.points, Math.round(total / 100) * 100);
+                    });
+                    this.quests.forEach(quest => { quest.points = 100; });
 
                     // 旧保存データで、累計ポイントだけ増えてLVが更新されていない利用者を補正する。
                     this.users.forEach(user => this.updateUserLevel(user));
@@ -6849,7 +7057,7 @@
                         return;
                     }
                     party.invitedUserIds.push(user.id);
-                    this.notifyUser(user.id, '👥 パーティー招待', `${this.currentUser.name}さんから「${party.name}」への招待が届きました。マイページから参加できます。`);
+                    this.notifyUser(user.id, '👥 パーティー招待', `${this.currentUser.name}さんから「${party.name}」への招待が届きました。マイページから参加できます。`, { type:'profile' });
                     this.showToast(`${user.name}さんを招待しました`);
                 },
                 acceptPartyInvite(party) {
@@ -6870,7 +7078,7 @@
                             other.invitedUserIds = other.invitedUserIds.filter(id => id !== this.currentUser.id);
                         }
                     });
-                    this.notifyUser(party.leaderId, '🎉 パーティー参加', `${this.currentUser.name}さんが「${party.name}」に参加しました。`);
+                    this.notifyUser(party.leaderId, '🎉 パーティー参加', `${this.currentUser.name}さんが「${party.name}」に参加しました。`, { type:'profile' });
                     this.showToast(`「${party.name}」に参加しました！`);
                 },
                 declinePartyInvite(party) {
@@ -6882,7 +7090,7 @@
                     if (!party || !this.isPartyLeader(party) || userId === party.leaderId) return;
                     const user = this.users.find(u => u.id === userId);
                     party.memberIds = (party.memberIds || []).filter(id => id !== userId);
-                    if (user) this.notifyUser(user.id, 'パーティーから外れました', `「${party.name}」のメンバーから外れました。`);
+                    if (user) this.notifyUser(user.id, 'パーティーから外れました', `「${party.name}」のメンバーから外れました。`, { type:'profile' });
                     this.showToast(user ? `${user.name}さんをパーティーから外しました` : 'メンバーを外しました');
                 },
                 leaveParty(party) {
@@ -6892,26 +7100,139 @@
                         return;
                     }
                     party.memberIds = party.memberIds.filter(id => id !== this.currentUser.id);
-                    this.notifyUser(party.leaderId, 'パーティー脱退', `${this.currentUser.name}さんが「${party.name}」から脱退しました。`);
+                    this.notifyUser(party.leaderId, 'パーティー脱退', `${this.currentUser.name}さんが「${party.name}」から脱退しました。`, { type:'profile' });
                     this.showToast(`「${party.name}」から脱退しました`);
                 },
                 disbandParty(party) {
                     if (!party || !this.isPartyLeader(party)) return;
                     if (!confirm(`パーティー「${party.name}」を解散しますか？`)) return;
                     const memberIds = (party.memberIds || []).filter(id => id !== this.currentUser.id);
-                    memberIds.forEach(id => this.notifyUser(id, 'パーティー解散', `「${party.name}」がリーダーにより解散されました。`));
+                    memberIds.forEach(id => this.notifyUser(id, 'パーティー解散', `「${party.name}」がリーダーにより解散されました。`, { type:'profile' }));
                     this.parties = this.parties.filter(p => p.id !== party.id);
                     this.showToast(`「${party.name}」を解散しました`);
                 },
 
-                notifyUser(userId, title, message) {
+                notifyUser(userId, title, message, action = null) {
                     const user = this.users.find(u => u.id === userId);
                     if (!user) return;
                     if (!Array.isArray(user.notifications)) user.notifications = [];
-                    user.notifications.unshift({ id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), title, message, date: new Date().toLocaleString('ja-JP'), read: false });
+                    user.notifications.unshift({
+                        id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                        title,
+                        message,
+                        date: new Date().toLocaleString('ja-JP'),
+                        read: false,
+                        action: action ? { ...action } : null
+                    });
                     if (user.notifications.length > 40) user.notifications.length = 40;
                 },
                 userNotifications(user) { return user?.notifications || []; },
+                resolveNotificationTarget(notification) {
+                    if (!notification) return null;
+                    if (notification.action?.type) return notification.action;
+
+                    // 旧保存データの通知にも対応するため、タイトル・本文から行き先を推定する。
+                    const title = String(notification.title || '');
+                    const message = String(notification.message || '');
+                    const quest = this.quests.find(q => message.includes(`「${q.title}」`) || title.includes(q.title));
+                    const house = this.houses.find(h => message.includes(`「${h.name}」`) || title.includes(h.name))
+                        || (quest ? this.getHouse(quest.houseId) : null);
+
+                    if (this.currentUser.role === 'owner' && /参加申請が届きました/.test(title) && quest) {
+                        return { type: 'questApplications', questId: quest.id };
+                    }
+                    if (this.currentUser.role === 'owner' && /達成報告が届きました/.test(title) && quest) {
+                        return { type: 'reportApproval', questId: quest.id };
+                    }
+                    if (/クエスト参加が承認|クエスト達成が承認|参加申請の結果|パーティーでクエスト申請|推奨レベル未達/.test(title) && quest) {
+                        return { type: 'questDetail', questId: quest.id };
+                    }
+                    if (/家の記憶|歴史投稿/.test(title) && house) {
+                        return { type: 'houseDetail', houseId: house.id };
+                    }
+                    if (/イベント利用申請/.test(title)) {
+                        return house ? { type: 'houseDetail', houseId: house.id } : { type: 'home' };
+                    }
+                    if (/パーティー/.test(title) || /レベルアップ|所有者LV/.test(title)) {
+                        return { type: 'profile' };
+                    }
+                    if (house) return { type: 'houseDetail', houseId: house.id };
+                    if (quest) return { type: 'questDetail', questId: quest.id };
+                    return null;
+                },
+                notificationHasTarget(notification) {
+                    return !!this.resolveNotificationTarget(notification);
+                },
+                notificationActionLabel(notification) {
+                    const target = this.resolveNotificationTarget(notification);
+                    return ({
+                        questApplications: '参加申請を確認',
+                        reportApproval: '達成報告を確認',
+                        questDetail: 'クエストを見る',
+                        houseDetail: '空き家を見る',
+                        historyReview: '記憶を確認',
+                        profile: 'マイページへ',
+                        ranking: 'ランキングへ',
+                        home: '確認する'
+                    })[target?.type] || '開く';
+                },
+                closeNavigationModals() {
+                    Object.keys(this.modals || {}).forEach(key => { this.modals[key] = false; });
+                    this.bookQuickPanel = null;
+                },
+                openNotification(notification) {
+                    if (!notification) return;
+                    notification.read = true;
+                    const target = this.resolveNotificationTarget(notification);
+                    if (!target) return;
+
+                    this.closeNavigationModals();
+                    if (target.type === 'profile') {
+                        this.currentTab = 'profile';
+                        return;
+                    }
+                    if (target.type === 'ranking') {
+                        this.currentTab = 'ranking';
+                        return;
+                    }
+                    if (target.type === 'home') {
+                        this.currentTab = 'home';
+                        return;
+                    }
+
+                    const quest = target.questId ? this.quests.find(q => String(q.id) === String(target.questId)) : null;
+                    const house = target.houseId ? this.houses.find(h => String(h.id) === String(target.houseId)) : (quest ? this.getHouse(quest.houseId) : null);
+
+                    if (target.type === 'questApplications' && quest) {
+                        this.currentTab = 'profile';
+                        this.openQuestApplicationsModal(quest);
+                        return;
+                    }
+                    if (target.type === 'reportApproval' && quest) {
+                        this.currentTab = 'profile';
+                        this.openApprovalModal(quest);
+                        return;
+                    }
+                    if (target.type === 'questDetail' && quest) {
+                        this.currentTab = 'houses';
+                        this.openQuestDetailModal(quest);
+                        return;
+                    }
+                    if (target.type === 'historyReview' && house) {
+                        this.currentTab = 'houses';
+                        this.openHouseBook(house);
+                        this.$nextTick(() => {
+                            const historyId = target.historyId ? `history-${target.historyId}` : '';
+                            const idx = historyId ? this.houseChroniclePages.findIndex(page => page.id === historyId) : -1;
+                            if (idx >= 0) this.goHouseBookPage(idx + 1);
+                        });
+                        return;
+                    }
+                    if (target.type === 'houseDetail' && house) {
+                        this.currentTab = 'houses';
+                        this.openHouseDetailModal(house);
+                    }
+                },
                 getOwnerStats(user) {
                     const owned = this.houses.filter(h => h.ownerId === user.id);
                     const quests = this.quests.filter(q => owned.some(h => h.id === q.houseId));
@@ -6935,14 +7256,14 @@
                     if (pt >= 300) return `次のLV.3：累計 ${pt}/700pt`;
                     return `次のLV.2：累計 ${pt}/300pt`;
                 },
-                roleLabel(role) { return role === 'owner' ? '所有者' : role === 'resident' ? '地域住民' : '参加者'; },
+                roleLabel(role) { return role === 'owner' ? '所有者' : '参加者'; },
                 updateUserLevel(user) {
                     if (!user || user.role !== 'participant') return;
                     const pt = Number(user.totalPoints) || 0;
                     const level = pt >= 1500 ? 4 : pt >= 700 ? 3 : pt >= 300 ? 2 : 1;
                     const old = Number(user.level) || 1;
                     user.level = level;
-                    if (level > old) this.notifyUser(user.id, `🎉 参加者LV.${level}にレベルアップ！`, `累計${pt}ptに到達しました。マイページで次の条件を確認できます。`);
+                    if (level > old) this.notifyUser(user.id, `🎉 参加者LV.${level}にレベルアップ！`, `累計${pt}ptに到達しました。マイページで次の条件を確認できます。`, { type:'profile' });
                 },
                 userTitles(user) {
                     const titles = [];
@@ -7216,17 +7537,9 @@
                         return true;
                     }
 
-                    // 2. 地域住民は地域の記憶を投稿できる。
-                    if (this.currentUser.role === 'resident') {
-                        return true;
-                    }
-
-                    // 3. この空き家のクエストをクリア（承認完了：approved）した参加者の場合
+                    // 2. 参加者は地域の記憶・思い出を投稿できる。
                     if (this.currentUser.role === 'participant') {
-                        return this.quests.some(q => 
-                            q.houseId === house.id && 
-                            (q.applications || []).some(a => a.userId === this.currentUser.id && a.status === 'approved')
-                        );
+                        return true;
                     }
 
                     return false;
@@ -7344,9 +7657,9 @@
                     });
 
                     const house = this.getHouse(quest.houseId);
-                    if (house) this.notifyUser(house.ownerId, '👥 パーティー参加申請が届きました', `「${party.name}」${members.length}人から「${quest.title}」への参加申請が届きました。`);
+                    if (house) this.notifyUser(house.ownerId, '👥 パーティー参加申請が届きました', `「${party.name}」${members.length}人から「${quest.title}」への参加申請が届きました。`, { type:'questApplications', questId:quest.id });
                     members.filter(member => member.id !== this.currentUser.id).forEach(member => {
-                        this.notifyUser(member.id, '👥 パーティーでクエスト申請', `リーダーの${this.currentUser.name}さんが「${party.name}」として「${quest.title}」へ参加申請しました。`);
+                        this.notifyUser(member.id, '👥 パーティーでクエスト申請', `リーダーの${this.currentUser.name}さんが「${party.name}」として「${quest.title}」へ参加申請しました。`, { type:'questDetail', questId:quest.id });
                     });
                     (lowLevelMembers || []).forEach(member => {
                         this.notifyUser(
@@ -7373,7 +7686,7 @@
                     if (!window.confirm(`「${partyName}」の「${quest.title}」への参加申請を全員分取り消しますか？`)) return;
                     const memberIds = groupApps.map(app => app.userId);
                     quest.applications = (quest.applications || []).filter(app => !(app.partyApplicationId === partyApplicationId && app.status === 'pending'));
-                    memberIds.filter(id => id !== this.currentUser.id).forEach(id => this.notifyUser(id, 'パーティー申請を取り消しました', `リーダーが「${quest.title}」へのパーティー参加申請を取り消しました。`));
+                    memberIds.filter(id => id !== this.currentUser.id).forEach(id => this.notifyUser(id, 'パーティー申請を取り消しました', `リーダーが「${quest.title}」へのパーティー参加申請を取り消しました。`, { type:'questDetail', questId:quest.id }));
                     this.showToast('パーティー参加申請を取り消しました', 'info');
                 },
                 approveQuestJoinGroup(quest, group) {
@@ -7394,7 +7707,7 @@
                         app.joinApprovedAt = approvedAt;
                         app.joinRejectionReason = '';
                         app.showJoinRejectForm = false;
-                        this.notifyUser(app.userId, '✅ パーティーのクエスト参加が承認されました', `「${quest.title}」への「${group.label}」での参加が承認されました。`);
+                        this.notifyUser(app.userId, '✅ パーティーのクエスト参加が承認されました', `「${quest.title}」への「${group.label}」での参加が承認されました。`, { type:'questDetail', questId:quest.id });
                     });
                     this.showToast(`「${group.label}」${pendingApps.length}人の参加を承認しました`);
                     if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
@@ -7418,7 +7731,7 @@
                         app.joinRejectedAt = rejectedAt;
                         app.showJoinRejectForm = false;
                         app.joinRejectReasonDraft = '';
-                        this.notifyUser(app.userId, 'パーティー参加申請の結果', `「${quest.title}」への「${group.label}」での参加申請は今回は見送りとなりました。理由：${reason}`);
+                        this.notifyUser(app.userId, 'パーティー参加申請の結果', `「${quest.title}」への「${group.label}」での参加申請は今回は見送りとなりました。理由：${reason}`, { type:'questDetail', questId:quest.id });
                     });
                     this.showToast(`「${group.label}」の参加申請を見送りました`, 'info');
                     if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
@@ -7464,7 +7777,7 @@
                         });
                     }
                     const house = this.getHouse(quest.houseId);
-                    if (house) this.notifyUser(house.ownerId, '🙋 クエスト参加申請が届きました', `${this.currentUser.name}さんが「${quest.title}」への参加を申請しました。`);
+                    if (house) this.notifyUser(house.ownerId, '🙋 クエスト参加申請が届きました', `${this.currentUser.name}さんが「${quest.title}」への参加を申請しました。`, { type:'questApplications', questId:quest.id });
                     this.showToast(`活動「${quest.title}」への参加申請を送りました！`);
                 },
 
@@ -7490,7 +7803,7 @@
                     app.joinApprovedAt = new Date().toLocaleString('ja-JP');
                     app.joinRejectionReason = '';
                     app.showJoinRejectForm = false;
-                    this.notifyUser(app.userId, '✅ クエスト参加が承認されました', `「${quest.title}」への参加が承認されました。`);
+                    this.notifyUser(app.userId, '✅ クエスト参加が承認されました', `「${quest.title}」への参加が承認されました。`, { type:'questDetail', questId:quest.id });
                     this.showToast(`${this.getUserName(app.userId)}さんの参加を承認しました`);
                     if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
                 },
@@ -7503,7 +7816,7 @@
                     app.joinRejectionReason = reason;
                     app.joinRejectedAt = new Date().toLocaleString('ja-JP');
                     app.showJoinRejectForm = false;
-                    this.notifyUser(app.userId, 'クエスト参加申請の結果', `「${quest.title}」への参加申請は今回は見送りとなりました。理由：${reason}`);
+                    this.notifyUser(app.userId, 'クエスト参加申請の結果', `「${quest.title}」への参加申請は今回は見送りとなりました。理由：${reason}`, { type:'questDetail', questId:quest.id });
                     this.showToast('参加申請を見送りました', 'info');
                     if (this.getPendingJoinRequestCount(quest) === 0) this.modals.questApplications = false;
                 },
@@ -7575,7 +7888,7 @@
                             author.historyCount = Math.max(0, (Number(author.historyCount) || 0) - 1);
                             if (log.photo) author.oldPhotoCount = Math.max(0, (Number(author.oldPhotoCount) || 0) - 1);
                             if (author.role === 'participant') {
-                                const reward = 30 + (log.photo ? 20 : 0);
+                                const reward = 100;
                                 author.points = Math.max(0, (Number(author.points) || 0) - reward);
                                 author.totalPoints = Math.max(0, (Number(author.totalPoints) || 0) - reward);
                                 this.updateUserLevel(author);
@@ -7664,6 +7977,50 @@
                 },
                 nextHistoryPage() { if (this.historyPageIndex < this.visibleHistoryLogs.length - 1) this.historyPageIndex++; },
 
+                openAlbumLibrary() {
+                    this.albumLibrarySearch = '';
+                    this.albumLibraryFilter = 'all';
+                    this.modals.albumLibrary = true;
+                },
+                getAlbumDecoration(bookId) {
+                    return this.currentUser?.albumDecorations?.[String(bookId)] || { sticker:'', note:'' };
+                },
+                openAlbumDecoration(book) {
+                    if (!book) return;
+                    const decoration = this.getAlbumDecoration(book.id);
+                    this.albumDecorationBookId = String(book.id);
+                    this.albumDecorationBookName = book.houseName || '本';
+                    this.albumDecorationSticker = decoration.sticker || '';
+                    this.albumDecorationNote = decoration.note || '';
+                    this.modals.albumDecoration = true;
+                },
+                saveAlbumDecoration() {
+                    if (!this.albumDecorationBookId || !this.currentUser) return;
+                    if (!this.currentUser.albumDecorations) this.currentUser.albumDecorations = {};
+                    this.currentUser.albumDecorations[this.albumDecorationBookId] = {
+                        sticker: this.albumDecorationSticker || '',
+                        note: String(this.albumDecorationNote || '').trim().slice(0,40)
+                    };
+                    this.modals.albumDecoration = false;
+                    this.showToast('本の付箋・シールを保存しました');
+                },
+                clearAlbumDecoration() {
+                    if (this.currentUser?.albumDecorations && this.albumDecorationBookId) {
+                        delete this.currentUser.albumDecorations[this.albumDecorationBookId];
+                    }
+                    this.albumDecorationSticker = '';
+                    this.albumDecorationNote = '';
+                    this.modals.albumDecoration = false;
+                    this.showToast('本の飾りを外しました', 'info');
+                },
+                openPersonalAlbumForHouse(book) {
+                    if (!book) return;
+                    this.personalAlbumHouseId = String(book.id);
+                    this.personalAlbumPage = 0;
+                    this.personalAlbumTurnDirection = 'next';
+                    this.modals.albumLibrary = false;
+                    this.modals.personalAlbum = true;
+                },
                 openPersonalAlbum() {
                     this.personalAlbumHouseId = null;
                     this.personalAlbumPage = 0;
@@ -7912,30 +8269,35 @@
                     if (status === 'rejected') return 'bg-red-100 text-red-700';
                     return 'bg-green-100 text-green-700';
                 },
-                grantHistoryReward(log) {
+                grantHistoryReward(log, house = this.activeHouse) {
                     if (!log || log.rewardGranted) return;
                     const author = this.getUser(log.authorId);
                     if (!author) return;
                     author.historyCount = (author.historyCount || 0) + 1;
                     if (log.photo) author.oldPhotoCount = (author.oldPhotoCount || 0) + 1;
                     if (author.role === 'participant') {
-                        const reward = 30 + (log.photo ? 20 : 0);
+                        const reward = 100;
                         author.points = (Number(author.points) || 0) + reward; author.totalPoints = (Number(author.totalPoints) || 0) + reward;
                         this.updateUserLevel(author);
-                        this.notifyUser(author.id, '📚 家の記憶が公開されました', `歴史投稿が所有者に確認され、${reward}ptを獲得しました。`);
+                        this.notifyUser(
+                            author.id,
+                            '📚 家の記憶が公開されました',
+                            `歴史投稿が所有者に確認され、${reward}ptを獲得しました。`,
+                            house?.id ? { type:'historyReview', houseId:house.id, historyId:log.id } : { type:'profile' }
+                        );
                     }
                     log.rewardGranted = true;
                 },
                 approveHistory(house, log) {
                     if (!this.isHouseOwner(house) || !log || log.verificationStatus !== 'pending') return;
-                    log.verificationStatus = 'verified'; log.verifiedAt = new Date().toLocaleString('ja-JP'); this.grantHistoryReward(log);
+                    log.verificationStatus = 'verified'; log.verifiedAt = new Date().toLocaleString('ja-JP'); this.grantHistoryReward(log, house);
                     this.showToast('歴史投稿を確認済みにして年表へ公開しました');
                 },
                 rejectHistory(house, log) {
                     if (!this.isHouseOwner(house) || !log || log.verificationStatus !== 'pending') return;
                     if (!window.confirm('この投稿を一般公開しない状態にしますか？')) return;
                     log.verificationStatus = 'rejected'; log.reviewedAt = new Date().toLocaleString('ja-JP');
-                    this.notifyUser(log.authorId, '歴史投稿の確認結果', `「${house.name}」への歴史投稿は一般公開されませんでした。`);
+                    this.notifyUser(log.authorId, '歴史投稿の確認結果', `「${house.name}」への歴史投稿は一般公開されませんでした。`, { type:'houseDetail', houseId:house.id });
                     this.showToast('歴史投稿を非公開にしました', 'info');
                 },
 
@@ -8085,10 +8447,17 @@
                     this.newQuestForm.conditions = '作業の完了';
                     this.newQuestForm.notes = '';
                     this.newQuestForm.eventUtilization = '';
+                    this.newQuestForm.imagePreview = '';
+                    this.newQuestForm.imageFileName = '';
+                    this.questImageInputKey += 1;
                     this.modals.createQuest = true;
                 },
                 getQuestById(questId) {
                     return this.quests.find(q => q.id === questId) || null;
+                },
+                getQuestDisplayImage(quest) {
+                    if (!quest) return '';
+                    return quest.image || this.getHouse(quest.houseId)?.image || '';
                 },
                 isQuestHouseSelectionLocked() {
                     if (!this.editingQuestId) return false;
@@ -8126,6 +8495,9 @@
                     this.newQuestForm.conditions = quest.conditions || '';
                     this.newQuestForm.notes = quest.notes || '';
                     this.newQuestForm.eventUtilization = quest.eventUtilization || '';
+                    this.newQuestForm.imagePreview = quest.image || '';
+                    this.newQuestForm.imageFileName = quest.image ? '現在のクエスト写真' : '';
+                    this.questImageInputKey += 1;
                     this.modals.questDetail = false;
                     this.modals.createQuest = true;
                 },
@@ -8240,6 +8612,27 @@
                     this.showToast('3Dアーカイブを保存し、年代記にも記録しました');
                 },
 
+                handleQuestImage(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    this.readImageFile(file, (dataUrl) => {
+                        this.newQuestForm.imagePreview = dataUrl;
+                        this.newQuestForm.imageFileName = file.name;
+                        this.showToast('クエスト写真を読み込みました');
+                    });
+                },
+                useHousePhotoForQuest() {
+                    const house = this.getHouse(this.newQuestForm.houseId);
+                    if (!house?.image) {
+                        this.showToast('対象の空き家に登録写真がありません', 'warning');
+                        return;
+                    }
+                    this.newQuestForm.imagePreview = '';
+                    this.newQuestForm.imageFileName = '';
+                    this.questImageInputKey += 1;
+                    this.showToast('登録済みの空き家写真を使用します');
+                },
+
                 handleHouseImage(event) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
@@ -8330,7 +8723,7 @@
                     app.reportedAt = new Date().toLocaleString('ja-JP');
                     app.rejectionReason = '';
                     const reportHouse = this.getHouse(this.activeQuest.houseId);
-                    if (reportHouse) this.notifyUser(reportHouse.ownerId, '📩 クエスト達成報告が届きました', `${this.currentUser.name}さんが「${this.activeQuest.title}」の達成報告を提出しました。確認してください。`);
+                    if (reportHouse) this.notifyUser(reportHouse.ownerId, '📩 クエスト達成報告が届きました', `${this.currentUser.name}さんが「${this.activeQuest.title}」の達成報告を提出しました。確認してください。`, { type:'reportApproval', questId:this.activeQuest.id });
                     this.showToast('完了報告を送信しました！所有者の承認をお待ちください。');
                     this.modals.report = false;
                 },
@@ -8349,14 +8742,14 @@
                     const isOwnerPost = this.isHouseOwner(this.activeHouse);
                     const log = {
                         id:'hist_'+Date.now(), authorId:this.currentUser.id, author:this.currentUser.name,
-                        role:this.currentUser.role === 'owner' ? '所有者' : this.currentUser.role === 'resident' ? '地域住民' : 'クエスト達成者',
+                        role:this.currentUser.role === 'owner' ? '所有者' : '参加者',
                         date:dateStr, content:this.historyForm.content.trim(), title:this.historyForm.title.trim(), kind:this.historyForm.kind, historyYear:this.historyForm.year ? year : null,
                         era:this.historyForm.era.trim(), source:this.historyForm.source.trim(), photo:this.historyForm.photo || null,
                         verificationStatus:isOwnerPost ? 'verified' : 'pending', verifiedAt:isOwnerPost ? new Date().toLocaleString('ja-JP') : '', rewardGranted:false
                     };
                     this.activeHouse.historyLogs.push(log);
-                    if (isOwnerPost) this.grantHistoryReward(log);
-                    else this.notifyUser(this.activeHouse.ownerId, '📚 家の記憶の確認依頼', `${this.currentUser.name}さんが「${this.activeHouse.name}」の歴史・思い出を投稿しました。`);
+                    if (isOwnerPost) this.grantHistoryReward(log, this.activeHouse);
+                    else this.notifyUser(this.activeHouse.ownerId, '📚 家の記憶の確認依頼', `${this.currentUser.name}さんが「${this.activeHouse.name}」の歴史・思い出を投稿しました。`, { type:'historyReview', houseId:this.activeHouse.id, historyId:log.id });
                     this.modals.createHistory = false;
                     this.showToast(isOwnerPost ? '空き家の歴史を年表へ公開しました！' : '歴史を投稿しました。所有者の確認後に公開されます。');
                 },
@@ -8404,12 +8797,12 @@
                         targetUser.points += 100;
                         targetUser.totalPoints += 100;
                         this.updateUserLevel(targetUser);
-                        this.notifyUser(targetUser.id, '🎉 クエスト達成が承認されました！', `「${quest.title}」を達成し、100ptを獲得しました。`);
+                        this.notifyUser(targetUser.id, '🎉 クエスト達成が承認されました！', `「${quest.title}」を達成し、100ptを獲得しました。`, { type:'questDetail', questId:quest.id });
                         const ownerUser = this.users.find(u => u.id === this.getHouse(quest.houseId)?.ownerId);
                         if (ownerUser) {
                             const oldOwnerLevel = Number(ownerUser.ownerLastLevel) || 1;
                             const newOwnerLevel = this.getOwnerLevel(ownerUser);
-                            if (newOwnerLevel > oldOwnerLevel) this.notifyUser(ownerUser.id, `🏡 所有者LV.${newOwnerLevel}に到達！`, '活動の承認実績が増え、所有者レベルが上がりました。');
+                            if (newOwnerLevel > oldOwnerLevel) this.notifyUser(ownerUser.id, `🏡 所有者LV.${newOwnerLevel}に到達！`, '活動の承認実績が増え、所有者レベルが上がりました。', { type:'profile' });
                             ownerUser.ownerLastLevel = newOwnerLevel;
                         }
 
@@ -8473,17 +8866,13 @@
 
                 canVoteOnHouse(house) {
                     if (!house) return false;
-                    if (this.currentUser.role === 'resident') return true; // 住民投票は従来の設計を維持
-                    if (this.currentUser.role !== 'participant') return false;
-                    return this.quests.some(q => q.houseId === house.id &&
-                        (q.applications || []).some(a => a.userId === this.currentUser.id &&
-                            ['joined','reported','approved'].includes(a.status)));
+                    return this.currentUser.role === 'participant';
                 },
                 hasVoted(idea) {
                     return idea.votes.includes(this.currentUser.id);
                 },
                 voteIdea(idea) {
-                    if (!this.canVoteOnHouse(this.activeHouse)) { this.showToast('この家のクエストへの参加が投票条件です', 'warning'); return; }
+                    if (!this.canVoteOnHouse(this.activeHouse)) { this.showToast('活用案への投票は参加者のみです', 'warning'); return; }
                     const idx = idea.votes.indexOf(this.currentUser.id);
                     if (idx > -1) {
                         idea.votes.splice(idx, 1);
@@ -8527,7 +8916,7 @@
                         desc: '必要な活動実績を満たし、所有者の確認を経てレベルアップしました。',
                         photo: house.image
                     });
-                    this.notifyUser(house.ownerId, `🏡 ${house.name}がLV.${house.level}に成長！`, `空き家が「${house.levelName}」になりました。`);
+                    this.notifyUser(house.ownerId, `🏡 ${house.name}がLV.${house.level}に成長！`, `空き家が「${house.levelName}」になりました。`, { type:'houseDetail', houseId:house.id });
                     this.showToast(`空き家レベルを LV.${house.level}（${house.levelName}）に昇格しました！`);
                 },
 
@@ -8566,7 +8955,7 @@
                         : decision === 'rejected'
                             ? `「${app.eventName}」の利用申請結果が届きました。`
                             : `「${app.eventName}」の開催が承認されました。`;
-                    this.notifyUser(app.userId, 'イベント利用申請の更新', participantNotice);
+                    this.notifyUser(app.userId, 'イベント利用申請の更新', participantNotice, { type:'houseDetail', houseId:house.id });
                     this.showToast(decision === 'counter' ? '利用者に代替案を提示しました' : decision === 'rejected' ? '却下結果を通知しました' : '開催を承認し、利用者に通知しました');
                 },
                 withdrawEventApplication(house) {
@@ -8575,7 +8964,7 @@
                     if (!app || !['pending','counter'].includes(app.status)) return;
                     if (!window.confirm('このイベント利用申請を取り下げますか？')) return;
                     app.status = 'withdrawn'; app.updatedAt = new Date().toLocaleString('ja-JP');
-                    this.notifyUser(house.ownerId, 'イベント利用申請が取り下げられました', `${this.currentUser.name}さんが「${app.eventName}」の申請を取り下げました。`);
+                    this.notifyUser(house.ownerId, 'イベント利用申請が取り下げられました', `${this.currentUser.name}さんが「${app.eventName}」の申請を取り下げました。`, { type:'home' });
                     this.showToast('イベント利用申請を取り下げました', 'info');
                 },
                 respondToEventProposal(house,decision) {
@@ -8590,7 +8979,7 @@
                     app.status=decision; app.updatedAt=new Date().toLocaleString('ja-JP'); this.participantReplyDraft='';
                     this.notifyUser(house.ownerId, 'イベント利用申請の返信', decision === 'accepted'
                         ? `${this.currentUser.name}さんが代替案に同意しました。最終承認をお願いします。`
-                        : `${this.currentUser.name}さんから再提案が届きました。`);
+                        : `${this.currentUser.name}さんから再提案が届きました。`, { type:'home' });
                     this.showToast(decision === 'accepted' ? '同意を所有者に通知しました。最終承認をお待ちください。' : '再提案を所有者に送信しました');
                 },
                 getUserHouseApplication(house) {
@@ -8688,7 +9077,7 @@
                         Object.assign(house, values);
                         this.quests.filter(q => q.houseId === house.id).forEach(q => {
                             q.location = house.location;
-                            if (!q.image || q.image === oldImage) q.image = house.image;
+                            if (q.image === oldImage) q.image = house.image;
                         });
                         window.menkoiPublishHouse?.(house).catch(console.error);
                         this.showToast(`空き家「${house.name}」を更新しました`);
@@ -8744,7 +9133,7 @@
                         notes: this.newQuestForm.notes.trim(),
                         eventUtilization: this.newQuestForm.eventUtilization.trim(),
                         description: this.newQuestForm.description.trim(),
-                        image: house.image
+                        image: this.newQuestForm.imagePreview || ''
                     };
 
                     if (this.editingQuestId) {
@@ -8767,7 +9156,7 @@
                             ...values,
                             applications: []
                         });
-                        this.showToast('新規活動を公開しました！');
+                        this.showToast('新規クエストを公開しました！');
                     }
 
                     this.editingQuestId = '';
@@ -8776,7 +9165,10 @@
                 },
 
                 saveNewUser() {
-                    if (!this.newUserForm.name.trim()) return;
+                    if (!this.newUserForm.name.trim()) {
+                        this.showToast('お名前 / ニックネームを入力してください', 'warning');
+                        return;
+                    }
                     const newId = 'u_' + Date.now();
                     const isOwner = this.newUserForm.role === 'owner';
                     const isParticipant = this.newUserForm.role === 'participant';
@@ -8784,10 +9176,10 @@
                         id: newId,
                         name: this.newUserForm.name.trim(),
                         role: this.newUserForm.role,
-                        points: isParticipant ? 50 : 0,
-                        totalPoints: isParticipant ? 50 : 0,
+                        points: 0,
+                        totalPoints: 0,
                         level: 1,
-                        avatar: isOwner ? '🏡' : this.newUserForm.role === 'resident' ? '🏘️' : '🌾'
+                        avatar: isOwner ? '🏡' : '🌾'
                     };
                     this.users.push(newUser);
                     this.currentUserId = newId;
@@ -8808,8 +9200,34 @@
 .menkoi-map-mode-tab:focus-visible{outline:3px solid #e6a644;outline-offset:2px}
 .menkoi-map-mode-description{display:flex;align-items:center;gap:12px;padding:5px 15px;background:#fffdf8;color:#49624f;font-size:11px;min-height:29px}
 .menkoi-map-progress{margin-left:auto;white-space:nowrap;background:#e8f4e9;color:#28583c;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:800}
+/* マップの使い方：めんこい家本体と同じ3ステップ構成 */
+.menkoi-map-help-button{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+#menkoi-map-tutorial{display:none;position:absolute;inset:0;z-index:10020;background:#1118278f;backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:16px}
+#menkoi-map-tutorial.open{display:flex}
+.menkoi-map-tutorial-card{width:min(520px,100%);overflow:hidden;border:1px solid #94644233;border-radius:24px;background:#fff;box-shadow:0 24px 70px #0006}
+.menkoi-map-tutorial-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 18px;background:#254B39;color:#fff}
+.menkoi-map-tutorial-head .kicker{color:#E6AD68;font-size:9px;font-weight:900;letter-spacing:.18em}
+.menkoi-map-tutorial-head h2{margin-top:3px;font-size:18px;font-weight:900}
+.menkoi-map-tutorial-head p{margin-top:3px;color:#EDF2E8;font-size:10px}
+.menkoi-map-tutorial-close{width:32px;height:32px;display:grid;place-items:center;flex:0 0 32px;border-radius:999px!important;background:#ffffff18!important;color:#fff!important;padding:0!important}
+.menkoi-map-tutorial-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 18px 0}
+.menkoi-map-tutorial-tab{padding:8px 9px!important;border:1px solid #e5e7eb!important;border-radius:12px!important;background:#fff!important;color:#9ca3af!important;text-align:left;font-size:10px!important;font-weight:800!important}
+.menkoi-map-tutorial-tab.active{border-color:#315C46!important;background:#EDF2E8!important;color:#254B39!important}
+.menkoi-map-tutorial-tab small{display:block;margin-bottom:2px;font-size:8px;font-weight:900}
+.menkoi-map-tutorial-body{min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 28px;text-align:center}
+.menkoi-map-tutorial-icon{width:66px;height:66px;display:grid;place-items:center;border:1px solid #94644226;border-radius:18px;background:#F7F2E8;font-size:34px;box-shadow:0 2px 8px #0000000c}
+.menkoi-map-tutorial-step{margin-top:14px;color:#946442;font-size:9px;font-weight:900;letter-spacing:.15em}
+.menkoi-map-tutorial-title{margin-top:3px;color:#254B39;font-size:20px;font-weight:900}
+.menkoi-map-tutorial-description{max-width:390px;margin-top:10px;color:#5f6b62;font-size:13px;line-height:1.9}
+.menkoi-map-tutorial-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-top:1px solid #eee7dc;background:#F7F2E8aa}
+.menkoi-map-tutorial-foot button{padding:8px 13px!important;border-radius:12px!important;font-size:11px!important;font-weight:900!important}
+.menkoi-map-tutorial-prev{background:transparent!important;color:#6b7280!important}
+.menkoi-map-tutorial-next{background:#254B39!important;color:#fff!important}
+.menkoi-map-tutorial-dots{display:flex;align-items:center;gap:6px}
+.menkoi-map-tutorial-dot{width:6px;height:6px;border-radius:999px;background:#d1d5db;transition:.15s}
+.menkoi-map-tutorial-dot.active{width:24px;background:#315C46}
 #menkoi-route-panel{top:auto!important;right:14px!important;bottom:52px!important;width:min(460px,calc(100vw - 28px))!important;max-height:min(78vh,720px);overflow-y:auto;font-size:15px!important;padding:18px!important}#menkoi-route-panel button,#menkoi-route-panel select{font-size:14px!important}#menkoi-route-elevation{font-size:14px!important}#menkoi-elevation-chart{min-height:170px}#menkoi-route-panel strong{font-size:15px}
-@media(max-width:600px){.menkoi-map-top{padding:9px 10px;gap:6px}.menkoi-map-top strong{font-size:13px}.menkoi-map-top>span:first-child{font-size:19px!important}.menkoi-map-mode-tabs{gap:3px}.menkoi-map-mode-tab{font-size:10px;padding:6px 7px}.menkoi-map-top>button{font-size:11px;padding:7px 9px}#menkoi-route-panel{bottom:45px!important;max-height:68vh;width:min(420px,calc(100vw - 20px))!important;padding:13px!important}}
+@media(max-width:600px){.menkoi-map-top{padding:9px 10px;gap:6px}.menkoi-map-top strong{font-size:13px}.menkoi-map-top>span:first-child{font-size:19px!important}.menkoi-map-mode-tabs{gap:3px}.menkoi-map-mode-tab{font-size:10px;padding:6px 7px}.menkoi-map-top>button{font-size:11px;padding:7px 9px}#menkoi-route-panel{bottom:45px!important;max-height:68vh;width:min(420px,calc(100vw - 20px))!important;padding:13px!important}.menkoi-map-help-button span{display:none}.menkoi-map-tutorial-card{border-radius:20px}.menkoi-map-tutorial-head{padding:14px}.menkoi-map-tutorial-tabs{padding:11px 12px 0;gap:5px}.menkoi-map-tutorial-tab{padding:7px 6px!important;font-size:9px!important}.menkoi-map-tutorial-body{min-height:230px;padding:20px 18px}.menkoi-map-tutorial-description{font-size:12px}.menkoi-map-tutorial-foot{padding:11px 12px}}
 </style>
 <div id="menkoi-map-overlay" role="dialog" aria-modal="true" aria-label="めんこい探索マップ">
  <div class="menkoi-map-top">
@@ -8818,6 +9236,7 @@
    <button type="button" class="menkoi-map-mode-tab" id="menkoi-explore-tab" onclick="menkoiSetMapMode('explore')" aria-pressed="true">🧭 探索マップ</button>
    <button type="button" class="menkoi-map-mode-tab" id="menkoi-personal-tab" onclick="menkoiSetMapMode('personal')" aria-pressed="false">🌱 マイマップ</button>
   </div>
+  <button type="button" class="menkoi-map-help-button" onclick="menkoiOpenMapTutorial(true)" title="マップの使い方を見る" aria-label="マップの使い方を見る">❔ <span>使い方</span></button>
   <button onclick="closeMenkoiMap()">✕ 閉じる</button>
  </div>
  <div class="menkoi-map-mode-description"><span id="menkoi-map-mode-caption">空き家を探す・経路を確認する</span><span id="menkoi-exploration-count" class="menkoi-map-progress" style="display:none">開拓済み 0／33市町村</span></div>
@@ -8829,6 +9248,30 @@
   <button class="menkoi-map-chip" data-kind="spot" onclick="toggleMenkoiKind(this)">📷 地域の風景</button>
   <span class="menkoi-map-legend">🔒 発見はクエスト承認後に公開</span>
   <span id="menkoi-map-status" class="menkoi-map-legend">地図を準備しています…</span>
+ </div>
+ <div id="menkoi-map-tutorial" role="dialog" aria-modal="true" aria-label="マップの使い方">
+  <div class="menkoi-map-tutorial-card">
+   <div class="menkoi-map-tutorial-head">
+    <div><p class="kicker">MENKOI MAP GUIDE</p><h2>マップの使い方</h2><p>3つだけ覚えれば、すぐに使い始められます。</p></div>
+    <button type="button" class="menkoi-map-tutorial-close" onclick="menkoiDismissMapTutorial()" aria-label="マップの使い方を閉じる">✕</button>
+   </div>
+   <div class="menkoi-map-tutorial-tabs">
+    <button type="button" class="menkoi-map-tutorial-tab active" data-map-tutorial-step="0" onclick="menkoiSetMapTutorialStep(0)"><small>01</small>探す</button>
+    <button type="button" class="menkoi-map-tutorial-tab" data-map-tutorial-step="1" onclick="menkoiSetMapTutorialStep(1)"><small>02</small>経路</button>
+    <button type="button" class="menkoi-map-tutorial-tab" data-map-tutorial-step="2" onclick="menkoiSetMapTutorialStep(2)"><small>03</small>育てる</button>
+   </div>
+   <div class="menkoi-map-tutorial-body">
+    <div id="menkoi-map-tutorial-icon" class="menkoi-map-tutorial-icon">🗺️</div>
+    <p id="menkoi-map-tutorial-step-label" class="menkoi-map-tutorial-step">STEP 01</p>
+    <h3 id="menkoi-map-tutorial-title" class="menkoi-map-tutorial-title">探索マップで地域を探す</h3>
+    <p id="menkoi-map-tutorial-description" class="menkoi-map-tutorial-description">空き家や動物の痕跡、動植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。</p>
+   </div>
+   <div class="menkoi-map-tutorial-foot">
+    <button id="menkoi-map-tutorial-prev" type="button" class="menkoi-map-tutorial-prev" onclick="menkoiPrevMapTutorial()">‹ 前へ</button>
+    <div class="menkoi-map-tutorial-dots" aria-hidden="true"><span class="menkoi-map-tutorial-dot active"></span><span class="menkoi-map-tutorial-dot"></span><span class="menkoi-map-tutorial-dot"></span></div>
+    <button id="menkoi-map-tutorial-next" type="button" class="menkoi-map-tutorial-next" onclick="menkoiNextMapTutorial()">次へ ›</button>
+   </div>
+  </div>
  </div>
  <div id="menkoi-route-panel" style="display:none;position:absolute;z-index:10003;bottom:52px;right:12px;width:min(340px,calc(100vw - 24px));background:white;border:1px solid #d4e4d9;border-radius:15px;padding:13px;box-shadow:0 5px 22px #0003;font-size:13px">
   <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong>🧭 空き家への経路案内</strong><button type="button" onclick="menkoiCloseRoute()" aria-label="経路案内を閉じる">✕</button></div>
@@ -8874,6 +9317,31 @@ const sample=[];
 let map=null,groups={},unsubscribe=null,unsubscribeHouses=null,selected=null,postMode=false,live=[],housePosts=[],localHousePosts=[],authReady=null,pickCallback=null,pickMarker=null;
 let routeDestination=null,routeStart=null,routeLine=null,routeStartMarker=null,routePickStart=false,routeRequest=0;
 let menkoiMapMode='explore',menkoiAreaLayer=null,menkoiPersonalPins=null;
+let menkoiMapTutorialStep=0;
+const menkoiMapTutorialSteps=[
+ {short:'探す',icon:'🗺️',title:'探索マップで地域を探す',description:'空き家や動物の痕跡、動植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。'},
+ {short:'経路',icon:'🧭',title:'空き家までの行き方を確認する',description:'空き家のピンから経路案内を開けます。現在地または地図上で出発地を選び、車・徒歩の距離や移動時間に加えて、出発地・目的地の標高、累積上昇量、経路の標高グラフも確認できます。'},
+ {short:'育てる',icon:'🌱',title:'マイマップを育てる',description:'「マイマップ」では、クエストの活動完了後に所有者から承認された地域が緑色に染まります。活動を重ねるほど、自分が関わった地域が地図に残っていきます。'}
+];
+function menkoiMapTutorialStorageKey(){const userId=window.menkoiHouseApp?.currentUser?.id||'guest';return 'menkoiya_map_tutorial_seen_v1_'+userId;}
+function menkoiRenderMapTutorial(){
+ const step=menkoiMapTutorialSteps[menkoiMapTutorialStep]||menkoiMapTutorialSteps[0];
+ const icon=document.getElementById('menkoi-map-tutorial-icon'),label=document.getElementById('menkoi-map-tutorial-step-label'),title=document.getElementById('menkoi-map-tutorial-title'),description=document.getElementById('menkoi-map-tutorial-description');
+ if(icon)icon.textContent=step.icon;if(label)label.textContent='STEP 0'+(menkoiMapTutorialStep+1);if(title)title.textContent=step.title;if(description)description.textContent=step.description;
+ document.querySelectorAll('[data-map-tutorial-step]').forEach((b,i)=>b.classList.toggle('active',i===menkoiMapTutorialStep));
+ document.querySelectorAll('.menkoi-map-tutorial-dot').forEach((d,i)=>d.classList.toggle('active',i===menkoiMapTutorialStep));
+ const prev=document.getElementById('menkoi-map-tutorial-prev'),next=document.getElementById('menkoi-map-tutorial-next');
+ if(prev){prev.disabled=menkoiMapTutorialStep===0;prev.style.opacity=menkoiMapTutorialStep===0?'.35':'1';}
+ if(next)next.textContent=menkoiMapTutorialStep===menkoiMapTutorialSteps.length-1?'マップを見る →':'次へ ›';
+}
+window.menkoiSetMapTutorialStep=function(step){menkoiMapTutorialStep=Math.max(0,Math.min(menkoiMapTutorialSteps.length-1,Number(step)||0));menkoiRenderMapTutorial();};
+window.menkoiOpenMapTutorial=function(force=false){
+ if(!force){try{if(localStorage.getItem(menkoiMapTutorialStorageKey())==='1')return;}catch(e){}}
+ menkoiMapTutorialStep=0;menkoiRenderMapTutorial();document.getElementById('menkoi-map-tutorial')?.classList.add('open');
+};
+window.menkoiDismissMapTutorial=function(){try{localStorage.setItem(menkoiMapTutorialStorageKey(),'1');}catch(e){}document.getElementById('menkoi-map-tutorial')?.classList.remove('open');menkoiMapTutorialStep=0;};
+window.menkoiPrevMapTutorial=function(){if(menkoiMapTutorialStep>0){menkoiMapTutorialStep--;menkoiRenderMapTutorial();}};
+window.menkoiNextMapTutorial=function(){if(menkoiMapTutorialStep<menkoiMapTutorialSteps.length-1){menkoiMapTutorialStep++;menkoiRenderMapTutorial();return;}window.menkoiDismissMapTutorial();};
 const menkoiBoundaries=JSON.parse(document.getElementById('menkoi-iwate-boundaries').textContent);
 function menkoiApprovedActivities(){
  const app=window.menkoiHouseApp;
@@ -9145,6 +9613,7 @@ function connect(){if(!window.firebase||!window.db){status('Firebaseが読み込
  if(!authReady){authReady=(async()=>{if(!firebase.auth().currentUser)await firebase.auth().signInAnonymously();return firebase.auth().currentUser})().catch(e=>{authReady=null;throw e});}
  authReady.then(subscribe).catch(e=>{console.error(e);status('匿名ログインに失敗：Firebase Authentication設定を確認');});}
 window.openMenkoiMap=function(){document.getElementById('menkoi-map-overlay').classList.add('open');document.body.style.overflow='hidden';
+ window.menkoiOpenMapTutorial?.(false);
  if(!window.L){status('Leafletを読み込めません（ネットワークを確認）');return;}
  if(!map){map=L.map('menkoi-map-canvas').setView([39.703526,141.152696],13);
  // CARTOの公開タイル。利用条件・アクセス上限を確認して運用すること。
@@ -9153,7 +9622,7 @@ window.openMenkoiMap=function(){document.getElementById('menkoi-map-overlay').cl
  for(const k of Object.keys(icons))groups[k]=L.layerGroup().addTo(map);
  map.on('click',e=>{if(routePickStart&&routeDestination){routePickStart=false;routeStart={lat:e.latlng.lat,lng:e.latlng.lng};window.menkoiRouteRefresh();return;}if(pickCallback){selected=e.latlng;if(pickMarker)map.removeLayer(pickMarker);pickMarker=L.marker(selected).addTo(map);document.getElementById('menkoi-location-picked').textContent='位置：'+selected.lat.toFixed(5)+', '+selected.lng.toFixed(5);return;}if(!postMode)return;selected=e.latlng;document.getElementById('menkoi-map-selected').textContent='位置：'+selected.lat.toFixed(5)+', '+selected.lng.toFixed(5);});render();}
  setTimeout(()=>{map.invalidateSize();fitHousesOnce();},100);render();fitHousesOnce();connect();window.menkoiSetMapMode(menkoiMapMode);};
-window.closeMenkoiMap=function(){window.menkoiCloseRoute();window.menkoiCancelLocation();document.getElementById('menkoi-map-overlay').classList.remove('open');document.body.style.overflow='';window.menkoiMapCancelPost();};
+window.closeMenkoiMap=function(){window.menkoiCloseRoute();window.menkoiCancelLocation();document.getElementById('menkoi-map-tutorial')?.classList.remove('open');document.getElementById('menkoi-map-overlay').classList.remove('open');document.body.style.overflow='';window.menkoiMapCancelPost();};
 window.toggleMenkoiKind=function(btn){const k=btn.dataset.kind;if(!map)return;if(map.hasLayer(groups[k])){map.removeLayer(groups[k]);btn.classList.add('off')}else{groups[k].addTo(map);btn.classList.remove('off')}};
 window.menkoiMapStartPost=function(){postMode=true;selected=null;document.getElementById('menkoi-map-selected').textContent='位置：未選択';document.getElementById('menkoi-map-post').style.display='block';status('投稿位置を地図上でクリックしてください')};
 window.menkoiMapCancelPost=function(){postMode=false;selected=null;document.getElementById('menkoi-map-post').style.display='none'};
