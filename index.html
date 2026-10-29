@@ -8808,8 +8808,8 @@
 .menkoi-map-mode-tab:focus-visible{outline:3px solid #e6a644;outline-offset:2px}
 .menkoi-map-mode-description{display:flex;align-items:center;gap:12px;padding:5px 15px;background:#fffdf8;color:#49624f;font-size:11px;min-height:29px}
 .menkoi-map-progress{margin-left:auto;white-space:nowrap;background:#e8f4e9;color:#28583c;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:800}
-#menkoi-route-panel{top:auto!important;right:12px!important;bottom:52px!important;max-height:min(65vh,510px);overflow-y:auto}
-@media(max-width:600px){.menkoi-map-top{padding:9px 10px;gap:6px}.menkoi-map-top strong{font-size:13px}.menkoi-map-top>span:first-child{font-size:19px!important}.menkoi-map-mode-tabs{gap:3px}.menkoi-map-mode-tab{font-size:10px;padding:6px 7px}.menkoi-map-top>button{font-size:11px;padding:7px 9px}#menkoi-route-panel{bottom:45px!important;max-height:55vh}}
+#menkoi-route-panel{top:auto!important;right:14px!important;bottom:52px!important;width:min(460px,calc(100vw - 28px))!important;max-height:min(78vh,720px);overflow-y:auto;font-size:15px!important;padding:18px!important}#menkoi-route-panel button,#menkoi-route-panel select{font-size:14px!important}#menkoi-route-elevation{font-size:14px!important}#menkoi-elevation-chart{min-height:170px}#menkoi-route-panel strong{font-size:15px}
+@media(max-width:600px){.menkoi-map-top{padding:9px 10px;gap:6px}.menkoi-map-top strong{font-size:13px}.menkoi-map-top>span:first-child{font-size:19px!important}.menkoi-map-mode-tabs{gap:3px}.menkoi-map-mode-tab{font-size:10px;padding:6px 7px}.menkoi-map-top>button{font-size:11px;padding:7px 9px}#menkoi-route-panel{bottom:45px!important;max-height:68vh;width:min(420px,calc(100vw - 20px))!important;padding:13px!important}}
 </style>
 <div id="menkoi-map-overlay" role="dialog" aria-modal="true" aria-label="めんこい探索マップ">
  <div class="menkoi-map-top">
@@ -8836,6 +8836,13 @@
   <label style="display:block;margin:6px 0">移動手段 <select id="menkoi-route-mode" onchange="menkoiRouteRefresh()" style="padding:5px;border:1px solid #ccc;border-radius:7px"><option value="driving">🚗 車</option><option value="walking">🚶 徒歩</option></select></label>
   <div style="display:flex;flex-wrap:wrap;gap:7px;margin:9px 0"><button type="button" onclick="menkoiRouteUseCurrentLocation()" style="background:#315c46;color:white;border-radius:8px;padding:7px 9px">📍 現在地から</button><button type="button" onclick="menkoiRoutePickStart()" style="background:#e8f3ed;border-radius:8px;padding:7px 9px">🗺️ 出発地を地図で指定</button></div>
   <p id="menkoi-route-info" role="status" style="line-height:1.6;color:#526554">出発地を選んでください。</p>
+  <div id="menkoi-route-elevation" aria-live="polite" style="margin:9px 0;padding:10px;border-radius:10px;background:#edf5ef;color:#315c46;font-size:12px;line-height:1.8"><strong>🏔️ 標高</strong><div id="menkoi-route-elevation-values">出発地点を指定すると標高を表示します。</div><div id="menkoi-route-ascent" style="margin-top:5px;border-top:1px solid #d3e4d8;padding-top:5px">経路検索後に累積上昇量・下降量を表示します。</div></div>
+  <section id="menkoi-elevation-chart-section" style="margin-top:10px;padding:9px;border:1px solid #d3e4d8;border-radius:10px;background:#fff">
+   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><strong style="color:#315c46;font-size:12px">📈 経路の標高グラフ</strong><span style="font-size:10px;color:#6b806f">横軸：距離／縦軸：標高</span></div>
+   <div id="menkoi-elevation-chart-message" style="font-size:11px;color:#708176;margin-top:5px">経路を検索するとグラフが表示されます。</div>
+   <div id="menkoi-elevation-hover-readout" aria-live="off" style="font-size:11px;color:#607567;margin-top:5px">グラフをなぞると地図上に位置が表示されます。</div>
+   <svg id="menkoi-elevation-chart" viewBox="0 0 310 142" role="img" aria-label="経路に沿った標高の推移" style="display:none;width:100%;height:auto;margin-top:5px;overflow:visible"></svg>
+  </section>
   <small style="display:block;color:#777;margin-top:7px">試作版：公開経路サーバーを使用。案内は参考情報です。私有地や通行規制に注意してください。</small>
  </div>
  <div id="menkoi-map-canvas"></div>
@@ -8921,9 +8928,120 @@ window.menkoiSetMapMode=function(mode){
  if(!personal)status('探索マップを表示中');
 };
 const routeInfo=(message)=>{const el=document.getElementById('menkoi-route-info');if(el)el.textContent=message;};
+const menkoiElevationInfo=(message)=>{const el=document.getElementById('menkoi-route-elevation-values');if(el)el.textContent=message;};
+async function menkoiFetchEndpointElevations(requestId){
+ if(!validPoint(routeStart)||!validPoint(routeDestination))return;
+ menkoiElevationInfo('標高を取得しています…');
+ const lat=[Number(routeStart.lat),Number(routeDestination.lat)].join(',');
+ const lon=[Number(routeStart.lng),Number(routeDestination.lng)].join(',');
+ try{
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);
+  let response;try{response=await fetch('https://api.open-meteo.com/v1/elevation?latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon),{signal:controller.signal});}finally{clearTimeout(timer);}
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const data=await response.json();if(requestId!==routeRequest)return;
+  const values=data.elevation;
+  if(!Array.isArray(values)||values.length!==2||values.some(v=>!Number.isFinite(Number(v))))throw new Error('標高データなし');
+  menkoiElevationInfo('出発地点：約'+Math.round(values[0])+' m ／ 目的地点：約'+Math.round(values[1])+' m');
+ }catch(error){if(requestId!==routeRequest)return;console.warn('標高取得:',error);menkoiElevationInfo('標高を取得できませんでした。通信環境を確認して再度お試しください。');}
+}
+
+const menkoiAscentInfo=(message)=>{const el=document.getElementById('menkoi-route-ascent');if(el)el.textContent=message;};
+let menkoiElevationHoverMarker=null;
+function menkoiClearElevationHover(){
+ if(menkoiElevationHoverMarker&&map){map.removeLayer(menkoiElevationHoverMarker);}
+ menkoiElevationHoverMarker=null;
+ const dot=document.getElementById('menkoi-elevation-hover-dot');
+ const guide=document.getElementById('menkoi-elevation-hover-guide');
+ const readout=document.getElementById('menkoi-elevation-hover-readout');
+ if(dot)dot.style.display='none';if(guide)guide.style.display='none';
+ if(readout)readout.textContent='グラフをなぞると地図上に位置が表示されます。';
+}
+function menkoiClearElevationChart(message='経路を検索するとグラフが表示されます。'){
+ menkoiClearElevationHover();
+ const svg=document.getElementById('menkoi-elevation-chart'),label=document.getElementById('menkoi-elevation-chart-message');
+ if(svg){svg.replaceChildren();svg.style.display='none';}
+ if(label){label.textContent=message;label.style.display='block';}
+}
+function menkoiDrawElevationChart(heights,totalMeters,samples,requestId){
+ const svg=document.getElementById('menkoi-elevation-chart'),label=document.getElementById('menkoi-elevation-chart-message');
+ if(!svg||!heights||heights.length<2)return;
+ const NS='http://www.w3.org/2000/svg',W=310,H=142,left=37,right=10,top=13,bottom=27;
+ const vals=heights.map(Number),low=Math.min(...vals),high=Math.max(...vals),padding=Math.max(5,(high-low)*.13),min=low-padding,max=high+padding;
+ const x=i=>left+(W-left-right)*i/(vals.length-1),y=v=>top+(H-top-bottom)*(max-v)/(max-min);
+ const make=(tag,attrs,text)=>{const el=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=text;svg.appendChild(el);return el;};
+ svg.replaceChildren();
+ for(let i=0;i<=2;i++){
+  const h=min+(max-min)*i/2,yy=y(h);
+  make('line',{x1:left,y1:yy,x2:W-right,y2:yy,stroke:'#e1eae3','stroke-dasharray':'3 3'});
+  make('text',{x:left-5,y:yy+3,'text-anchor':'end','font-size':9,fill:'#607567'},Math.round(h)+'');
+ }
+ const coords=vals.map((v,i)=>[x(i),y(v)]),line=coords.map(([xx,yy])=>xx.toFixed(1)+','+yy.toFixed(1)).join(' ');
+ make('polygon',{points:left+','+(H-bottom)+' '+line+' '+(W-right)+','+(H-bottom),fill:'#d8eee0',opacity:.9});
+ make('polyline',{points:line,fill:'none',stroke:'#268450','stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});
+ make('circle',{cx:x(0),cy:y(vals[0]),r:3,fill:'#268450'});
+ make('circle',{cx:x(vals.length-1),cy:y(vals.at(-1)),r:3,fill:'#268450'});
+ make('text',{x:left,y:H-7,'text-anchor':'start','font-size':10,fill:'#607567'},'0 km');
+ make('text',{x:W-right,y:H-7,'text-anchor':'end','font-size':10,fill:'#607567'},(totalMeters/1000).toFixed(1)+' km');
+ make('text',{x:7,y:10,'font-size':9,fill:'#607567'},'m');
+ // SVGと地図を双方向ではなく、グラフから地図への一方向で連動させる。
+ const guide=make('line',{id:'menkoi-elevation-hover-guide',x1:left,y1:top,x2:left,y2:H-bottom,stroke:'#e18b36','stroke-width':1.5,'stroke-dasharray':'3 2',style:'display:none;pointer-events:none'});
+ const dot=make('circle',{id:'menkoi-elevation-hover-dot',cx:left,cy:y(vals[0]),r:4.5,fill:'#e18b36',stroke:'#fff','stroke-width':1.5,style:'display:none;pointer-events:none'});
+ const overlay=make('rect',{x:left,y:top,width:W-left-right,height:H-top-bottom,fill:'transparent',style:'cursor:crosshair;touch-action:pan-y'});
+ const readout=document.getElementById('menkoi-elevation-hover-readout');
+ const update=e=>{
+  if(requestId!==routeRequest||!map||!samples||samples.length!==vals.length)return;
+  const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+  const ctm=svg.getScreenCTM();if(!ctm)return;
+  const local=pt.matrixTransform(ctm.inverse());
+  const index=Math.max(0,Math.min(vals.length-1,Math.round((local.x-left)/(W-left-right)*(vals.length-1))));
+  const position=samples[index],xx=x(index),yy=y(vals[index]);
+  guide.setAttribute('x1',xx);guide.setAttribute('x2',xx);guide.style.display='';
+  dot.setAttribute('cx',xx);dot.setAttribute('cy',yy);dot.style.display='';
+  const km=(totalMeters*index/(vals.length-1)/1000).toFixed(2);
+  if(readout)readout.textContent='📍 出発から約'+km+' km ／ 標高 約'+Math.round(vals[index])+' m';
+  if(!menkoiElevationHoverMarker){menkoiElevationHoverMarker=L.circleMarker(position,{radius:8,color:'#fff',weight:3,fillColor:'#e18b36',fillOpacity:1,interactive:false}).addTo(map);}
+  else menkoiElevationHoverMarker.setLatLng(position);
+ };
+ overlay.addEventListener('pointermove',update);
+ overlay.addEventListener('pointerdown',update);
+ overlay.addEventListener('pointerleave',menkoiClearElevationHover);
+ svg.style.display='block';if(label)label.style.display='none';
+}
+
+// 経路をほぼ等間隔にサンプリング。API負荷を抑えるため最大90地点。
+function menkoiRouteDistance(points){
+ let sum=0;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r;sum+=12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2)));}return sum;
+}
+function menkoiRouteSamples(points){
+ const radians=Math.PI/180;
+ const distance=(a,b)=>{const dlat=(b[0]-a[0])*radians,dlon=(b[1]-a[1])*radians;const x=Math.sin(dlat/2)**2+Math.cos(a[0]*radians)*Math.cos(b[0]*radians)*Math.sin(dlon/2)**2;return 12742000*Math.asin(Math.min(1,Math.sqrt(x)));};
+ const lengths=[0];for(let i=1;i<points.length;i++)lengths.push(lengths[i-1]+distance(points[i-1],points[i]));
+ const total=lengths[lengths.length-1];if(!Number.isFinite(total)||total<1)return [points[0]];
+ const count=Math.min(90,Math.max(2,Math.ceil(total/100)+1));const result=[];let j=1;
+ for(let i=0;i<count;i++){const target=total*i/(count-1);while(j<lengths.length-1&&lengths[j]<target)j++;const left=j-1,segment=lengths[j]-lengths[left],t=segment>0?(target-lengths[left])/segment:0;result.push([points[left][0]+(points[j][0]-points[left][0])*t,points[left][1]+(points[j][1]-points[left][1])*t]);}
+ return result;
+}
+async function menkoiFetchRouteAscent(points,requestId){
+ menkoiAscentInfo('経路上の標高を取得し、累積上昇量・下降量を計算しています…');
+ try{
+  const samples=menkoiRouteSamples(points);if(samples.length<2)throw new Error('経路が短すぎます');
+  const lat=samples.map(p=>p[0].toFixed(6)).join(','),lon=samples.map(p=>p[1].toFixed(6)).join(',');
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),18000);
+  let response;try{response=await fetch('https://api.open-meteo.com/v1/elevation?latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon),{signal:controller.signal});}finally{clearTimeout(timer);}
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const data=await response.json();if(requestId!==routeRequest)return;
+  const heights=data.elevation;if(!Array.isArray(heights)||heights.length!==samples.length||heights.some(v=>!Number.isFinite(Number(v))))throw new Error('標高データなし');
+  // 3地点移動平均で標高データの小さな揺れを抑え、3m未満の変化は無視する。
+  const smooth=heights.map((v,i)=>i===0||i===heights.length-1?Number(v):(Number(heights[i-1])+Number(v)+Number(heights[i+1]))/3);
+  let up=0,down=0,anchor=smooth[0];for(let i=1;i<smooth.length;i++){const diff=smooth[i]-anchor;if(Math.abs(diff)>=3){if(diff>0)up+=diff;else down-=diff;anchor=smooth[i];}}
+  menkoiAscentInfo('📈 累積上昇量：約＋'+Math.round(up)+' m ／ 📉 累積下降量：約−'+Math.round(down)+' m（推定）');
+  menkoiDrawElevationChart(smooth,menkoiRouteDistance(points),samples,requestId);
+ }catch(error){if(requestId!==routeRequest)return;console.warn('経路の標高取得:',error);menkoiAscentInfo('累積上昇量・下降量を取得できませんでした。通信環境を確認してください。');menkoiClearElevationChart('標高グラフを取得できませんでした。');}
+}
+
 const validPoint=(p)=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
-function clearRouteDrawing(){if(map&&routeLine){map.removeLayer(routeLine);routeLine=null;}if(map&&routeStartMarker){map.removeLayer(routeStartMarker);routeStartMarker=null;}}
-window.menkoiCloseRoute=function(){routeRequest++;routeDestination=null;routeStart=null;routePickStart=false;clearRouteDrawing();document.getElementById('menkoi-route-panel').style.display='none';};
+function clearRouteDrawing(){menkoiClearElevationHover();if(map&&routeLine){map.removeLayer(routeLine);routeLine=null;}if(map&&routeStartMarker){map.removeLayer(routeStartMarker);routeStartMarker=null;}}
+window.menkoiCloseRoute=function(){routeRequest++;routeDestination=null;routeStart=null;routePickStart=false;clearRouteDrawing();menkoiElevationInfo('出発地点を指定すると標高を表示します。');menkoiAscentInfo('経路検索後に累積上昇量・下降量を表示します。');menkoiClearElevationChart();document.getElementById('menkoi-route-panel').style.display='none';};
 window.menkoiOpenHouseRoute=function(house){
  if(!validPoint(house)){alert('この家の位置情報がありません');return;}
  window.openMenkoiMap();window.menkoiCloseRoute();
@@ -8947,6 +9065,9 @@ window.menkoiRouteRefresh=async function(){
  routeStartMarker=L.marker([routeStart.lat,routeStart.lng]).addTo(map).bindPopup('出発地点');
  const mode=document.getElementById('menkoi-route-mode').value;
  routeInfo('経路を検索しています…');
+ menkoiAscentInfo('経路を検索しています…');
+ menkoiClearElevationChart('経路の標高データを準備しています…');
+ menkoiFetchEndpointElevations(requestId);
  // 公開OSRMサービスはデモ用途。徒歩は公開徒歩ルーティングサーバーを使用する。
  const base=mode==='walking'?'https://routing.openstreetmap.de/routed-foot/route/v1/driving/':'https://router.project-osrm.org/route/v1/driving/';
  const coordinates=routeStart.lng+','+routeStart.lat+';'+routeDestination.lng+','+routeDestination.lat;
@@ -8961,7 +9082,8 @@ window.menkoiRouteRefresh=async function(){
   map.fitBounds(routeLine.getBounds().pad(.12),{maxZoom:15});
   const distance=(route.distance/1000).toFixed(1),minutes=Math.max(1,Math.round(route.duration/60));
   routeInfo((mode==='walking'?'🚶 徒歩':'🚗 車')+'：約'+distance+' km／約'+minutes+'分（推定）');
- }catch(error){if(requestId!==routeRequest)return;console.error('経路検索:',error);routeInfo('経路を取得できませんでした。公開サーバーの混雑・経路データ不足の可能性があります。別の出発地や移動手段を試してください。');}
+  menkoiFetchRouteAscent(points,requestId);
+ }catch(error){if(requestId!==routeRequest)return;console.error('経路検索:',error);menkoiAscentInfo('経路が取得できないため計算できません。');menkoiClearElevationChart('経路を取得できませんでした。');routeInfo('経路を取得できませんでした。公開サーバーの混雑・経路データ不足の可能性があります。別の出発地や移動手段を試してください。');}
 };
 
 const status=(v)=>{document.getElementById('menkoi-map-status').textContent=v};
@@ -9000,8 +9122,10 @@ const photo=validPhoto(p.photo);const img=photo?'<img loading="lazy" referrerpol
 const own=!p.sample&&window.firebase&&firebase.auth().currentUser&&p.authorUid===firebase.auth().currentUser.uid;
 const del=own?'<button type="button" onclick="menkoiMapDelete(\''+safe(p.id)+'\')">自分の投稿を削除</button>':'';
 // 地域図鑑の空き家ピンから、家の詳細画面と同じ経路案内を呼び出す。
+const houseOwn=p.kind==='house' && !p.sample && window.firebase && firebase.auth().currentUser && p.authorUid===firebase.auth().currentUser.uid;
+const houseDelete=houseOwn?'<button type="button" onclick="menkoiDeleteOwnedMapHouse(\''+safe(p.id)+'\')" style="display:block;width:100%;margin-top:8px;padding:8px;background:#fff1f1;color:#a52c2c;border:1px solid #edb5b5;border-radius:8px;cursor:pointer">🗑️ この空き家の地図登録を削除</button>':'';
 const routeButton=p.kind==='house'?'<button type="button" class="menkoi-popup-route" data-route-lat="'+Number(p.lat)+'" data-route-lng="'+Number(p.lng)+'" data-route-name="'+safe(p.title||'空き家')+'" style="display:block;width:100%;margin-top:10px;padding:9px 12px;background:#315c46;color:#fff;border:0;border-radius:9px;font-weight:700;cursor:pointer">🧭 この家への経路案内</button>':'';
-L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>地域の家の物語に登録済み</small>':del)+routeButton+'</div>').addTo(groups[p.kind]);}}
+L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>地域の家の物語に登録済み</small>':del)+routeButton+houseDelete+'</div>').addTo(groups[p.kind]);}}
 // Leafletのポップアップは動的に生成されるため、クリックを委譲して処理する。
 document.addEventListener('click',function(event){
  const button=event.target.closest('.menkoi-popup-route');
@@ -9014,7 +9138,7 @@ function subscribe(){if(unsubscribe)return;try{
  live=snapshot.docs.map(d=>({id:d.id,...d.data()})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&!p.locationPending&&icons[p.kind]&&p.kind!=='house');render();fitHousesOnce();status('発見 '+live.length+'件・空き家 '+(housePosts.length+localHousePosts.length)+'件');
  },err=>{console.error('mapPosts read:',err);status('共有投稿の取得に失敗：Firestoreルールを確認してください');});
  unsubscribeHouses=db.collection('mapHouses').limit(300).onSnapshot(snapshot=>{
- housePosts=snapshot.docs.map(d=>({id:d.id,...d.data(),kind:'house'})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));render();fitHousesOnce();status('発見 '+live.length+'件・空き家 '+(housePosts.length+localHousePosts.length)+'件');
+ housePosts=snapshot.docs.map(d=>({id:d.id,...d.data(),kind:'house'})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&String(p.title||'').trim()!=='あ');render();fitHousesOnce();status('発見 '+live.length+'件・空き家 '+(housePosts.length+localHousePosts.length)+'件');
  },err=>{console.error('mapHouses read:',err);status('空き家ピンの取得に失敗：mapHousesのFirestoreルールを確認してください');});
 }catch(e){console.error(e);status('Firebase接続に失敗しました');}}
 function connect(){if(!window.firebase||!window.db){status('Firebaseが読み込めません');return;}
@@ -9069,6 +9193,14 @@ window.menkoiPublishDiscovery=async function(record){
  sourceType:'approvedQuestReport',authorUid:uid,userId:uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
 };
 window.menkoiMapStartPost=function(){alert('図鑑への自由投稿はできません。クエスト達成報告から発見を記録してください。');};
+window.menkoiDeleteOwnedMapHouse=async function(id){
+ const user=window.firebase?.auth().currentUser;
+ const pin=housePosts.find(p=>String(p.id)===String(id));
+ if(!user||!pin||pin.authorUid!==user.uid){alert('この空き家の登録者のみ削除できます。');return;}
+ if(!confirm('この空き家の地図登録を削除しますか？\n※家の物語にある空き家情報は残ります。'))return;
+ try{await db.collection('mapHouses').doc(String(id)).delete();map?.closePopup();}
+ catch(e){console.error(e);alert('削除できませんでした。Firestoreの削除権限を確認してください。');}
+};
 window.menkoiMapDelete=async function(id){if(!confirm('この投稿を削除しますか？'))return;try{await db.collection('mapPosts').doc(id).delete()}catch(e){console.error(e);alert('削除できませんでした。権限を確認してください。')}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('menkoi-map-overlay').classList.contains('open'))window.closeMenkoiMap()});
 })();
