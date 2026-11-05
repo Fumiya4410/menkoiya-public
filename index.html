@@ -8486,7 +8486,7 @@ if(!icons[p.kind]||!Number.isFinite(p.lat)||!Number.isFinite(p.lng))continue;
 const photo=validPhoto(p.photo);const img=photo?'<img loading="lazy" referrerpolicy="no-referrer" src="'+safe(photo)+'" alt="投稿写真">':'';
 const own=!p.sample&&window.firebase&&firebase.auth().currentUser&&p.authorUid===firebase.auth().currentUser.uid;
 const del=own?'<button type="button" onclick="menkoiMapDelete(\''+safe(p.id)+'\')">自分の投稿を削除</button>':'';
-const houseDetails=p.kind==='house'?'<dl class="menkoi-house-details">'+[['所在地',p.location||p.description],['郵便番号',p.postalCode?'〒'+p.postalCode:''],['築年数',p.age!=null?p.age+'年':''],['面積',p.area!=null?p.area+'㎡':''],['現在の状態',p.status],['過去の用途',p.pastUse],['利用できるイベント',Array.isArray(p.allowedEvents)?p.allowedEvents.join('・'):''],['その他の活用',p.customEvents],['開催条件',p.eventConditions],['所有者メッセージ',p.ownerMsg]].filter(row=>row[1]).map(row=>'<div><dt>'+safe(row[0])+'</dt><dd>'+safe(row[1])+'</dd></div>').join('')+'</dl>':'';
+const houseDetails=p.kind==='house'?'<p>'+safe(p.description)+'</p>':'';
 L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+(p.kind==='house'?houseDetails:'<p>'+safe(p.description)+'</p>')+(p.sample?'<small>参考地点</small>':del)+'</div>',{maxWidth:320}).addTo(groups[p.kind]);}}
 function subscribe(){if(unsubscribe)return;try{
  unsubscribe=db.collection('mapPosts').orderBy('createdAt','desc').limit(300).onSnapshot(snapshot=>{
@@ -8530,7 +8530,8 @@ window.menkoiPublishHouse=async function(house){
  if(!window.db||!window.firebase)throw new Error('Firebaseが読み込まれていません');
  if(!Number.isFinite(house.lat)||!Number.isFinite(house.lng))throw new Error('空き家の公開位置が未指定です');
  if(!firebase.auth().currentUser)await firebase.auth().signInAnonymously();
- await db.collection('mapHouses').doc(String(house.id)).set({kind:'house',title:house.name,description:house.location,location:house.location,postalCode:house.postalCode||'',age:Number.isFinite(house.age)?house.age:null,area:Number.isFinite(house.area)?house.area:null,status:house.status||'',pastUse:house.pastUse||'',allowedEvents:Array.isArray(house.allowedEvents)?house.allowedEvents:[],customEvents:house.customEvents||'',eventConditions:house.eventConditions||'',ownerMsg:house.ownerMsg||'',lat:house.lat,lng:house.lng,photo:validPhoto(house.image),houseId:house.id,authorUid:firebase.auth().currentUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+ const details=[['所在地',house.location],['郵便番号',house.postalCode?'〒'+house.postalCode:''],['築年数',house.age!=null?house.age+'年':''],['面積',house.area!=null?house.area+'㎡':''],['現在の状態',house.status],['過去の用途',house.pastUse],['利用できるイベント',Array.isArray(house.allowedEvents)?house.allowedEvents.join('・'):''],['その他の活用',house.customEvents],['開催条件',house.eventConditions],['所有者メッセージ',house.ownerMsg]].filter(row=>row[1]).map(row=>row[0]+'：'+row[1]).join(' / ');
+ await db.collection('mapHouses').doc(String(house.id)).set({kind:'house',title:house.name,description:details,lat:house.lat,lng:house.lng,photo:validPhoto(house.image),houseId:house.id,authorUid:firebase.auth().currentUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
 };
 window.menkoiPublishDiscovery=async function(record){
  if(!window.firebase||!window.db)throw new Error('Firebaseが読み込まれていません');
