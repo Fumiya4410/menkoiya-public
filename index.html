@@ -4049,7 +4049,7 @@
                         </label>
                         <template v-if="reportForm.discoveryStatus === 'found'">
                           <label class="block font-bold">図鑑の分類
-                            <select v-model="reportForm.discoveryKind" class="w-full border rounded-lg p-2 mt-1 bg-white"><option value="trace">🐾 野生動物の痕跡</option><option value="animal">🦌 動植物の発見</option><option value="spot">📷 地域の風景</option><option value="history">📚 歴史・思い出（その家の年代記へ）</option></select>
+                            <select v-model="reportForm.discoveryKind" class="w-full border rounded-lg p-2 mt-1 bg-white"><option value="trace">🐾 野生動物の痕跡</option><option value="animal">🌿 植物の発見</option><option value="spot">📷 地域の風景</option><option value="history">📚 歴史・思い出（その家の年代記へ）</option></select>
                           </label>
                           <div v-if="reportForm.discoveryKind === 'trace'" class="grid grid-cols-2 gap-2">
                             <label class="text-xs font-bold">推定される動物<select v-model="reportForm.traceAnimal" class="w-full border rounded-lg p-2 mt-1"><option value="unknown">不明</option><option value="bear">熊</option><option value="boar">イノシシ</option><option value="monkey">サル</option><option value="other">その他</option></select></label>
@@ -9242,9 +9242,8 @@
  <div class="menkoi-map-mode-description"><span id="menkoi-map-mode-caption">空き家を探す・経路を確認する</span><span id="menkoi-exploration-count" class="menkoi-map-progress" style="display:none">開拓済み 0／33市町村</span></div>
  <div class="menkoi-map-controls">
   <button class="menkoi-map-chip" data-kind="house" onclick="toggleMenkoiKind(this)">🏠 空き家</button>
-  <button class="menkoi-map-chip" type="button" onclick="menkoiShowAllHouses()">📍 全空き家を表示</button>
   <button class="menkoi-map-chip" data-kind="trace" onclick="toggleMenkoiKind(this)">🐾 動物の痕跡</button>
-  <button class="menkoi-map-chip" data-kind="animal" onclick="toggleMenkoiKind(this)">🌿 動植物</button>
+  <button class="menkoi-map-chip" data-kind="animal" onclick="toggleMenkoiKind(this)">🌿 植物</button>
   <button class="menkoi-map-chip" data-kind="spot" onclick="toggleMenkoiKind(this)">📷 地域の風景</button>
   <span class="menkoi-map-legend">🔒 発見はクエスト承認後に公開</span>
   <span id="menkoi-map-status" class="menkoi-map-legend">地図を準備しています…</span>
@@ -9264,7 +9263,7 @@
     <div id="menkoi-map-tutorial-icon" class="menkoi-map-tutorial-icon">🗺️</div>
     <p id="menkoi-map-tutorial-step-label" class="menkoi-map-tutorial-step">STEP 01</p>
     <h3 id="menkoi-map-tutorial-title" class="menkoi-map-tutorial-title">探索マップで地域を探す</h3>
-    <p id="menkoi-map-tutorial-description" class="menkoi-map-tutorial-description">空き家や動物の痕跡、動植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。</p>
+    <p id="menkoi-map-tutorial-description" class="menkoi-map-tutorial-description">空き家や動物の痕跡、植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。</p>
    </div>
    <div class="menkoi-map-tutorial-foot">
     <button id="menkoi-map-tutorial-prev" type="button" class="menkoi-map-tutorial-prev" onclick="menkoiPrevMapTutorial()">‹ 前へ</button>
@@ -9293,7 +9292,7 @@
   <strong>📍 地図をクリックして公開位置を指定</strong><div id="menkoi-location-picked" style="font-size:12px;margin:6px">位置：未選択</div>
   <button type="button" onclick="menkoiConfirmLocation()" style="background:#315c46;color:white;padding:9px 18px;border-radius:9px;margin-right:8px">この位置に決定</button><button type="button" onclick="menkoiCancelLocation()">キャンセル</button>
  </div>
- <div style="padding:7px 14px;background:white;font-size:12px;color:#526554">空き家は所有者登録時に、動物の痕跡・動植物・風景はクエスト承認後に地図へ表示します。歴史・思い出は、その家の年代記へ記録します。</div>
+ <div style="padding:7px 14px;background:white;font-size:12px;color:#526554">空き家は所有者登録時に、動物の痕跡・植物・風景はクエスト承認後に地図へ表示します。歴史・思い出は、その家の年代記へ記録します。</div>
  <div id="menkoi-map-post" style="display:none;position:absolute;z-index:10001;top:110px;left:50%;transform:translateX(-50%);width:min(94vw,410px);max-height:75vh;overflow:auto;background:white;border-radius:14px;padding:18px;box-shadow:0 6px 28px #0005">
   <strong>📍 地域の発見を投稿</strong><button type="button" style="float:right" onclick="menkoiMapCancelPost()">✕</button>
   <p style="font-size:12px">地図をクリックして位置を選択してください（位置は公開されます）。</p>
@@ -9319,7 +9318,7 @@ let routeDestination=null,routeStart=null,routeLine=null,routeStartMarker=null,r
 let menkoiMapMode='explore',menkoiAreaLayer=null,menkoiPersonalPins=null;
 let menkoiMapTutorialStep=0;
 const menkoiMapTutorialSteps=[
- {short:'探す',icon:'🗺️',title:'探索マップで地域を探す',description:'空き家や動物の痕跡、動植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。'},
+ {short:'探す',icon:'🗺️',title:'探索マップで地域を探す',description:'空き家や動物の痕跡、植物、地域の風景を地図で探せます。ボタンで表示を切り替え、気になるピンをクリックして情報を確認します。'},
  {short:'経路',icon:'🧭',title:'空き家までの行き方を確認する',description:'空き家のピンから経路案内を開けます。現在地または地図上で出発地を選び、車・徒歩の距離や移動時間に加えて、出発地・目的地の標高、累積上昇量、経路の標高グラフも確認できます。'},
  {short:'育てる',icon:'🌱',title:'マイマップを育てる',description:'「マイマップ」では、クエストの活動完了後に所有者から承認された地域が緑色に染まります。活動を重ねるほど、自分が関わった地域が地図に残っていきます。'}
 ];
@@ -9357,7 +9356,7 @@ function menkoiApprovedActivities(){
   if(!h)continue;
   const lat=Number(h.lat),lng=Number(h.lng);
   if(!Number.isFinite(lat)||!Number.isFinite(lng))continue;
-  output.push({lat,lng,name:h.name||'活動した空き家',count:approved.length});
+  output.push({lat,lng,name:h.name||'活動した空き家',count:approved.length,houseId:h.id,photo:h.image||'',location:h.location||''});
  }
  return output;
 }
@@ -9379,7 +9378,11 @@ function menkoiRenderPersonal(){
  for(const p of activities){for(const f of menkoiBoundaries.features){if(menkoiPointInside(p,f.geometry)){discovered.add(f.properties.code);break;}}}
  menkoiAreaLayer=L.geoJSON(menkoiBoundaries,{filter:f=>discovered.has(f.properties.code),style:{color:'#24844d',weight:1,opacity:.75,fillColor:'#38a85a',fillOpacity:.48},onEachFeature:(f,layer)=>layer.bindPopup('🌱 開拓済み：'+f.properties.name)}).addTo(map);
  menkoiPersonalPins=L.layerGroup().addTo(map);
- for(const p of activities){L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:'<div style="background:#e3ffe7;border:2px solid #27874b;border-radius:50%;width:35px;height:35px;display:grid;place-items:center;font-size:19px;box-shadow:0 2px 9px #0004">🌱</div>',iconSize:[39,39],iconAnchor:[19,19]})}).bindPopup('<strong>🌱 '+safe(p.name)+'</strong><p>承認済みの活動：'+p.count+'件</p><button class="menkoi-popup-route" data-route-lat="'+p.lat+'" data-route-lng="'+p.lng+'" data-route-name="'+safe(p.name)+'">🧭 経路案内</button>').addTo(menkoiPersonalPins);}
+ for(const p of activities){
+  const photo=validPhoto(p.photo);const img=photo?'<img loading="lazy" referrerpolicy="no-referrer" src="'+safe(photo)+'" alt="'+safe(p.name)+'の写真" style="width:100%;max-height:150px;object-fit:cover;border-radius:9px;margin:8px 0">':'';
+  const detailButton='<button type="button" class="menkoi-popup-house-detail" data-house-id="'+safe(p.houseId||'')+'" data-house-name="'+safe(p.name)+'" style="display:block;width:100%;margin-top:8px;padding:8px 10px;background:#fff7df;color:#315c46;border:1px solid #d5b96b;border-radius:9px;font-weight:700;cursor:pointer">🏠 空き家詳細を見る</button>';
+  L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:'<div style="background:#e3ffe7;border:2px solid #27874b;border-radius:50%;width:35px;height:35px;display:grid;place-items:center;font-size:19px;box-shadow:0 2px 9px #0004">🏠</div>',iconSize:[39,39],iconAnchor:[19,19],popupAnchor:[0,-22]})}).bindPopup('<div class="menkoi-map-popup"><strong>🌱 '+safe(p.name)+'</strong>'+img+'<p>'+safe(p.location||'')+'</p><p>承認済みの活動：'+p.count+'件</p><button class="menkoi-popup-route" data-route-lat="'+p.lat+'" data-route-lng="'+p.lng+'" data-route-name="'+safe(p.name)+'">🧭 経路案内</button>'+detailButton+'</div>',{maxWidth:300}).addTo(menkoiPersonalPins);
+ }
  document.getElementById('menkoi-exploration-count').textContent='🌱 開拓 '+discovered.size+' / '+menkoiBoundaries.features.length+' 市町村';
  status(activities.length?'活動承認済み '+activities.length+'件・開拓 '+discovered.size+'市町村':'承認済みの活動はまだありません。活動完了後に所有者が承認すると開拓されます。');
 }
@@ -9388,7 +9391,6 @@ window.menkoiSetMapMode=function(mode){
  const personal=menkoiMapMode==='personal';
  for(const g of Object.values(groups)){if(personal)map?.removeLayer(g);else if(map&&!map.hasLayer(g))g.addTo(map);}
  document.querySelectorAll('.menkoi-map-chip[data-kind]').forEach(b=>b.style.display=personal?'none':'');
- document.querySelector('.menkoi-map-chip[onclick="menkoiShowAllHouses()"]')?.style.setProperty('display',personal?'none':'');
  document.getElementById('menkoi-exploration-count').style.display=personal?'':'none';
  document.getElementById('menkoi-map-mode-caption').textContent=personal?'活動した地域が緑色に染まっていく':'空き家を探す・経路を確認する';
  for(const [id,active] of [['menkoi-explore-tab',!personal],['menkoi-personal-tab',personal]]){const b=document.getElementById(id);b.setAttribute('aria-pressed',String(active));}
@@ -9557,7 +9559,7 @@ window.menkoiRouteRefresh=async function(){
 const status=(v)=>{document.getElementById('menkoi-map-status').textContent=v};
 const safe=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validPhoto=(url)=>{if(typeof url==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(url))return url;try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
-const markerIcon=(kind)=>L.divIcon({className:'',html:'<div style="background:#fff;border:2px solid #315c46;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;font-size:21px;box-shadow:0 3px 10px #0003">'+icons[kind]+'</div>',iconSize:[39,39],iconAnchor:[19,39]});
+const markerIcon=(kind)=>L.divIcon({className:'',html:'<div style="background:#fff;border:2px solid #315c46;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;font-size:21px;box-shadow:0 3px 10px #0003">'+icons[kind]+'</div>',iconSize:[39,39],iconAnchor:[19,39],popupAnchor:[0,kind==='house'?-43:-37]});
 function syncStoryHouses(){
  const houses=window.menkoiHouseApp?.houses || [];
  const remoteIds=new Set(housePosts.map(h=>String(h.houseId||h.id)));
@@ -9593,9 +9595,22 @@ const del=own?'<button type="button" onclick="menkoiMapDelete(\''+safe(p.id)+'\'
 const houseOwn=p.kind==='house' && !p.sample && window.firebase && firebase.auth().currentUser && p.authorUid===firebase.auth().currentUser.uid;
 const houseDelete=houseOwn?'<button type="button" onclick="menkoiDeleteOwnedMapHouse(\''+safe(p.id)+'\')" style="display:block;width:100%;margin-top:8px;padding:8px;background:#fff1f1;color:#a52c2c;border:1px solid #edb5b5;border-radius:8px;cursor:pointer">🗑️ この空き家の地図登録を削除</button>':'';
 const routeButton=p.kind==='house'?'<button type="button" class="menkoi-popup-route" data-route-lat="'+Number(p.lat)+'" data-route-lng="'+Number(p.lng)+'" data-route-name="'+safe(p.title||'空き家')+'" style="display:block;width:100%;margin-top:10px;padding:9px 12px;background:#315c46;color:#fff;border:0;border-radius:9px;font-weight:700;cursor:pointer">🧭 この家への経路案内</button>':'';
-L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>地域の家の物語に登録済み</small>':del)+routeButton+houseDelete+'</div>').addTo(groups[p.kind]);}}
+const houseDetailButton=p.kind==='house'?'<button type="button" class="menkoi-popup-house-detail" data-house-id="'+safe(p.houseId||p.id||'')+'" data-house-name="'+safe(p.title||'空き家')+'" style="display:block;width:100%;margin-top:8px;padding:9px 12px;background:#fff7df;color:#315c46;border:1px solid #d5b96b;border-radius:9px;font-weight:700;cursor:pointer">🏠 空き家詳細を見る</button>':'';
+L.marker([p.lat,p.lng],{icon:markerIcon(p.kind)}).bindPopup('<div class="menkoi-map-popup"><strong>'+icons[p.kind]+' '+safe(p.title)+'</strong>'+img+'<p>'+safe(p.description)+'</p>'+(p.sample?'<small>地域の家の物語に登録済み</small>':del)+routeButton+houseDetailButton+houseDelete+'</div>',{maxWidth:320}).addTo(groups[p.kind]);}}
 // Leafletのポップアップは動的に生成されるため、クリックを委譲して処理する。
 document.addEventListener('click',function(event){
+ const detailButton=event.target.closest('.menkoi-popup-house-detail');
+ if(detailButton){
+  event.preventDefault();
+  const app=window.menkoiHouseApp;
+  const houseId=String(detailButton.dataset.houseId||'');
+  const houseName=String(detailButton.dataset.houseName||'');
+  const house=(app?.houses||[]).find(h=>String(h.id)===houseId)|| (app?.houses||[]).find(h=>String(h.name||'')===houseName);
+  if(!house){status('空き家詳細を開けませんでした。家の登録情報を確認してください。');return;}
+  window.closeMenkoiMap?.();
+  setTimeout(()=>app.openHouseDetailModal?.(house),0);
+  return;
+ }
  const button=event.target.closest('.menkoi-popup-route');
  if(!button)return;
  event.preventDefault();
