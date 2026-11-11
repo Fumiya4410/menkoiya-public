@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- めんこい家 Vol.107（年代記の正しい3件を維持／デモリセット直前にFirebaseへ保存） -->
+
 <!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
 <!-- めんこい家 Vol.85: Vol.84 + 通知/アルバム/クエスト写真復元 + ポイント100pt単位統一 -->
 <!-- めんこい家 v93 (2026-11-11): 歴史・思い出のアルバム専用写真と図鑑公開チェック廃止。v92の機能を維持 -->
@@ -6606,6 +6608,7 @@
                     // v106: Firestoreに保存された別IDの同名の家と、HTML同梱の承認済みクエストを統合。
                     // 旧Firestoreドキュメントは削除せず、読み込み対象(core)だけ1軒にまとめる。
                     const v106Result = this.mergeGrandpaChronicle();
+                    this.ensureGrandpaNovemberMemory();
                     if (v106Result.mergedHouses > 0 || v106Result.migratedQuests > 0) {
                         console.info('Vol.106 年代記を統合しました:', v106Result);
                     }
@@ -7540,6 +7543,67 @@
                         approvedQuests:quests.filter(q => q.houseId === canonicalId &&
                             (q.applications || []).some(app => app.status === 'approved')).length};
                 },
+                // Vol.107: おじいさんの家の記憶を 2026/11/11 の正確な日付で統一。
+                // GitHub Pages と Live Server は匿名UIDが異なるため、旧画面にだけ残る
+                // 「2026年時点でのこの家」の古い投稿を、写真と元IDを保ったまま更新する。
+                // 正しく投稿済みの記憶には一切手を触れず、その他の年代記やクエストも変更しない。
+                ensureGrandpaNovemberMemory() {
+                    const house = (this.houses || []).find(h => String(h.id) === 'h103-ojii') ||
+                                  (this.houses || []).find(h => this.isGrandpaChronicleHouse(h));
+                    if (!house) return;
+                    if (!Array.isArray(house.historyLogs)) house.historyLogs = [];
+                    const memories = house.historyLogs;
+                    const desiredTitle = '2026年11月11日時点でのこの家';
+                    const desiredDate = '2026-11-11';
+                    const desiredContent = '記念すべき築50年ですが、草が生い茂ってしまいました。';
+                    const exactExisting = memories.find(log =>
+                        log && (String(log.title || '').trim() === desiredTitle || log._v107CanonicalGrandpaMemory === true));
+                    if (exactExisting) {
+                        // タイトルが既に正しい記録は、投稿内容・写真・投稿者を上書きしない。
+                        // 年代だけ旧方式だった場合に限って、正しい日付情報を補う。
+                        if (exactExisting.datePrecision !== 'exact' || exactExisting.eventDate !== desiredDate) {
+                            exactExisting.historyYear = 2026;
+                            exactExisting.datePrecision = 'exact';
+                            exactExisting.eventDate = desiredDate;
+                            exactExisting.era = '2026年11月11日';
+                        }
+                        return;
+                    }
+                    const legacy = memories.find(log => log &&
+                        String(log.title || '').trim() === '2026年時点でのこの家' &&
+                        (!log.eventDate || String(log.eventDate).startsWith('2026')));
+                    if (legacy) {
+                        // 旧記憶の本文を失わないよう、非表示の復元情報として残してから更新。
+                        if (!legacy._v107PreviousMemory) {
+                            legacy._v107PreviousMemory = {
+                                title:legacy.title, content:legacy.content, date:legacy.date,
+                                author:legacy.author, authorId:legacy.authorId, role:legacy.role,
+                                historyYear:legacy.historyYear, era:legacy.era,
+                                datePrecision:legacy.datePrecision, eventDate:legacy.eventDate
+                            };
+                        }
+                        Object.assign(legacy, {
+                            title:desiredTitle, content:desiredContent, date:desiredDate,
+                            author:'Aさん', authorId:'u2', role:'参加者',
+                            historyYear:2026, era:'2026年11月11日',
+                            datePrecision:'exact', eventDate:desiredDate,
+                            verificationStatus:'verified', verifiedAt:desiredDate,
+                            _v107CanonicalGrandpaMemory:true
+                        });
+                        if (!legacy.photo) legacy.photo = house.image || null;
+                        return;
+                    }
+                    // 初めてこのデモを開いた保存領域にも、指定された3件目が現れるようにする。
+                    memories.push({
+                        id:'hist-grandpa-20261111-memory',
+                        title:desiredTitle, content:desiredContent,
+                        date:desiredDate, eventDate:desiredDate, datePrecision:'exact',
+                        historyYear:2026, era:'2026年11月11日', kind:'history',
+                        author:'Aさん', authorId:'u2', role:'参加者', source:'',
+                        verificationStatus:'verified', verifiedAt:desiredDate, rewardGranted:false,
+                        photo:house.image || null, _v107CanonicalGrandpaMemory:true
+                    });
+                },
                 exportGrandpaChronicle() {
                     if (!this.firebaseReady) { this.showToast('Firebase接続後に保存してください', 'warning'); return; }
                     const houses = (this.houses || []).filter(h => this.isGrandpaChronicleHouse(h));
@@ -8069,6 +8133,10 @@
                         // 自動保存がリセット中に削除済みデータを書き戻さないようにする。
                         clearTimeout(this.firebaseSaveTimer);
                         await (this.firebaseSaveQueue || Promise.resolve()).catch(err => console.warn('リセット前の保存完了待ち:', err));
+                        // 画面に見えている最新の写真・記憶・クエストを確実に保存してから削除対象を計算。
+                        // Firestoreに旧版の家が既に存在する場合も、最新の3ページが優先される。
+                        await this.saveToFirebase();
+                        if (this.firebaseError) throw new Error('年代記の保存に失敗したため、安全のためリセットを中止しました: ' + this.firebaseError);
                         this.firebaseHydrating = true;
                         const uid = this.firebaseUid;
                         const workspace = db.collection('demoWorkspaces').doc(uid);
