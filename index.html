@@ -9217,6 +9217,19 @@
 .menkoi-map-tutorial-dot{width:6px;height:6px;border-radius:999px;background:#d1d5db;transition:.15s}
 .menkoi-map-tutorial-dot.active{width:24px;background:#315C46}
 #menkoi-route-panel{top:auto!important;right:14px!important;bottom:52px!important;width:min(460px,calc(100vw - 28px))!important;max-height:min(78vh,720px);overflow-y:auto;font-size:15px!important;padding:18px!important}#menkoi-route-panel button,#menkoi-route-panel select{font-size:14px!important}#menkoi-route-elevation{font-size:14px!important}#menkoi-elevation-chart{min-height:170px}#menkoi-route-panel strong{font-size:15px}
+/* 経路案内：選んだ出発地点の指定方法だけを強調する */
+#menkoi-route-panel .menkoi-route-origin-btn{
+  background:#e8f3ed;color:#315c46;border:2px solid #c1d8c8;
+  border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+#menkoi-route-panel .menkoi-route-origin-btn:hover{border-color:#78aa88;background:#d8eadd}
+#menkoi-route-panel .menkoi-route-origin-btn.is-selected{
+  background:#315c46;color:#fff;border-color:#5fba7c;
+  box-shadow:0 0 0 3px rgba(111,200,135,.38),0 0 16px rgba(47,139,79,.35);
+}
+#menkoi-route-panel .menkoi-route-origin-btn.is-selected:hover{background:#254b39}
+#menkoi-route-panel .menkoi-route-origin-btn:focus-visible{outline:2px solid #26874f;outline-offset:3px}
 @media(max-width:600px){.menkoi-map-top{padding:9px 10px;gap:6px}.menkoi-map-top strong{font-size:13px}.menkoi-map-top>span:first-child{font-size:19px!important}.menkoi-map-mode-tabs{gap:3px}.menkoi-map-mode-tab{font-size:10px;padding:6px 7px}.menkoi-map-top>button{font-size:11px;padding:7px 9px}#menkoi-route-panel{bottom:45px!important;max-height:68vh;width:min(420px,calc(100vw - 20px))!important;padding:13px!important}.menkoi-map-help-button span{display:none}.menkoi-map-tutorial-card{border-radius:20px}.menkoi-map-tutorial-head{padding:14px}.menkoi-map-tutorial-tabs{padding:11px 12px 0;gap:5px}.menkoi-map-tutorial-tab{padding:7px 6px!important;font-size:9px!important}.menkoi-map-tutorial-body{min-height:230px;padding:20px 18px}.menkoi-map-tutorial-description{font-size:12px}.menkoi-map-tutorial-foot{padding:11px 12px}}
 </style>
 <div id="menkoi-map-overlay" role="dialog" aria-modal="true" aria-label="めんこい探索マップ">
@@ -9266,7 +9279,7 @@
   <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong>🧭 空き家への経路案内</strong><button type="button" onclick="menkoiCloseRoute()" aria-label="経路案内を閉じる">✕</button></div>
   <p id="menkoi-route-destination" style="margin:7px 0;font-weight:bold"></p>
   <label style="display:block;margin:6px 0">移動手段 <select id="menkoi-route-mode" onchange="menkoiRouteRefresh()" style="padding:5px;border:1px solid #ccc;border-radius:7px"><option value="driving">🚗 車</option><option value="walking">🚶 徒歩</option></select></label>
-  <div style="display:flex;flex-wrap:wrap;gap:7px;margin:9px 0"><button type="button" onclick="menkoiRouteUseCurrentLocation()" style="background:#315c46;color:white;border-radius:8px;padding:7px 9px">📍 現在地から</button><button type="button" onclick="menkoiRoutePickStart()" style="background:#e8f3ed;border-radius:8px;padding:7px 9px">🗺️ 出発地を地図で指定</button></div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px;margin:9px 0"><button id="menkoi-route-current-btn" class="menkoi-route-origin-btn" type="button" aria-pressed="false" onclick="menkoiRouteUseCurrentLocation()">📍 現在地から</button><button id="menkoi-route-map-btn" class="menkoi-route-origin-btn" type="button" aria-pressed="false" onclick="menkoiRoutePickStart()">🗺️ 出発地を地図で指定</button></div>
   <p id="menkoi-route-info" role="status" style="line-height:1.6;color:#526554">出発地を選んでください。</p>
   <div id="menkoi-route-elevation" aria-live="polite" style="margin:9px 0;padding:10px;border-radius:10px;background:#edf5ef;color:#315c46;font-size:12px;line-height:1.8"><strong>🏔️ 標高</strong><div id="menkoi-route-elevation-values">出発地点を指定すると標高を表示します。</div><div id="menkoi-route-ascent" style="margin-top:5px;border-top:1px solid #d3e4d8;padding-top:5px">経路検索後に累積上昇量・下降量を表示します。</div></div>
   <section id="menkoi-elevation-chart-section" style="margin-top:10px;padding:9px;border:1px solid #d3e4d8;border-radius:10px;background:#fff">
@@ -9305,6 +9318,19 @@ const icons={house:'🏠',trace:'🐾',animal:'🌿',spot:'📷'};
 const sample=[];
 let map=null,groups={},unsubscribe=null,unsubscribeHouses=null,selected=null,postMode=false,live=[],housePosts=[],localHousePosts=[],authReady=null,pickCallback=null,pickMarker=null;
 let routeDestination=null,routeStart=null,routeLine=null,routeStartMarker=null,routePickStart=false,routeRequest=0;
+let routeStartChoice=null,routeStartChoiceToken=0;
+function menkoiSetRouteStartChoice(choice){
+  routeStartChoice=choice;
+  routeStartChoiceToken++;
+  for(const [value,id] of [['current','menkoi-route-current-btn'],['map','menkoi-route-map-btn']]){
+    const button=document.getElementById(id);
+    if(!button)continue;
+    const selected=choice===value;
+    button.classList.toggle('is-selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  }
+  return routeStartChoiceToken;
+}
 let menkoiMapMode='explore',menkoiAreaLayer=null,menkoiPersonalPins=null;
 let menkoiMapTutorialStep=0;
 const menkoiMapTutorialSteps=[
@@ -9501,7 +9527,7 @@ async function menkoiFetchRouteAscent(points,requestId){
 
 const validPoint=(p)=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
 function clearRouteDrawing(){menkoiClearElevationHover();if(map&&routeLine){map.removeLayer(routeLine);routeLine=null;}if(map&&routeStartMarker){map.removeLayer(routeStartMarker);routeStartMarker=null;}}
-window.menkoiCloseRoute=function(){routeRequest++;routeDestination=null;routeStart=null;routePickStart=false;clearRouteDrawing();menkoiElevationInfo('出発地点を指定すると標高を表示します。');menkoiAscentInfo('経路検索後に累積上昇量・下降量を表示します。');menkoiClearElevationChart();document.getElementById('menkoi-route-panel').style.display='none';};
+window.menkoiCloseRoute=function(){routeRequest++;routeDestination=null;routeStart=null;routePickStart=false;menkoiSetRouteStartChoice(null);clearRouteDrawing();menkoiElevationInfo('出発地点を指定すると標高を表示します。');menkoiAscentInfo('経路検索後に累積上昇量・下降量を表示します。');menkoiClearElevationChart();document.getElementById('menkoi-route-panel').style.display='none';};
 window.menkoiOpenHouseRoute=function(house){
  if(!validPoint(house)){alert('この家の位置情報がありません');return;}
  window.openMenkoiMap();window.menkoiCloseRoute();
@@ -9511,12 +9537,20 @@ window.menkoiOpenHouseRoute=function(house){
  routeInfo('「現在地から」または「出発地を地図で指定」を選んでください。');
  if(map){map.setView([routeDestination.lat,routeDestination.lng],14);}
 };
-window.menkoiRoutePickStart=function(){if(!routeDestination)return;routePickStart=true;routeInfo('地図上で出発地点をクリックしてください。');};
+window.menkoiRoutePickStart=function(){if(!routeDestination)return;routePickStart=true;menkoiSetRouteStartChoice('map');routeInfo('地図上で出発地点をクリックしてください。');};
 window.menkoiRouteUseCurrentLocation=function(){
- if(!routeDestination)return;
- if(!navigator.geolocation){routeInfo('このブラウザでは現在地を取得できません。地図から出発地を指定してください。');return;}
- routePickStart=false;routeInfo('現在地を取得しています…');
- navigator.geolocation.getCurrentPosition(pos=>{routeStart={lat:pos.coords.latitude,lng:pos.coords.longitude};window.menkoiRouteRefresh();},err=>{routeInfo('現在地を取得できませんでした（位置情報の許可・HTTPS接続を確認）。地図から指定できます。');},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+  if(!routeDestination)return;
+  routePickStart=false;
+  const choiceToken=menkoiSetRouteStartChoice('current');
+  if(!navigator.geolocation){routeInfo('このブラウザでは現在地を取得できません。地図から出発地を指定してください。');return;}
+  routeInfo('現在地を取得しています…');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(routeStartChoice!=='current'||choiceToken!==routeStartChoiceToken||!routeDestination)return;
+    routeStart={lat:pos.coords.latitude,lng:pos.coords.longitude};window.menkoiRouteRefresh();
+  },err=>{
+    if(routeStartChoice!=='current'||choiceToken!==routeStartChoiceToken||!routeDestination)return;
+    routeInfo('現在地を取得できませんでした（位置情報の許可・HTTPS接続を確認）。地図から指定できます。');
+  },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
 };
 window.menkoiRouteRefresh=async function(){
  if(!validPoint(routeStart)||!validPoint(routeDestination))return;
