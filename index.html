@@ -2,6 +2,7 @@
 <!-- めんこい家 Vol.108：既存の年代記3件を保持し、イベント利用完了報告・所有者承認／差し戻し・年代記の利用実績を実装 -->
 <!-- めんこい家 Vol.107（年代記の正しい3件を維持／デモリセット直前にFirebaseへ保存） -->
 
+<!-- めんこい家 v109: 11月11日のおじいさんの家の記憶の投稿者を「おじいさん」（所有者）へ移行。既存の写真・本文・日付を維持 -->
 <!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
 <!-- めんこい家 Vol.85: Vol.84 + 通知/アルバム/クエスト写真復元 + ポイント100pt単位統一 -->
 <!-- めんこい家 v93 (2026-11-11): 歴史・思い出のアルバム専用写真と図鑑公開チェック廃止。v92の機能を維持 -->
@@ -7673,7 +7674,12 @@
                     const exactExisting = memories.find(log =>
                         log && (String(log.title || '').trim() === desiredTitle || log._v107CanonicalGrandpaMemory === true));
                     if (exactExisting) {
-                        // タイトルが既に正しい記録は、投稿内容・写真・投稿者を上書きしない。
+                        // v109: この1件の投稿者だけを、Aさんから家の所有者「おじいさん」に移行。
+                        // 投稿本文・写真・投稿ID・掲載日・ページ順には一切手を触れない。
+                        // 既存Firebaseデータも読み込み時に修正して、次回保存で反映する。
+                        exactExisting.author = 'おじいさん';
+                        exactExisting.authorId = 'u1';
+                        exactExisting.role = '所有者';
                         // 年代だけ旧方式だった場合に限って、正しい日付情報を補う。
                         if (exactExisting.datePrecision !== 'exact' || exactExisting.eventDate !== desiredDate) {
                             exactExisting.historyYear = 2026;
@@ -7698,7 +7704,7 @@
                         }
                         Object.assign(legacy, {
                             title:desiredTitle, content:desiredContent, date:desiredDate,
-                            author:'Aさん', authorId:'u2', role:'参加者',
+                            author:'おじいさん', authorId:'u1', role:'所有者',
                             historyYear:2026, era:'2026年11月11日',
                             datePrecision:'exact', eventDate:desiredDate,
                             verificationStatus:'verified', verifiedAt:desiredDate,
@@ -7713,7 +7719,7 @@
                         title:desiredTitle, content:desiredContent,
                         date:desiredDate, eventDate:desiredDate, datePrecision:'exact',
                         historyYear:2026, era:'2026年11月11日', kind:'history',
-                        author:'Aさん', authorId:'u2', role:'参加者', source:'',
+                        author:'おじいさん', authorId:'u1', role:'所有者', source:'',
                         verificationStatus:'verified', verifiedAt:desiredDate, rewardGranted:false,
                         photo:house.image || null, _v107CanonicalGrandpaMemory:true
                     });
@@ -7752,11 +7758,24 @@
                             !imported.houses.some(h => this.isGrandpaChronicleHouse(h))) {
                             throw new Error('おじいさんの家の年代記ファイルとして確認できません');
                         }
+                        // 旧バックアップにAさん名義の11/11記録があっても、
+                        // 投稿者だけを事前に統一して、名義の違いによる重複ページを防ぐ。
+                        imported.houses.filter(h => this.isGrandpaChronicleHouse(h)).forEach(h => {
+                            (h.historyLogs || []).forEach(log => {
+                                if (String(log?.title || '').trim() !== '2026年11月11日時点でのこの家' &&
+                                    log?._v107CanonicalGrandpaMemory !== true) return;
+                                log.author = 'おじいさん';
+                                log.authorId = 'u1';
+                                log.role = '所有者';
+                            });
+                        });
                         // データを消さずに差分を追加。共有権限のない別の匿名ユーザー領域に直接書き込まない。
                         clearTimeout(this.firebaseSaveTimer);
                         await (this.firebaseSaveQueue || Promise.resolve()).catch(() => {});
                         this.firebaseHydrating = true;
                         const result = this.mergeGrandpaChronicle(imported);
+                        // 以前に保存したJSONを取り込んでも、11/11の投稿者はおじいさんに統一する。
+                        this.ensureGrandpaNovemberMemory();
                         this.firebaseHydrating = false;
                         this.firebaseError = '';
                         await this.saveToFirebase();
