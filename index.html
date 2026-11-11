@@ -6,7 +6,6 @@
 <!-- めんこい家 v100: 空き家新規登録と同時に歴史・思い出を年代記に記録できるように改善 -->
 <!-- めんこい家 v101: 年代記のおじいさんの家を先頭に、操作パネル文字拡大・可変化 -->
 <!-- めんこい家 v103: 盛岡市大通「おじいさんの家」と年代記クエスト履歴を初期追加 -->
-<!-- めんこい家 v106: 同名「おじいさんの家」の年代記・クエストを非破壊統合。別ブラウザとのJSON書き出し・取り込みに対応 -->
 <!-- めんこい家 v105: Dさんの承認済みクエスト2件を復元・保護し、デモリセット後も年代記に保持 -->
 <!-- めんこい家 v104: 年代記の記憶投稿に「年代頃／正確な年月日」切替を追加。旧投稿を保持 -->
 <!-- めんこい家 v95: 歴史・思い出の題名と本文を分離保存し、v94で承認済みの旧記録も見出しを復元 -->
@@ -2948,19 +2947,6 @@
                         <i class="fa-solid fa-user-plus"></i>
                         <span>+ アカウント作成</span>
                     </button>
-                    <!-- Vol.106: 匿名認証が異なるローカル／公開サイト間で年代記データを安全に移す -->
-                    <button @click="exportGrandpaChronicle" :disabled="!firebaseReady"
-                            class="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
-                            title="おじいさんの家の記憶・写真・達成済みクエストをJSONファイルに保存">
-                        <i class="fa-solid fa-file-export"></i><span>年代記を保存</span>
-                    </button>
-                    <button @click="$refs.grandpaImportInput.click()" :disabled="!firebaseReady"
-                            class="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
-                            title="別のブラウザから保存した年代記を、今の記録を消さずに統合">
-                        <i class="fa-solid fa-file-import"></i><span>年代記を取り込む</span>
-                    </button>
-                    <input ref="grandpaImportInput" class="hidden" type="file" accept=".json,application/json"
-                           @change="importGrandpaChronicleFile" aria-label="年代記JSONを読み込む">
 <button @click="resetDemo"
                             class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
                             title="自分のデモデータと探索マップの投稿を初期化します">
@@ -6508,7 +6494,6 @@
                     const seededHouseImages = new Map((this.houses || []).map(house => [String(house.id), house.image]));
                     const restoreSeededHousePhotos = houses => (houses || []).map(house => {
                         const image = seededHouseImages.get(String(house.id));
-                        if (String(house.id) === 'h103-ojii' && house._v106UserImageSelected && house.image) return house;
                         return image ? { ...house, image } : house;
                     });
                     const resetInitialDemoWorkflow = () => {
@@ -6603,12 +6588,6 @@
                     }
                     this.applyVersion12Fixes();
                     this.applyRequestedDemoDataUpdates({ removeOtherOwnerHouses: (Number(core.schemaVersion) || 0) < 19 });
-                    // v106: Firestoreに保存された別IDの同名の家と、HTML同梱の承認済みクエストを統合。
-                    // 旧Firestoreドキュメントは削除せず、読み込み対象(core)だけ1軒にまとめる。
-                    const v106Result = this.mergeGrandpaChronicle();
-                    if (v106Result.mergedHouses > 0 || v106Result.migratedQuests > 0) {
-                        console.info('Vol.106 年代記を統合しました:', v106Result);
-                    }
                     this.firebaseReady = true;
                     this.firebaseHydrating = false;
                     await this.saveToFirebase();
@@ -7380,217 +7359,6 @@
                         this.openCreateQuestModal();
                     }
                 },
-                // Vol.106: 個人ごとのFirestore領域はそのまま維持。家・記憶・活動をID単位で統合する。
-                isGrandpaChronicleHouse(house) {
-                    if (!house || typeof house !== 'object') return false;
-                    const name = String(house.name || '').replace(/[\s　]/g, '');
-                    if (name !== 'おじいさんの家') return false;
-                    // 同名の別物件を誤って統合しない。住所のない旧データは許容する。
-                    const location = String(house.location || '').replace(/[\s　]/g, '');
-                    const canonicalAddress = '岩手県盛岡市大通1-1-16';
-                    return !location || location === canonicalAddress || location.includes('盛岡市大通') ||
-                           (Number(house.lat) === 39.702 && Number(house.lng) === 141.151);
-                },
-                // 同じ記録IDなら欠損値だけ補完。別の記述／写真なら派生IDを付け両方を保存。
-                mergeChronicleRecords(baseItems, incomingItems, sourceId) {
-                    const clone = value => JSON.parse(JSON.stringify(value));
-                    const result = Array.isArray(baseItems) ? baseItems.map(clone) : [];
-                    const safeSource = String(sourceId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0,80);
-                    const isMissing = value => value === null || value === undefined || value === '';
-                    for (const incoming of (Array.isArray(incomingItems) ? incomingItems : [])) {
-                        if (!incoming || typeof incoming !== 'object') continue;
-                        const item = clone(incoming);
-                        if (!item.id) {
-                            // 旧版のIDがない場合は内容が完全一致するものだけ重複除外。
-                            if (!result.some(existing => JSON.stringify(existing) === JSON.stringify(item))) result.push(item);
-                            continue;
-                        }
-                        const existing = result.find(entry => String(entry.id) === String(item.id));
-                        if (!existing) { result.push(item); continue; }
-                        const conflictFields = ['title','content','desc','date','eventDate','photo','kind','authorId'];
-                        const hasRealConflict = conflictFields.some(key =>
-                            !isMissing(existing[key]) && !isMissing(item[key]) &&
-                            JSON.stringify(existing[key]) !== JSON.stringify(item[key]));
-                        if (hasRealConflict) {
-                            // 題名／本文／写真をどちらも消さずに残す（再取込でも重複しない）。
-                            const aliasId = `${item.id}_v106_${safeSource}`;
-                            const previous = result.find(entry => String(entry.id) === aliasId);
-                            if (!previous) result.push({...item, id: aliasId});
-                            else for (const [key,value] of Object.entries(item)) {
-                                if (isMissing(previous[key]) && !isMissing(value)) previous[key] = value;
-                            }
-                        } else {
-                            for (const [key,value] of Object.entries(item)) {
-                                if (isMissing(existing[key]) && !isMissing(value)) existing[key] = value;
-                            }
-                        }
-                    }
-                    return result;
-                },
-                mergeGrandpaChronicle(importedArchive = null) {
-                    const clone = value => JSON.parse(JSON.stringify(value));
-                    const canonicalId = 'h103-ojii';
-                    const matching = (this.houses || []).filter(house => this.isGrandpaChronicleHouse(house));
-                    const incomingHouses = (importedArchive?.houses || []).filter(house => this.isGrandpaChronicleHouse(house));
-                    const all = [...matching, ...incomingHouses];
-                    if (!all.length) return {mergedHouses:0, migratedQuests:0, memories:0};
-                    const base = matching.find(house => String(house.id) === canonicalId) || matching[0] || incomingHouses[0];
-                    const merged = clone(base);
-                    merged.id = canonicalId;
-                    const alternateImages = Array.isArray(merged.legacyHousePhotos) ? clone(merged.legacyHousePhotos) : [];
-                    const addLegacyImage = (house) => {
-                        if (!house.image || String(house.image) === String(merged.image)) return;
-                        if (!alternateImages.some(item => item.image === house.image)) {
-                            alternateImages.push({sourceHouseId:String(house.id || 'unknown'), image:house.image});
-                        }
-                    };
-                    const mergeApplications = (baseApps, incomingApps) => {
-                        const apps = Array.isArray(baseApps) ? clone(baseApps) : [];
-                        for (const app of (Array.isArray(incomingApps) ? incomingApps : [])) {
-                            if (!app || typeof app !== 'object') continue;
-                            const appKey = item => String(item.id || item.eventId || item.questId ||
-                                item.reportedAt || item.approvedAt || item.requestedAt || item.createdAt || '');
-                            const found = apps.find(item => String(item.userId) === String(app.userId) &&
-                                appKey(item) === appKey(app));
-                            if (!found) { apps.push(clone(app)); continue; }
-                            // 同じ人・同じ日でも、文章や写真が異なる報告は別記録として保全する。
-                            const reportingFields = ['reportComment','reportPhoto','beforePhoto','description'];
-                            const conflictingReport = reportingFields.some(key =>
-                                found[key] != null && found[key] !== '' && app[key] != null && app[key] !== '' &&
-                                JSON.stringify(found[key]) !== JSON.stringify(app[key]));
-                            if (conflictingReport) {
-                                const alreadyExists = apps.some(item => String(item.userId) === String(app.userId) &&
-                                    appKey(item) === appKey(app) && reportingFields.every(key =>
-                                        String(item[key] || '') === String(app[key] || '')));
-                                if (!alreadyExists) apps.push(clone(app));
-                                continue;
-                            }
-                            for (const [key,value] of Object.entries(app)) {
-                                if ((found[key] == null || found[key] === '') && value != null && value !== '') found[key] = value;
-                            }
-                            if (app.status === 'approved') found.status = 'approved';
-                        }
-                        return apps;
-                    };
-                    const aliasIds = new Set(all.map(house => String(house.id)));
-                    for (const house of all) {
-                        if (house === base) continue;
-                        for (const [key,value] of Object.entries(house)) {
-                            if (['id','historyLogs','growthLogs','ideas','useApplications','image','legacyHousePhotos','model3dMeta'].includes(key)) continue;
-                            if ((merged[key] == null || merged[key] === '') && value != null && value !== '') merged[key] = clone(value);
-                        }
-                        merged.historyLogs = this.mergeChronicleRecords(merged.historyLogs, house.historyLogs, house.id);
-                        merged.growthLogs = this.mergeChronicleRecords(merged.growthLogs, house.growthLogs, house.id);
-                        merged.ideas = this.mergeChronicleRecords(merged.ideas, house.ideas, house.id);
-                        merged.useApplications = mergeApplications(merged.useApplications, house.useApplications);
-                        if (!merged.model3dMeta && house.model3dMeta) merged.model3dMeta = clone(house.model3dMeta);
-                        addLegacyImage(house);
-                        // HTMLのサンプル表紙より、以前登録された物件写真を優先する。
-                        if (String(base.id) === canonicalId && String(house.id) !== canonicalId && house.image &&
-                            !merged._v106UserImageSelected) {
-                            merged.image = house.image;
-                            merged._v106UserImageSelected = true;
-                        }
-                        if (Array.isArray(house.legacyHousePhotos)) {
-                            house.legacyHousePhotos.forEach(p => {
-                                if (p?.image && !alternateImages.some(item => item.image === p.image)) alternateImages.push(clone(p));
-                            });
-                        }
-                    }
-                    if (alternateImages.length) merged.legacyHousePhotos = alternateImages;
-                    // 旧IDを参照するクエストと外部から持ち込んだクエストをcanonicalIdに結び直す。
-                    let migratedQuests = 0;
-                    const quests = (this.quests || []).map(clone);
-                    const importedQuests = Array.isArray(importedArchive?.quests) ? importedArchive.quests : [];
-                    const appendOrMerge = (incoming, source) => {
-                        if (!incoming || !aliasIds.has(String(incoming.houseId))) return;
-                        const quest = clone(incoming);
-                        if (String(quest.houseId) !== canonicalId) migratedQuests++;
-                        quest.houseId = canonicalId;
-                        const existing = quests.find(item => String(item.id) === String(quest.id));
-                        if (!existing) { quests.push(quest); return; }
-                        if (String(existing.houseId) !== canonicalId) {
-                            // unrelated quest collision: preserve both entries with a deterministic alias.
-                            quest.id = `${quest.id}_v106_${String(source).replace(/[^a-zA-Z0-9_-]/g,'_')}`;
-                            if (!quests.some(q => String(q.id) === quest.id)) quests.push(quest);
-                            return;
-                        }
-                        for (const [key,value] of Object.entries(quest)) {
-                            if (key === 'applications') continue;
-                            if ((existing[key] == null || existing[key] === '') && value != null && value !== '') existing[key] = clone(value);
-                        }
-                        existing.applications = mergeApplications(existing.applications, quest.applications);
-                    };
-                    // 保存済みクエストのhouseIdを先に正規化（並び順は維持）。
-                    quests.forEach(quest => {
-                        if (aliasIds.has(String(quest.houseId)) && String(quest.houseId) !== canonicalId) {
-                            quest.houseId = canonicalId;
-                            migratedQuests++;
-                        }
-                    });
-                    importedQuests.forEach(q => appendOrMerge(q, q.houseId));
-                    const firstIndex = (this.houses || []).findIndex(house => this.isGrandpaChronicleHouse(house));
-                    const otherHouses = (this.houses || []).filter(house => !this.isGrandpaChronicleHouse(house));
-                    otherHouses.splice(Math.max(0, Math.min(firstIndex, otherHouses.length)), 0, merged);
-                    this.houses = otherHouses;
-                    this.quests = quests;
-                    if (this.activeHouse?.id && aliasIds.has(String(this.activeHouse.id))) this.activeHouse = merged;
-                    return {mergedHouses:Math.max(0,all.length-1),migratedQuests,
-                        memories:(merged.historyLogs || []).length,
-                        approvedQuests:quests.filter(q => q.houseId === canonicalId &&
-                            (q.applications || []).some(app => app.status === 'approved')).length};
-                },
-                exportGrandpaChronicle() {
-                    if (!this.firebaseReady) { this.showToast('Firebase接続後に保存してください', 'warning'); return; }
-                    const houses = (this.houses || []).filter(h => this.isGrandpaChronicleHouse(h));
-                    if (!houses.length) { this.showToast('対象の年代記がありません', 'warning'); return; }
-                    const ids = new Set(houses.map(h => String(h.id)));
-                    const archive = {
-                        kind: 'menkoiya-grandpa-chronicle', version: 106,
-                        exportedAt: new Date().toISOString(),
-                        houses: JSON.parse(JSON.stringify(houses)),
-                        quests: JSON.parse(JSON.stringify((this.quests || []).filter(q => ids.has(String(q.houseId)))))
-                    };
-                    const url = URL.createObjectURL(new Blob([JSON.stringify(archive,null,2)], {type:'application/json'}));
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'menkoiya-ojii-chronicle-vol106.json';
-                    document.body.appendChild(link); link.click(); link.remove();
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    this.showToast('おじいさんの家の年代記をJSONファイルに保存しました');
-                },
-                async importGrandpaChronicleFile(event) {
-                    const file = event?.target?.files?.[0];
-                    if (event?.target) event.target.value = '';
-                    if (!file) return;
-                    if (!this.firebaseReady || !this.firebaseUid) { this.showToast('Firebase認証後に取り込んでください', 'warning'); return; }
-                    try {
-                        if (file.size > 20 * 1024 * 1024) throw new Error('ファイルが20MBを超えています');
-                        const imported = JSON.parse(await file.text());
-                        if (imported?.kind !== 'menkoiya-grandpa-chronicle' || !Array.isArray(imported.houses) || !Array.isArray(imported.quests)) {
-                            throw new Error('Vol.106の「年代記を保存」で作ったJSONファイルを選んでください');
-                        }
-                        if (imported.houses.length > 50 || imported.quests.length > 300 ||
-                            !imported.houses.some(h => this.isGrandpaChronicleHouse(h))) {
-                            throw new Error('おじいさんの家の年代記ファイルとして確認できません');
-                        }
-                        // データを消さずに差分を追加。共有権限のない別の匿名ユーザー領域に直接書き込まない。
-                        clearTimeout(this.firebaseSaveTimer);
-                        await (this.firebaseSaveQueue || Promise.resolve()).catch(() => {});
-                        this.firebaseHydrating = true;
-                        const result = this.mergeGrandpaChronicle(imported);
-                        this.firebaseHydrating = false;
-                        this.firebaseError = '';
-                        await this.saveToFirebase();
-                        if (this.firebaseError) throw new Error('画面には統合しましたが、Firebase保存に失敗: ' + this.firebaseError);
-                        console.info('Vol.106 年代記の取り込みが完了:', result);
-                        this.showToast(`年代記を統合しました（記憶${result.memories}件、達成済みクエスト${result.approvedQuests}件）`);
-                    } catch (error) {
-                        this.firebaseHydrating = false;
-                        console.error('年代記の取り込みエラー:',error);
-                        this.showToast('取り込み失敗: '+error.message, 'error');
-                    }
-                },
                 scheduleFirebaseSave() {
                     if (this.firebaseHydrating || !this.firebaseReady || !this.firebaseUid) return;
                     clearTimeout(this.firebaseSaveTimer);
@@ -7743,7 +7511,6 @@
                     });
                     try {
                         await this.firebaseSaveQueue;
-                        this.firebaseError = '';
                         console.log('Firebase分割保存成功！');
                     } catch (error) {
                         this.firebaseError = error.message;
@@ -8206,10 +7973,7 @@
                     const historyCount = (house.historyLogs || []).filter(log => log.verificationStatus !== 'rejected').length;
                     const growthCount = (house.growthLogs || []).length;
                     const modelCount = house.model3dMeta?.recordedAt ? 1 : 0;
-                    const approvedQuestCount = (this.quests || [])
-                        .filter(q => String(q.houseId) === String(house.id) &&
-                            (q.applications || []).some(app => app.status === 'approved')).length;
-                    return historyCount + growthCount + modelCount + approvedQuestCount;
+                    return historyCount + growthCount + modelCount;
                 },
                 getHouseQuestCategories(houseId) {
                     return [...new Set(
