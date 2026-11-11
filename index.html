@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- めんこい家 Vol.108：既存の年代記3件を保持し、イベント利用完了報告・所有者承認／差し戻し・年代記の利用実績を実装 -->
 <!-- めんこい家 Vol.107（年代記の正しい3件を維持／デモリセット直前にFirebaseへ保存） -->
 
 <!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
@@ -2497,7 +2498,32 @@
             .book-quick-panel .book-quick-quest img{width:76px;height:76px}
         }
 
-</style>
+
+        /* Vol.108: 利用完了報告の入力／審査を読みやすく（既存の年代記3件の見た目は変更しない） */
+        .use-report-participant{margin-top:15px;padding-top:12px;border-top:1px solid #dfd4c0}
+        .use-report-heading{font-size:15px!important;font-weight:900!important;color:#25533f!important;line-height:1.5!important;margin:3px 0 9px!important}
+        .use-report-feedback{font-size:13px!important;line-height:1.75!important;color:#49584b!important}
+        .use-report-return{padding:11px 13px;border:1px solid #e9b2a8;background:#fff3ef;border-radius:10px;font-size:13px;line-height:1.6;color:#9e3d30}
+        .use-report-form{margin-top:14px!important;gap:12px!important}
+        .use-report-photo-picker{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:6px 0}
+        .use-report-photo-label{display:block;flex:1 1 200px;font-size:13px!important;color:#454c41}
+        .use-report-photo-label input[type=file]{display:block;width:100%;margin-top:7px;padding:9px;border:1px dashed #b3bfae;border-radius:9px;background:#fff;font-size:12px}
+        .use-report-image{width:min(100%,270px);max-height:170px;object-fit:contain;background:white;border:1px solid #dfd6c7;border-radius:10px;padding:5px;margin:8px 0}
+        .use-report-review{background:#f4f9f2;border:1px solid #c9dec8;border-radius:12px;padding:15px;margin-top:12px;font-size:14px;line-height:1.7}
+        .use-report-review .use-report-heading{font-size:16px!important}
+        .use-report-details p{font-size:14px!important;color:#4a554a;line-height:1.7!important;margin:5px 0}
+        .use-report-details strong{color:#25533f}
+        .use-report-state{display:inline-block;font-size:13px;font-weight:800;background:#fff0c5;color:#765500;padding:5px 9px;border-radius:8px;margin:5px 0 9px}
+        .use-report-state.is-approved{background:#def3e3;color:#1a5c33}
+        .use-report-state.is-returned{background:#ffe8df;color:#8b3d28}
+        .use-report-actions{margin-top:13px;display:grid;gap:9px}
+        .use-report-input{width:100%;padding:12px;border:1px solid #c5cfc1;border-radius:10px;background:white;font-size:14px;line-height:1.6}
+        .use-report-button{font-size:14px;line-height:1.5;font-weight:800;padding:11px 14px;border-radius:10px}
+        .use-report-button.is-green{background:#2d6147;color:#fff}
+        .use-report-button.is-outline{border:1px solid #b48375;background:#fff7f3;color:#883d32}
+        .chronicle-page.is-event-usage-page .chronicle-entry-text{font-size:clamp(14px,1.65vw,17px);line-height:1.8;-webkit-line-clamp:9}
+
+    </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <style>
@@ -3117,8 +3143,8 @@
                 <!-- 所有者だけ：イベント申請は折りたたんで必要時に確認 -->
                 <details v-if="currentUser.role === 'owner'" class="simple-details" :open="ownerPendingApplications.length > 0">
                     <summary>
-                        <span><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>イベント利用申請</span>
-                        <span class="text-[10px] text-gray-500">{{ ownerPendingApplications.length }}件 要対応</span>
+                        <span><i class="fa-solid fa-bell text-iwate-gold mr-2"></i>イベント利用申請・利用完了報告</span>
+                        <span class="text-sm text-gray-600 font-bold">{{ ownerPendingApplications.length }}件 要対応</span>
                     </summary>
                     <div class="border-t p-4 space-y-3">
                         <p v-if="!ownerApplications.length" class="text-xs text-gray-500">イベント利用申請はまだありません。</p>
@@ -3147,6 +3173,33 @@
                                 <button @click="decideEventApplication(entry.house,entry.application,'approved')" class="bg-iwate-green text-white px-4 py-2 rounded-lg font-bold">
                                     最終承認する
                                 </button>
+                            </div>
+
+                            <!-- Vol.108: 開催後の利用完了報告。所有者が承認するまで年代記には掲載しない。 -->
+                            <div v-if="entry.application.status==='approved'" class="use-report-review">
+                                <p class="use-report-heading"><i class="fa-solid fa-clipboard-check mr-1"></i>開催後の利用完了報告</p>
+                                <template v-if="entry.application.completionReport">
+                                    <p class="use-report-state" :class="'is-'+entry.application.completionReport.status">
+                                        {{ useCompletionStatusLabel(entry.application.completionReport.status) }}
+                                    </p>
+                                    <div class="use-report-details">
+                                        <p><strong>イベント名：</strong>{{ entry.application.completionReport.eventName }}</p>
+                                        <p><strong>実施日：</strong>{{ entry.application.completionReport.eventDate }}</p>
+                                        <p><strong>参加人数：</strong>{{ entry.application.completionReport.people }}名</p>
+                                        <p class="whitespace-pre-wrap"><strong>実施内容：</strong>{{ entry.application.completionReport.description }}</p>
+                                        <img v-if="entry.application.completionReport.photo" :src="entry.application.completionReport.photo" alt="利用完了報告の写真" class="use-report-image">
+                                    </div>
+                                    <div v-if="entry.application.completionReport.status==='pending'" class="use-report-actions">
+                                        <textarea v-model="entry.application.completionReviewDraft" rows="2" class="use-report-input" placeholder="差し戻す場合は修正してほしい点を入力"></textarea>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button @click="reviewUseCompletionReport(entry.house,entry.application,'approved')" class="use-report-button is-green"><i class="fa-solid fa-check mr-1"></i>承認して年代記に追加</button>
+                                            <button @click="reviewUseCompletionReport(entry.house,entry.application,'returned')" class="use-report-button is-outline"><i class="fa-solid fa-rotate-left mr-1"></i>差し戻し</button>
+                                        </div>
+                                    </div>
+                                    <p v-else-if="entry.application.completionReport.status==='approved'" class="use-report-feedback">承認済み。年代記の「利用実績」に掲載されています。</p>
+                                    <p v-else-if="entry.application.completionReport.status==='returned'" class="use-report-feedback">差し戻し理由：{{ entry.application.completionReport.returnReason }}</p>
+                                </template>
+                                <p v-else class="use-report-feedback">開催後、参加者からの利用完了報告を待っています。</p>
                             </div>
                         </div>
                     </div>
@@ -4835,7 +4888,7 @@
                             <!-- 年代記ページ -->
                             <section v-if="currentHouseBookPage?.kind==='chronicle'"
                                      :key="'chronicle-page-'+currentHouseBookPage.id"
-                                     class="chronicle-page">
+                                     class="chronicle-page" :class="{'is-event-usage-page': currentHouseBookPage.sourceType==='useCompletion'}">
                                 <div class="chronicle-entry-top">
                                     <div>
                                         <p class="chronicle-kicker">{{ currentHouseBookPage.kicker }}</p>
@@ -5223,9 +5276,42 @@
                                             <button v-else-if="getUserHouseApplication(activeHouse).status==='pending'"
                                                     @click="withdrawEventApplication(activeHouse)"
                                                     class="book-inline-action secondary mt-2">申請を取り下げる</button>
+
+                                            <!-- Vol.108: 開催終了後の参加者の利用完了報告 -->
+                                            <div v-if="getUserHouseApplication(activeHouse).status==='approved'" class="use-report-participant">
+                                                <p class="use-report-heading"><i class="fa-solid fa-camera mr-1"></i>利用完了報告</p>
+                                                <p v-if="getUserHouseApplication(activeHouse).completionReport?.status==='pending'" class="use-report-feedback">報告を送信しました。所有者の確認待ちです。承認されると年代記に追加されます。</p>
+                                                <p v-else-if="getUserHouseApplication(activeHouse).completionReport?.status==='approved'" class="use-report-feedback">利用実績が承認され、年代記に記録されました。</p>
+                                                <template v-else>
+                                                    <p v-if="getUserHouseApplication(activeHouse).completionReport?.status==='returned'" class="use-report-return">
+                                                        <i class="fa-solid fa-rotate-left mr-1"></i>差し戻し：{{ getUserHouseApplication(activeHouse).completionReport.returnReason }}
+                                                    </p>
+                                                    <p v-if="!hasHouseUseEnded(getUserHouseApplication(activeHouse))" class="use-report-feedback">開催終了後（{{ getUserHouseApplication(activeHouse).endDate || getUserHouseApplication(activeHouse).startDate }}以降）に報告できます。</p>
+                                                    <template v-else>
+                                                        <button v-if="useCompletionDraft.applicationId!==getUserHouseApplication(activeHouse).id"
+                                                                @click="beginUseCompletionReport(activeHouse,getUserHouseApplication(activeHouse))"
+                                                                class="book-inline-action mt-2"><i class="fa-solid fa-pen mr-1"></i>{{ getUserHouseApplication(activeHouse).completionReport?.status==='returned' ? '修正して再報告' : '利用完了を報告する' }}</button>
+                                                        <div v-else class="book-quick-history-form use-report-form">
+                                                            <label class="wide">イベント名<input v-model="useCompletionDraft.eventName" type="text" maxlength="100" placeholder="開催したイベントの名前"></label>
+                                                            <label>実施日<input v-model="useCompletionDraft.eventDate" type="date" :max="todayDateString()"></label>
+                                                            <label>実際の参加人数<input v-model.number="useCompletionDraft.people" type="number" min="1" max="100000"></label>
+                                                            <label class="wide">実施内容・成果<textarea v-model="useCompletionDraft.description" rows="4" maxlength="2000" placeholder="実際に何をしたか、どんな交流が生まれたかを書いてください"></textarea></label>
+                                                            <div class="wide use-report-photo-picker">
+                                                                <label class="use-report-photo-label">記録写真（任意）<input type="file" accept="image/png,image/jpeg,image/webp" @change="handleUseCompletionPhoto"></label>
+                                                                <img v-if="useCompletionDraft.photo" :src="useCompletionDraft.photo" alt="利用報告の添付写真" class="use-report-image">
+                                                                <button v-if="useCompletionDraft.photo" @click="useCompletionDraft.photo='';useCompletionDraft.fileName=''" class="book-inline-action secondary" type="button">写真を外す</button>
+                                                            </div>
+                                                            <div class="wide book-quick-submit flex flex-wrap gap-2">
+                                                                <button @click="submitUseCompletionReport(activeHouse,getUserHouseApplication(activeHouse))" class="book-inline-action"><i class="fa-solid fa-paper-plane"></i>所有者へ利用完了報告を送信</button>
+                                                                <button @click="cancelUseCompletionDraft" class="book-inline-action secondary">キャンセル</button>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </template>
+                                            </div>
                                         </div>
 
-                                        <div v-if="(!getUserHouseApplication(activeHouse) || ['rejected','withdrawn'].includes(getUserHouseApplication(activeHouse).status))"
+                                        <div v-if="(!getUserHouseApplication(activeHouse) || ['rejected','withdrawn'].includes(getUserHouseApplication(activeHouse).status) || (getUserHouseApplication(activeHouse).status==='approved' && getUserHouseApplication(activeHouse).completionReport?.status==='approved'))"
                                              class="book-quick-history-form mt-2">
                                             <label>イベントの種類
                                                 <select v-model="useApplicationForm.eventType">
@@ -6455,6 +6541,8 @@
                         endDate: '',
                         people: 1
                     },
+                    // Vol.108: 入力中の利用完了報告は送信するまで申請データへ書き込まない。
+                    useCompletionDraft: { applicationId:'', eventName:'', eventDate:'', people:1, description:'', photo:'', fileName:'' },
                     newUserForm: {
                         name: '',
                         role: 'participant',
@@ -6989,6 +7077,32 @@
                                 });
                             }));
 
+                    // Vol.108: 所有者が承認したイベント利用完了報告だけを「利用実績」として年代記に追加する。
+                    // 同じ利用申請IDにつき最大1ページ。既存の記憶・クエスト記録は変更しない。
+                    (house.useApplications || [])
+                        .filter(app => app.status==='approved' && app.completionReport?.status==='approved')
+                        .forEach(app => {
+                            const report = app.completionReport;
+                            const useDate = /^\d{4}-\d{2}-\d{2}$/.test(String(report.eventDate || ''))
+                                ? report.eventDate : (app.startDate || '');
+                            entries.push({
+                                id: `house-use-${app.id}`,
+                                kind: 'chronicle',
+                                sourceType: 'useCompletion',
+                                type: 'use',
+                                typeLabel: '利用実績',
+                                kicker: 'EVENT USE RECORD',
+                                icon: 'fa-solid fa-calendar-check',
+                                sortKey: `${useDate || '9999-12-31'}-16-00-00`,
+                                dateLabel: useDate ? useDate.replaceAll('-', '/') : '日付未設定',
+                                title: report.eventName || app.eventName || 'イベントの利用実績',
+                                text: report.description || 'イベントが開催されました。',
+                                photo: report.photo || null,
+                                author: this.getUserName(app.userId),
+                                meta: `利用実績 ／ 参加${report.people || app.people || 1}名`
+                            });
+                        });
+
                     // 登録、整備、レベルアップなど。
                     (house.growthLogs || []).forEach((log,index) => {
                         if (String(log.title || '').includes('クエスト達成')) return;
@@ -7083,7 +7197,7 @@
                     if (this.currentUser.role !== 'owner') return [];
                     return this.houses.filter(h => h.ownerId === this.currentUser.id).flatMap(h => (h.useApplications || []).map(a => ({house:h,application:a}))).sort((a,b) => (b.application.requestedAt || '').localeCompare(a.application.requestedAt || ''));
                 },
-                ownerPendingApplications() { return this.ownerApplications.filter(e => ['pending','counter_reply','accepted'].includes(e.application.status)); },
+                ownerPendingApplications() { return this.ownerApplications.filter(e => ['pending','counter_reply','accepted'].includes(e.application.status) || (e.application.status==='approved' && e.application.completionReport?.status==='pending')); },
                 // v101: 年代記の棚では「おじいさんの家」と先頭の「遠野の曲り家風 古民家」を入れ替える。
                 // Firestoreに保存するhousesの順序は変更せず、ほかの画面の並びを維持する。
                 chronicleDisplayHouses() {
@@ -10030,6 +10144,100 @@
                     this.showToast(`空き家レベルを LV.${house.level}（${house.levelName}）に昇格しました！`);
                 },
 
+                // Vol.108: イベント利用完了報告（参加者→所有者→年代記）。
+                todayDateString() {
+                    const now = new Date();
+                    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+                    return local.toISOString().slice(0,10);
+                },
+                hasHouseUseEnded(app) {
+                    if (!app || app.status !== 'approved') return false;
+                    return String(app.endDate || app.startDate || '') <= this.todayDateString();
+                },
+                useCompletionStatusLabel(status) {
+                    return ({pending:'利用完了報告・承認待ち',returned:'差し戻し・修正待ち',approved:'承認済み・年代記に掲載'})[status] || '未報告';
+                },
+                beginUseCompletionReport(house,app) {
+                    if (!house || !app || this.currentUser.role!=='participant' || app.userId!==this.currentUser.id || !this.hasHouseUseEnded(app)) return;
+                    const prev = app.completionReport || {};
+                    this.useCompletionDraft = {
+                        applicationId:app.id,
+                        eventName: prev.eventName || app.eventName || '',
+                        eventDate: prev.eventDate || app.startDate || this.todayDateString(),
+                        people: Number(prev.people || app.people) || 1,
+                        description: prev.description || '',
+                        photo: prev.photo || '',
+                        fileName:''
+                    };
+                },
+                cancelUseCompletionDraft() {
+                    this.useCompletionDraft = { applicationId:'', eventName:'', eventDate:'', people:1, description:'', photo:'', fileName:'' };
+                },
+                handleUseCompletionPhoto(event) {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    // 既存の写真圧縮処理を使い、Firestoreのドキュメント容量を抑える。
+                    this.readImageFile(file, dataUrl => {
+                        this.useCompletionDraft.photo = dataUrl;
+                        this.useCompletionDraft.fileName = file.name;
+                    });
+                    event.target.value = '';
+                },
+                submitUseCompletionReport(house,app) {
+                    if (!house || !app || this.currentUser.role!=='participant' || app.userId!==this.currentUser.id) return;
+                    if (app.status!=='approved' || !this.hasHouseUseEnded(app)) {
+                        this.showToast('開催終了後に利用完了報告を送信できます', 'warning'); return;
+                    }
+                    if (!this.useCompletionDraft || this.useCompletionDraft.applicationId!==app.id) return;
+                    if (app.completionReport && !['returned'].includes(app.completionReport.status)) {
+                        this.showToast('この利用申請の報告は既に提出されています', 'warning'); return;
+                    }
+                    const d = this.useCompletionDraft;
+                    const eventName = String(d.eventName || '').trim();
+                    const description = String(d.description || '').trim();
+                    const eventDate = String(d.eventDate || '');
+                    const people = Number(d.people);
+                    if (!eventName || !description || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+                        this.showToast('イベント名・実施日・実施内容を入力してください', 'warning'); return;
+                    }
+                    if (eventDate > this.todayDateString()) { this.showToast('未来の日付では完了報告できません', 'warning'); return; }
+                    if (!Number.isInteger(people) || people < 1 || people > 100000) {
+                        this.showToast('参加人数を正しく入力してください', 'warning'); return;
+                    }
+                    app.completionReport = {
+                        eventName, eventDate, people, description, photo:d.photo || '',
+                        status:'pending', submittedAt:new Date().toISOString(),
+                        returnReason:'', approvedAt:''
+                    };
+                    app.updatedAt = new Date().toISOString();
+                    this.cancelUseCompletionDraft();
+                    this.notifyUser(house.ownerId,'📋 利用完了報告の確認依頼',
+                        `${this.currentUser.name}さんが「${eventName}」の利用完了報告を提出しました。内容を確認してください。`,
+                        {type:'home'});
+                    this.showToast('利用完了報告を送信しました。所有者の確認をお待ちください。');
+                },
+                reviewUseCompletionReport(house,app,decision) {
+                    if (!house || !app || this.currentUser.role!=='owner' || house.ownerId!==this.currentUser.id) return;
+                    const report = app.completionReport;
+                    if (app.status!=='approved' || !report || report.status!=='pending') return;
+                    if (!['approved','returned'].includes(decision)) return;
+                    const reason = String(app.completionReviewDraft || '').trim();
+                    if (decision==='returned' && !reason) {
+                        this.showToast('差し戻す理由を入力してください', 'warning'); return;
+                    }
+                    report.status = decision;
+                    report.reviewedAt = new Date().toISOString();
+                    report.reviewedBy = this.currentUser.id;
+                    report.returnReason = decision==='returned' ? reason : '';
+                    report.approvedAt = decision==='approved' ? report.reviewedAt : '';
+                    app.updatedAt = report.reviewedAt;
+                    app.completionReviewDraft = '';
+                    this.notifyUser(app.userId,
+                        decision==='approved' ? '📖 利用実績を年代記に追加しました' : '📝 利用完了報告が差し戻されました',
+                        decision==='approved' ? `「${report.eventName}」の報告が承認され、${house.name}の年代記に掲載されました。` : `「${report.eventName}」の報告が差し戻されました：${reason}`,
+                        {type:'houseDetail',houseId:house.id});
+                    this.showToast(decision==='approved' ? '利用実績を承認し、年代記に追加しました！' : '差し戻し理由を参加者に通知しました');
+                },
                 applicationStatusLabel(status) {
                     return ({pending:'審査待ち',counter:'所有者から代替案あり',counter_reply:'利用者から再提案あり',accepted:'代替案に同意・最終承認待ち',approved:'開催承認済み',rejected:'却下',withdrawn:'取り下げ'})[status] || status;
                 },
@@ -10106,7 +10314,7 @@
                         return;
                     }
                     const latest = this.getUserHouseApplication(house);
-                    if (latest && !['rejected','withdrawn'].includes(latest.status)) {
+                    if (latest && !(['rejected','withdrawn'].includes(latest.status) || (latest.status==='approved' && latest.completionReport?.status==='approved'))) {
                         this.showToast('この家には処理中の利用申請があります', 'warning');
                         return;
                     }
