@@ -3,6 +3,7 @@
 <!-- めんこい家 Vol.107（年代記の正しい3件を維持／デモリセット直前にFirebaseへ保存） -->
 
 <!-- めんこい家 v109: 11月11日のおじいさんの家の記憶の投稿者を「おじいさん」（所有者）へ移行。既存の写真・本文・日付を維持 -->
+<!-- めんこい家 v110: デモ用・日付の未来上限制限解除（年代記・利用完了報告・空き家登録時の思い出）。v109を維持 -->
 <!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
 <!-- めんこい家 Vol.85: Vol.84 + 通知/アルバム/クエスト写真復元 + ポイント100pt単位統一 -->
 <!-- めんこい家 v93 (2026-11-11): 歴史・思い出のアルバム専用写真と図鑑公開チェック廃止。v92の機能を維持 -->
@@ -5121,18 +5122,15 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <label v-if="historyForm.dateMode==='decade'" class="wide">年代を選択
-                                            <select v-model="historyForm.decade">
-                                                <option value="" disabled>年代を選択してください</option>
-                                                <option v-for="decade in memoryDecadeOptions" :key="'memory-decade-'+decade" :value="String(decade)">{{ decade }}年代</option>
-                                            </select>
+                                        <label v-if="historyForm.dateMode==='decade'" class="wide">年代を入力
+                                            <input v-model="historyForm.decade" type="number" step="10" inputmode="numeric" placeholder="例：2030（2030年代）">
                                         </label>
                                         <label v-else class="wide">日付を入力
-                                            <input v-model="historyForm.exactDate" type="date" min="1800-01-01" :max="todayLocalISO()">
+                                            <input v-model="historyForm.exactDate" type="date">
                                         </label>
                                         <div class="wide memory-period-preview">
                                             <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
-                                            年代記での表示：<strong>{{ historyForm.dateMode==='decade' ? (historyForm.decade ? historyForm.decade + '年代頃' : '年代を選択してください') : (historyForm.exactDate ? formatHistoryExactDate(historyForm.exactDate) : '日付を入力してください') }}</strong>
+                                            年代記での表示：<strong>{{ historyForm.dateMode==='decade' ? (historyForm.decade ? historyForm.decade + '年代頃' : '年代を入力してください') : (historyForm.exactDate ? formatHistoryExactDate(historyForm.exactDate) : '日付を入力してください') }}</strong>
                                         </div>
                                         <label class="wide">見出し（任意）
                                             <input v-model="historyForm.title" placeholder="昭和30年代のこの家">
@@ -5287,14 +5285,13 @@
                                                     <p v-if="getUserHouseApplication(activeHouse).completionReport?.status==='returned'" class="use-report-return">
                                                         <i class="fa-solid fa-rotate-left mr-1"></i>差し戻し：{{ getUserHouseApplication(activeHouse).completionReport.returnReason }}
                                                     </p>
-                                                    <p v-if="!hasHouseUseEnded(getUserHouseApplication(activeHouse))" class="use-report-feedback">開催終了後（{{ getUserHouseApplication(activeHouse).endDate || getUserHouseApplication(activeHouse).startDate }}以降）に報告できます。</p>
-                                                    <template v-else>
+                                                    <template>
                                                         <button v-if="useCompletionDraft.applicationId!==getUserHouseApplication(activeHouse).id"
                                                                 @click="beginUseCompletionReport(activeHouse,getUserHouseApplication(activeHouse))"
                                                                 class="book-inline-action mt-2"><i class="fa-solid fa-pen mr-1"></i>{{ getUserHouseApplication(activeHouse).completionReport?.status==='returned' ? '修正して再報告' : '利用完了を報告する' }}</button>
                                                         <div v-else class="book-quick-history-form use-report-form">
                                                             <label class="wide">イベント名<input v-model="useCompletionDraft.eventName" type="text" maxlength="100" placeholder="開催したイベントの名前"></label>
-                                                            <label>実施日<input v-model="useCompletionDraft.eventDate" type="date" :max="todayDateString()"></label>
+                                                            <label>実施日<input v-model="useCompletionDraft.eventDate" type="date"></label>
                                                             <label>実際の参加人数<input v-model.number="useCompletionDraft.people" type="number" min="1" max="100000"></label>
                                                             <label class="wide">実施内容・成果<textarea v-model="useCompletionDraft.description" rows="4" maxlength="2000" placeholder="実際に何をしたか、どんな交流が生まれたかを書いてください"></textarea></label>
                                                             <div class="wide use-report-photo-picker">
@@ -5577,7 +5574,7 @@
 
                 <div class="space-y-3 text-xs">
                     <div><label class="block font-bold mb-1">投稿の種類</label><select v-model="historyForm.kind" class="w-full border p-2 rounded-xl"><option value="history">家の歴史</option><option value="story">地域の人から聞いた昔話</option></select></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><div><label class="block font-bold mb-1">年表に載せる年（任意）</label><input v-model.number="historyForm.year" type="number" min="1800" :max="new Date().getFullYear()" class="w-full border p-2 rounded-xl" placeholder="例：1975"></div><div><label class="block font-bold mb-1">いつ頃の話？（任意）</label><input v-model="historyForm.era" class="w-full border p-2 rounded-xl" placeholder="例：昭和50年代"></div></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><div><label class="block font-bold mb-1">年表に載せる年（任意）</label><input v-model.number="historyForm.year" type="number" class="w-full border p-2 rounded-xl" placeholder="例：1975"></div><div><label class="block font-bold mb-1">いつ頃の話？（任意）</label><input v-model="historyForm.era" class="w-full border p-2 rounded-xl" placeholder="例：昭和50年代"></div></div>
                     <div><label class="block font-bold mb-1">見出し（任意）</label><input v-model="historyForm.title" class="w-full border p-2 rounded-xl" placeholder="例：昭和30年代のこの家"></div>
                     <div><label class="block font-bold mb-1">見出し（任意）</label><input v-model="historyForm.title" class="w-full border p-2 rounded-xl" placeholder="例：昭和30年代のこの家"></div>
                     <div v-if="historyForm.kind === 'story'"><label class="block font-bold mb-1">誰から聞いた話？（必須）</label><input v-model="historyForm.source" class="w-full border p-2 rounded-xl" placeholder="例：近所に住む方（本人の公開許可を得て記入）"></div>
@@ -5704,7 +5701,7 @@
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 mb-1 text-[13px]">思い出の年代（任意）</label>
-                            <input v-model="newHouseForm.memoryYear" type="number" min="1800" :max="new Date().getFullYear()" class="w-full border p-2.5 rounded-xl text-[14px] bg-white" placeholder="例：1975（西暦）">
+                            <input v-model="newHouseForm.memoryYear" type="number" class="w-full border p-2.5 rounded-xl text-[14px] bg-white" placeholder="例：1975（西暦）">
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 mb-1 text-[13px]">この家の歴史・思い出</label>
@@ -9556,8 +9553,8 @@
                         this.showToast('年代記に記録する場合は、思い出の題名と本文の両方を入力してください', 'warning'); return;
                     }
                     const memoryYearText = String(f.memoryYear ?? '').trim();
-                    if (memoryYearText && (!/^\d{4}$/.test(memoryYearText) || Number(memoryYearText) < 1800 || Number(memoryYearText) > new Date().getFullYear())) {
-                        this.showToast('思い出の年代は1800年から今年までの西暦4桁で入力してください', 'warning'); return;
+                    if (memoryYearText && (!/^\d{4}$/.test(memoryYearText) || Number(memoryYearText) < 1)) {
+                        this.showToast('思い出の年代は西暦4桁で入力してください', 'warning'); return;
                     }
                     this.modals.confirmHouse = true;
                 },
@@ -9947,16 +9944,16 @@
                     if (precision === 'decade') {
                         const decadeText = String(this.historyForm.decade || '');
                         const decade = Number(decadeText);
-                        if (!/^\d{4}$/.test(decadeText) || decade < 1800 || decade > now.getFullYear() || decade % 10 !== 0) {
-                            this.showToast('記憶が起きた年代を選択してください', 'warning'); return;
+                        if (!/^\d{4}$/.test(decadeText) || decade < 1 || decade % 10 !== 0) {
+                            this.showToast('年代は西暦4桁で、10年単位（例：2030）で入力してください', 'warning'); return;
                         }
                         historyYear = decade;
                         historyEra = `${decade}年代頃`;
                     } else {
                         const exact = String(this.historyForm.exactDate || '');
                         const parts = exact.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                        const parsed = parts ? new Date(Date.UTC(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]))) : null;
-                        if (!parts || !parsed || Number(parts[1]) < 1800 || parsed.toISOString().slice(0,10) !== exact || exact > dateStr) {
+                        const parsed = parts ? new Date(`${exact}T00:00:00Z`) : null;
+                        if (!parts || !parsed || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0,10) !== exact) {
                             this.showToast('記憶が起きた正確な年月日を入力してください', 'warning'); return;
                         }
                         historyYear = Number(parts[1]);
@@ -10170,8 +10167,8 @@
                     return local.toISOString().slice(0,10);
                 },
                 hasHouseUseEnded(app) {
-                    if (!app || app.status !== 'approved') return false;
-                    return String(app.endDate || app.startDate || '') <= this.todayDateString();
+                    // デモでは開催日が未来でも利用完了報告の入力を試せるようにする。
+                    return !!app && app.status === 'approved';
                 },
                 useCompletionStatusLabel(status) {
                     return ({pending:'利用完了報告・承認待ち',returned:'差し戻し・修正待ち',approved:'承認済み・年代記に掲載'})[status] || '未報告';
@@ -10205,7 +10202,7 @@
                 submitUseCompletionReport(house,app) {
                     if (!house || !app || this.currentUser.role!=='participant' || app.userId!==this.currentUser.id) return;
                     if (app.status!=='approved' || !this.hasHouseUseEnded(app)) {
-                        this.showToast('開催終了後に利用完了報告を送信できます', 'warning'); return;
+                        this.showToast('承認済みの利用申請について利用完了報告を送信できます', 'warning'); return;
                     }
                     if (!this.useCompletionDraft || this.useCompletionDraft.applicationId!==app.id) return;
                     if (app.completionReport && !['returned'].includes(app.completionReport.status)) {
@@ -10219,7 +10216,6 @@
                     if (!eventName || !description || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
                         this.showToast('イベント名・実施日・実施内容を入力してください', 'warning'); return;
                     }
-                    if (eventDate > this.todayDateString()) { this.showToast('未来の日付では完了報告できません', 'warning'); return; }
                     if (!Number.isInteger(people) || people < 1 || people > 100000) {
                         this.showToast('参加人数を正しく入力してください', 'warning'); return;
                     }
