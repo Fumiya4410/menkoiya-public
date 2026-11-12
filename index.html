@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+<!-- めんこい家 v114: 年代記の削除ボタンを常に見えるフッターへ移動。権限・削除処理・デモリセット仕様はv113のまま。 -->
+<!-- めんこい家 v113: 削除ボタンを「削除」に統一。デモリセットでDさんの初期活動2件と11/11の記憶を復元し、追加デモ記録は除去 -->
+<!-- めんこい家 v112: 年代記から本人の記憶・クエスト活動・利用実績を個別削除し、デモリセットでは基準3件を残して追加デモ記録を全削除。Vol.111の機能を維持 -->
 <!-- めんこい家 Vol.108：既存の年代記3件を保持し、イベント利用完了報告・所有者承認／差し戻し・年代記の利用実績を実装 -->
 <!-- めんこい家 Vol.107（年代記の正しい3件を維持／デモリセット直前にFirebaseへ保存） -->
 
 <!-- めんこい家 v109: 11月11日のおじいさんの家の記憶の投稿者を「おじいさん」（所有者）へ移行。既存の写真・本文・日付を維持 -->
+<!-- めんこい家 v111: ホーム上部の年代記バックアップ用ボタン2つのみを削除（既存の記録・操作は維持） -->
 <!-- めんこい家 v110: デモ用・日付の未来上限制限解除（年代記・利用完了報告・空き家登録時の思い出）。v109を維持 -->
 <!-- めんこい家 Vol.84: Vol.83 + アカウント作成から年齢・性別・職業項目を削除 -->
 <!-- めんこい家 Vol.85: Vol.84 + 通知/アルバム/クエスト写真復元 + ポイント100pt単位統一 -->
@@ -885,6 +889,33 @@
             font-weight:900;
         }
         .chronicle-footer button:disabled{background:#D6D1C7;color:#8D887F;cursor:not-allowed}
+        /* v114: 長い年代記本文の overflow:hidden の外に個別削除ボタンを配置。 */
+        .chronicle-footer-center{
+            flex:1 1 auto;
+            min-width:0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:6px 12px;
+        }
+        .chronicle-footer button.chronicle-delete-action{
+            min-width:54px;
+            flex:0 0 auto;
+            padding:7px 12px;
+            background:#FFF3F3;
+            color:#B42323;
+            border:1px solid #ECA8A8;
+            font-size:11px;
+            line-height:1.2;
+        }
+        .chronicle-footer button.chronicle-delete-action:hover{background:#FCE3E3}
+        @media(max-width:700px){
+            .chronicle-footer{gap:5px;padding:0 6px 8px}
+            .chronicle-footer button{min-width:0;padding:7px 7px;font-size:8px}
+            .chronicle-footer-center{gap:3px 5px}
+            .chronicle-footer button.chronicle-delete-action{min-width:49px;padding:7px 8px;font-size:10px}
+        }
         .chronicle-progress{
             text-align:center;
             color:#8A765C;
@@ -2978,20 +3009,7 @@
                         <i class="fa-solid fa-user-plus"></i>
                         <span>+ アカウント作成</span>
                     </button>
-                    <!-- Vol.106: 匿名認証が異なるローカル／公開サイト間で年代記データを安全に移す -->
-                    <button @click="exportGrandpaChronicle" :disabled="!firebaseReady"
-                            class="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
-                            title="おじいさんの家の記憶・写真・達成済みクエストをJSONファイルに保存">
-                        <i class="fa-solid fa-file-export"></i><span>年代記を保存</span>
-                    </button>
-                    <button @click="$refs.grandpaImportInput.click()" :disabled="!firebaseReady"
-                            class="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
-                            title="別のブラウザから保存した年代記を、今の記録を消さずに統合">
-                        <i class="fa-solid fa-file-import"></i><span>年代記を取り込む</span>
-                    </button>
-                    <input ref="grandpaImportInput" class="hidden" type="file" accept=".json,application/json"
-                           @change="importGrandpaChronicleFile" aria-label="年代記JSONを読み込む">
-<button @click="resetDemo"
+                    <button @click="resetDemo"
                             class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-2.5 py-1 rounded-lg transition-all text-xs flex items-center gap-1 whitespace-nowrap"
                             title="自分のデモデータと探索マップの投稿を初期化します">
                         <i class="fa-solid fa-rotate-right"></i>
@@ -4165,6 +4183,11 @@
                         <div v-else class="flex flex-wrap justify-end gap-2">
                             <span v-if="getUserApplicationStatus(activeQuest)==='reported'" class="bg-amber-100 text-amber-800 text-xs px-3 py-2 rounded-xl font-bold">所有者の承認待ち</span>
                             <span v-else-if="getUserApplicationStatus(activeQuest)==='approved'" class="bg-green-100 text-green-800 text-xs px-3 py-2 rounded-xl font-bold">承認完了 (+100pt)</span>
+                            <button v-if="['reported','approved'].includes(getUserApplicationStatus(activeQuest))"
+                                    type="button" @click="deleteMyQuestReport(activeQuest)"
+                                    class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-xs font-bold">
+                                削除
+                            </button>
                         </div>
                     </div>
 
@@ -4924,8 +4947,6 @@
                                     <button v-if="(currentHouseBookPage.raw.verificationStatus || 'verified')==='pending'"
                                             @click="rejectHistory(activeHouse,currentHouseBookPage.raw)"
                                             class="book-inline-action secondary"><i class="fa-solid fa-eye-slash"></i>非公開</button>
-                                    <button @click="deleteHistoryLog(activeHouse,currentHouseBookPage.raw)"
-                                            class="book-inline-action secondary !text-red-700"><i class="fa-solid fa-trash"></i>削除</button>
                                 </div>
 
                                 <button v-if="currentHouseBookPage.sourceType==='model3d'"
@@ -5351,9 +5372,16 @@
                     <button type="button" @click="prevHouseBookPage">
                         <i class="fa-solid fa-arrow-left"></i>{{ houseBookPage===1 ? '表紙へ戻る' : 'ページを戻す' }}
                     </button>
-                    <div class="chronicle-progress">
-                        <strong>{{ currentHouseBookPage?.kind==='chronicle' ? currentHouseBookPage.dateLabel : currentHouseBookPage?.navLabel }}</strong>
-                        {{ houseBookPage }} / {{ houseBookPages.length }}
+                    <div class="chronicle-footer-center">
+                        <div class="chronicle-progress">
+                            <strong>{{ currentHouseBookPage?.kind==='chronicle' ? currentHouseBookPage.dateLabel : currentHouseBookPage?.navLabel }}</strong>
+                            {{ houseBookPage }} / {{ houseBookPages.length }}
+                        </div>
+                        <!-- v114: ページが長くても隠れない位置に、本人または所有者の「削除」を表示。 -->
+                        <button v-if="currentHouseBookPage?.kind==='chronicle' && canDeleteChroniclePage(activeHouse,currentHouseBookPage)"
+                                type="button"
+                                class="chronicle-delete-action"
+                                @click="deleteChroniclePage(activeHouse,currentHouseBookPage)">削除</button>
                     </div>
                     <button type="button" @click="nextHouseBookPage" :disabled="houseBookPage>=houseBookPages.length">
                         ページをめくる<i class="fa-solid fa-arrow-right"></i>
@@ -6016,6 +6044,8 @@
                     firebaseReady: false,
                     firebaseError: '',
                     firebaseUid: '',
+                    // v113: Firebaseに保存された削除済み状態とは独立した、HTML同梱の初期活動2件。
+                    resetGrandpaQuestSeeds: [],
                     firebaseSaveTimer: null,
                     firebaseSaveQueue: Promise.resolve(),
                     firebaseHouseIdsToDelete: [],
@@ -6567,6 +6597,8 @@
                     // 保存済みデータを読み込んでも、HTML同梱のデモ写真を優先する。
                     const defaultNewHouse = (this.houses || []).find(house => String(house.id) === 'h103-ojii');
                     const defaultChronicleQuests = (this.quests || []).filter(quest => ['q103-1','q103-2'].includes(String(quest.id)));
+                    // v113: 削除やFirebase読み込みで変化する前に、初期のDさん活動報告（写真を含む）を退避。
+                    this.resetGrandpaQuestSeeds = JSON.parse(JSON.stringify(defaultChronicleQuests));
                     // v105: 同梱のDさん達成済みクエスト2件を、既存データを消さずに補完する。
                     // 他の参加者の申請・報告や、Dさんの保存済み追記情報は上書きしない。
                     const ensureGrandpaQuestHistory = () => {
@@ -6580,6 +6612,12 @@
                             if (!Array.isArray(quest.applications)) quest.applications = [];
                             const seededReport = (seedQuest.applications || []).find(app => String(app.userId) === 'u7' && app.status === 'approved');
                             if (!seededReport) return;
+                            const seedHouse = (this.houses || []).find(h => String(h.id) === 'h103-ojii') ||
+                                (this.houses || []).find(h => this.isGrandpaChronicleHouse(h));
+                            if ((seedHouse?.deletedChronicleIds || []).includes(`quest:${String(seedQuest.id)}:u7`)) {
+                                quest.applications = (quest.applications || []).filter(app => String(app.userId) !== 'u7');
+                                return;
+                            }
                             const savedReport = quest.applications.find(app => String(app.userId) === 'u7');
                             if (!savedReport) {
                                 quest.applications.push(JSON.parse(JSON.stringify(seededReport)));
@@ -7060,6 +7098,8 @@
                                     id: `quest-${quest.id}-${app.userId}-${app.reportedAt || app.approvedAt || index}`,
                                     kind: 'chronicle',
                                     sourceType: 'quest',
+                                    questId: quest.id,
+                                    reportUserId: app.userId,
                                     type: 'activity',
                                     typeLabel: 'クエスト達成',
                                     kicker: 'QUEST COMPLETED',
@@ -7087,6 +7127,8 @@
                                 id: `house-use-${app.id}`,
                                 kind: 'chronicle',
                                 sourceType: 'useCompletion',
+                                applicationId: app.id,
+                                reportUserId: app.userId,
                                 type: 'use',
                                 typeLabel: '利用実績',
                                 kicker: 'EVENT USE RECORD',
@@ -7114,6 +7156,7 @@
                             id: `activity-${rawDate}-${index}-${String(log.title || '').slice(0,12)}`,
                             kind: 'chronicle',
                             sourceType: 'growth',
+                            growthIndex: index,
                             type: isRegistered ? 'registered' : 'activity',
                             typeLabel: isLevel ? '家の成長' : (isRegistered ? '登録' : '活動の記録'),
                             kicker: isQuest ? 'QUEST COMPLETED' : (isLevel ? 'HOUSE LEVEL UP' : (isRegistered ? 'MENKOIYA START' : 'HOUSE ACTIVITY')),
@@ -7613,6 +7656,15 @@
                         }
                     }
                     if (alternateImages.length) merged.legacyHousePhotos = alternateImages;
+                    // Vol.112: 他の旧IDに残るコピーが、削除済み投稿を復活させないようにする。
+                    merged.deletedChronicleIds = [...new Set(all.flatMap(house =>
+                        Array.isArray(house.deletedChronicleIds) ? house.deletedChronicleIds : []))];
+                    const deleted = new Set(merged.deletedChronicleIds);
+                    merged.historyLogs = (merged.historyLogs || []).filter(log =>
+                        !deleted.has(`history:${String(log.id)}`) &&
+                        !(deleted.has('seed:nov11') && this.isGrandpaNovemberRecord(log)));
+                    merged.growthLogs = (merged.growthLogs || []).filter(log =>
+                        !deleted.has(`growth:${this.chronicleGrowthKey(log)}`));
                     // 旧IDを参照するクエストと外部から持ち込んだクエストをcanonicalIdに結び直す。
                     let migratedQuests = 0;
                     const quests = (this.quests || []).map(clone);
@@ -7644,6 +7696,10 @@
                         }
                     });
                     importedQuests.forEach(q => appendOrMerge(q, q.houseId));
+                    quests.forEach(q => {
+                        q.applications = (q.applications || []).filter(app =>
+                            !deleted.has(`quest:${String(q.id)}:${String(app.userId)}`));
+                    });
                     const firstIndex = (this.houses || []).findIndex(house => this.isGrandpaChronicleHouse(house));
                     const otherHouses = (this.houses || []).filter(house => !this.isGrandpaChronicleHouse(house));
                     otherHouses.splice(Math.max(0, Math.min(firstIndex, otherHouses.length)), 0, merged);
@@ -7665,6 +7721,8 @@
                     if (!house) return;
                     if (!Array.isArray(house.historyLogs)) house.historyLogs = [];
                     const memories = house.historyLogs;
+                    // 手動で削除した11/11の記憶は、HTML初期データから勝手に復元しない。
+                    if ((house.deletedChronicleIds || []).includes('seed:nov11')) return;
                     const desiredTitle = '2026年11月11日時点でのこの家';
                     const desiredDate = '2026-11-11';
                     const desiredContent = '記念すべき築50年ですが、草が生い茂ってしまいました。';
@@ -8257,7 +8315,7 @@
                     return 'fa-solid fa-circle-check text-iwate-gold';
                 },
                 async resetDemo() {
-                    if (!window.confirm('自分のデモデータと探索マップの投稿を初期状態に戻しますか？\n※「おじいさんの家」の登録情報・年代記・達成済みクエスト・マップピンは残ります。その他の削除データは復元できません。')) return;
+                    if (!window.confirm('デモで追加した記憶・活動・利用実績・申請などをまとめて削除しますか？\n※「おじいさんの家」は、初期の年代記3件（Dさん2件＋11/11の記憶）を復元します。\nその他のデモデータは復元できません。')) return;
                     try {
                         if (!this.firebaseUid) throw new Error('Firebaseの認証が完了していません');
                         // 自動保存がリセット中に削除済みデータを書き戻さないようにする。
@@ -8285,38 +8343,43 @@
                             workspace.collection('quests').get(),
                             workspace.collection('state').get()
                         ]);
-                        // Firestoreの記録を基準に保護する。IDは任意で、保存した写真・年代記もそのまま保持。
-                        const keptHouses = housesSnap.docs.filter(doc => this.isPersistentGrandpaHouse(doc.data()?.data));
-                        const keptHouseIds = new Set(keptHouses.map(doc => String(doc.id)));
-                        // 表示中に登録した直後など、まだFirestoreにない家も保存して保護する。
-                        const pendingKept = (this.houses || []).filter(house =>
-                            this.isPersistentGrandpaHouse(house) && !keptHouseIds.has(String(house.id)));
-                        if (pendingKept.length) {
-                            const preserveBatch = db.batch();
-                            pendingKept.forEach(house => {
-                                preserveBatch.set(workspace.collection('houses').doc(String(house.id)), {data:JSON.parse(JSON.stringify(house))});
-                                keptHouseIds.add(String(house.id));
-                            });
-                            await preserveBatch.commit();
+                        // Vol.112: おじいさんの家は統合済みの最新版だけを残す。
+                        // 古い別IDのコピーはリセット対象にし、投稿が復活する経路を塞ぐ。
+                        const canonicalId = 'h103-ojii';
+                        const savedGrandpaCopies = housesSnap.docs.filter(doc => this.isPersistentGrandpaHouse(doc.data()?.data));
+                        const liveGrandpa = (this.houses || []).find(h => String(h.id) === canonicalId) ||
+                            (this.houses || []).find(h => this.isGrandpaChronicleHouse(h));
+                        const fallbackGrandpa = savedGrandpaCopies.find(doc => String(doc.id) === canonicalId)?.data()?.data ||
+                            savedGrandpaCopies[0]?.data()?.data;
+                        const sourceGrandpa = liveGrandpa || fallbackGrandpa;
+                        if (!sourceGrandpa) throw new Error('保護対象の「おじいさんの家」が見つかりません');
+                        const protectedGrandpa = this.cleanHouseForDemoReset(sourceGrandpa);
+                        protectedGrandpa.id = canonicalId;
+                        // v113: デモリセットでは削除履歴を全てクリア。初期3ページを復元し、
+                        // 後から投稿した記憶・活動を復元しない。旧コピーの削除印も引き継がない。
+                        protectedGrandpa.deletedChronicleIds = [];
+                        await workspace.collection('houses').doc(canonicalId).set({data:protectedGrandpa});
+                        const keptHouseIds = new Set([canonicalId]);
+                        const obsoleteGrandpaDocs = savedGrandpaCopies.filter(doc => String(doc.id) !== canonicalId);
+
+                        // v113: 初期のDさんの活動2件は「今残っている報告」ではなく
+                        // HTML同梱の元データから再構成する。個別削除済みでも復活させる。
+                        const seedQuestIds = new Set(['q103-1','q103-2']);
+                        const templates = new Map((this.resetGrandpaQuestSeeds || [])
+                            .map(quest => [String(quest.id),quest]));
+                        const keptQuestIds = new Set();
+                        const cleanQuestsBatch = db.batch();
+                        for (const id of seedQuestIds) {
+                            const template = templates.get(id);
+                            if (!template) throw new Error(`初期クエスト ${id} の復元データがありません`);
+                            const persisted = questsSnap.docs.find(doc => String(doc.id) === id)?.data()?.data;
+                            const live = (this.quests || []).find(quest => String(quest.id) === id);
+                            const quest = this.cleanQuestForDemoReset(persisted || live || template, protectedGrandpa, template);
+                            quest.houseId = canonicalId;
+                            cleanQuestsBatch.set(workspace.collection('quests').doc(id), {data:quest});
+                            keptQuestIds.add(id);
                         }
-                        // v105: 家の保存が済んだ後に、紐づくクエストを保護対象として確定する。
-                        const keptQuests = questsSnap.docs.filter(doc => {
-                            const data = doc.data()?.data;
-                            return keptHouseIds.has(String(data?.houseId)) || ['q103-1','q103-2'].includes(String(doc.id));
-                        });
-                        const keptQuestIds = new Set(keptQuests.map(doc => String(doc.id)));
-                        // 自動保存がまだ終わっていないクエストも、先に保護してからリセットする。
-                        const pendingKeptQuests = (this.quests || []).filter(quest =>
-                            (keptHouseIds.has(String(quest.houseId)) || ['q103-1','q103-2'].includes(String(quest.id))) &&
-                            !keptQuestIds.has(String(quest.id)));
-                        if (pendingKeptQuests.length) {
-                            const preserveQuestsBatch = db.batch();
-                            pendingKeptQuests.forEach(quest => {
-                                preserveQuestsBatch.set(workspace.collection('quests').doc(String(quest.id)), {data:JSON.parse(JSON.stringify(quest))});
-                                keptQuestIds.add(String(quest.id));
-                            });
-                            await preserveQuestsBatch.commit();
-                        }
+                        await cleanQuestsBatch.commit();
                         // この家に紐づくマップピンも保護し、それ以外の発見投稿・家は従来どおりリセットする。
                         const mapDocsToDelete = mapHouses.docs.filter(doc => {
                             const pin = doc.data() || {};
@@ -8882,11 +8945,182 @@
                     }
                     this.showToast(`空き家「${house.name}」を削除しました`);
                 },
-                deleteHistoryLog(house, log) {
-                    if (!house || !log || !this.isHouseOwner(house)) return;
-                    if (!window.confirm(`この歴史投稿を削除しますか？\n投稿者：${log.author || '不明'}\nこの操作は取り消せません。`)) return;
-
-                    house.historyLogs = (house.historyLogs || []).filter(item => item.id !== log.id);
+                // Vol.112: 日付や本文が違っても11/11の指定した基準ページだけを識別する。
+                isGrandpaNovemberRecord(log) {
+                    if (!log) return false;
+                    return log._v107CanonicalGrandpaMemory === true ||
+                        String(log.id || '') === 'hist-grandpa-20261111-memory' ||
+                        ['2026年11月11日時点でのこの家','2026年時点でのこの家'].includes(String(log.title || '').trim());
+                },
+                chronicleGrowthKey(log) {
+                    return [String(log?.date || ''),String(log?.title || ''),String(log?.desc || '')].join('|');
+                },
+                canDeleteHistoryLog(house, log) {
+                    return !!house && !!log && (
+                        this.isHouseOwner(house) ||
+                        String(log.authorId || '') === String(this.currentUser?.id || '')
+                    );
+                },
+                canDeleteChroniclePage(house, page) {
+                    if (!house || !page || page.kind !== 'chronicle' || !this.currentUser) return false;
+                    const isOwner = this.isHouseOwner(house);
+                    if (page.sourceType === 'history') return this.canDeleteHistoryLog(house, page.raw);
+                    if (page.sourceType === 'quest') return isOwner || String(page.reportUserId || '') === String(this.currentUser.id);
+                    if (page.sourceType === 'useCompletion') return isOwner || String(page.reportUserId || '') === String(this.currentUser.id);
+                    if (page.sourceType === 'growth' || page.sourceType === 'model3d') return isOwner;
+                    return false;
+                },
+                removeQuestActivityRecord(quest,app,house) {
+                    if (!quest || !app || !house || !['reported','approved'].includes(app.status)) return false;
+                    const seed = ['q103-1','q103-2'].includes(String(quest.id)) && String(app.userId) === 'u7';
+                    if (!Array.isArray(house.deletedChronicleIds)) house.deletedChronicleIds = [];
+                    const marker = `quest:${String(quest.id)}:${String(app.userId)}`;
+                    if (seed && !house.deletedChronicleIds.includes(marker)) house.deletedChronicleIds.push(marker);
+                    if (app.status === 'approved' && !seed) {
+                        const user = this.getUser(app.userId);
+                        if (user) {
+                            user.points = Math.max(0,(Number(user.points) || 0)-100);
+                            user.totalPoints = Math.max(0,(Number(user.totalPoints) || 0)-100);
+                            this.updateUserLevel(user);
+                        }
+                    }
+                    if (seed) {
+                        quest.applications = (quest.applications || []).filter(item => item !== app);
+                    } else {
+                        // 参加申請は残して報告だけ削除。再報告可能な状態にする。
+                        app.status = 'joined';
+                        app.reportedAt = ''; app.approvedAt = '';
+                        app.reportComment = ''; app.reportPhoto = '';
+                        app.discoveryRecord = null; app.extraDiscoveryRecord = null;
+                    }
+                    (house.historyLogs || []).filter(log => String(log.reportQuestId) === String(quest.id) &&
+                        String(log.authorId) === String(app.userId)).forEach(log => this.deleteHistoryLog(house,log,true));
+                    return true;
+                },
+                async deleteMyQuestReport(quest) {
+                    if (!quest || this.currentUser?.role !== 'participant') return;
+                    const app = (quest.applications || []).find(item => String(item.userId) === String(this.currentUser.id));
+                    const house = this.getHouse(quest.houseId);
+                    if (!app || !house || !['reported','approved'].includes(app.status)) return;
+                    const isSeedReport = ['q103-1','q103-2'].includes(String(quest.id)) && String(app.userId) === 'u7';
+                    const resetNote = isSeedReport ? '初期記録はデモリセットで復元できます。' : 'この操作は元に戻せません。';
+                    const rewardNote = isSeedReport ? '初期の年代記ページを一時的に削除します。' : '承認済みの場合は、年代記のページと獲得100ptも取り消します。';
+                    if (!window.confirm(`「${quest.title}」の活動報告を削除しますか？\n${rewardNote}\n${resetNote}`)) return;
+                    if (!this.removeQuestActivityRecord(quest,app,house)) return;
+                    clearTimeout(this.firebaseSaveTimer);
+                    if (this.firebaseReady && this.firebaseUid) {
+                        await this.saveToFirebase();
+                        if (this.firebaseError) {this.showToast('報告は画面から消えましたが保存できませんでした','error'); return;}
+                    }
+                    this.showToast('自分の活動報告を削除しました');
+                },
+                async deleteChroniclePage(house, page) {
+                    if (!this.canDeleteChroniclePage(house, page)) {
+                        this.showToast('この記録を削除する権限がありません', 'warning');
+                        return;
+                    }
+                    const description = `${page.title || 'この記録'}（${page.dateLabel || '日付未設定'}）`;
+                    const isSeedPage = this.isGrandpaChronicleHouse(house) && (
+                        (page.sourceType === 'history' && this.isGrandpaNovemberRecord(page.raw)) ||
+                        (page.sourceType === 'quest' && ['q103-1','q103-2'].includes(String(page.questId)) && String(page.reportUserId) === 'u7'));
+                    const resetNote = isSeedPage ? '※この初期記録はデモリセットで復元できます。' : '※この操作は取り消せません。';
+                    if (!window.confirm(`「${description}」を年代記から削除しますか？\nこの記録だけを削除し、ほかのページは残します。\n${resetNote}`)) return;
+                    const oldPage = this.houseBookPage;
+                    let deleted = false;
+                    if (page.sourceType === 'history') {
+                        deleted = this.deleteHistoryLog(house, page.raw, true);
+                    } else if (page.sourceType === 'quest') {
+                        const quest = this.quests.find(q => String(q.id) === String(page.questId));
+                        const app = (quest?.applications || []).find(a =>
+                            String(a.userId) === String(page.reportUserId) && a.status === 'approved');
+                        deleted = this.removeQuestActivityRecord(quest,app,house);
+                    } else if (page.sourceType === 'useCompletion') {
+                        const app = (house.useApplications || []).find(a => String(a.id) === String(page.applicationId));
+                        if (app?.completionReport) {
+                            delete app.completionReport;
+                            app.completionReviewDraft = '';
+                            if (String(this.useCompletionDraft?.applicationId) === String(app.id)) this.cancelUseCompletionDraft();
+                            deleted = true;
+                        }
+                    } else if (page.sourceType === 'growth') {
+                        const log = (house.growthLogs || [])[Number(page.growthIndex)];
+                        if (log) {
+                            if (!Array.isArray(house.deletedChronicleIds)) house.deletedChronicleIds = [];
+                            const marker = `growth:${this.chronicleGrowthKey(log)}`;
+                            if (!house.deletedChronicleIds.includes(marker)) house.deletedChronicleIds.push(marker);
+                            house.growthLogs.splice(Number(page.growthIndex),1);
+                            deleted = true;
+                        }
+                    } else if (page.sourceType === 'model3d') {
+                        if (house.model3dMeta) {
+                            house.model3dMeta = null;
+                            deleted = true;
+                        }
+                    }
+                    if (!deleted) {
+                        this.showToast('削除対象が見つかりません。画面を更新して確認してください', 'warning');
+                        return;
+                    }
+                    // ページが減ったら開いている位置を有効なページへ補正。
+                    const remaining = this.houseChroniclePages.length;
+                    this.houseBookPage = Math.min(Math.max(1,oldPage),remaining || 1);
+                    clearTimeout(this.firebaseSaveTimer);
+                    if (this.firebaseReady && this.firebaseUid) {
+                        await this.saveToFirebase();
+                        if (this.firebaseError) {
+                            this.showToast('画面から削除しましたが、Firebaseへの保存に失敗しました。通信状態を確認してください', 'error');
+                            return;
+                        }
+                    }
+                    this.showToast('指定した年代記の1ページを削除しました');
+                },
+                // v113: デモリセット時は初期の11/11記憶だけを復元し、デモ投稿は消す。
+                cleanHouseForDemoReset(original) {
+                    const house = JSON.parse(JSON.stringify(original));
+                    // 初期記憶を個別削除した場合は、削除時に保存した原本を使う。
+                    // 旧版ですでに削除された場合も、読み込み時の初期データ補完で再生成する。
+                    const originals = (house.historyLogs || []).filter(log => this.isGrandpaNovemberRecord(log));
+                    const savedInitial = house._resetGrandpaNovemberMemory;
+                    if (savedInitial && this.isGrandpaNovemberRecord(savedInitial)) originals.push(savedInitial);
+                    originals.sort((a,b) =>
+                        Number(!!b._v107CanonicalGrandpaMemory) - Number(!!a._v107CanonicalGrandpaMemory));
+                    house.historyLogs = originals.length ? [JSON.parse(JSON.stringify(originals[0]))] : [];
+                    delete house._resetGrandpaNovemberMemory;
+                    // 削除印を残すと再起動時に初期ページが消されるため、リセット時にクリア。
+                    house.deletedChronicleIds = [];
+                    house.growthLogs = [];
+                    house.useApplications = [];
+                    house.ideas = [];
+                    house.model3dMeta = null;
+                    house.level = 1;
+                    house.levelName = '初期着手期';
+                    house.nextLevelReq = '清掃・DIYクエストをあと1回承認';
+                    return house;
+                },
+                cleanQuestForDemoReset(original, house, template = null) {
+                    const quest = JSON.parse(JSON.stringify(original));
+                    const baseline = template || original;
+                    // 個別削除済みのDさんの承認済み報告を、写真・内容ごと元に戻す。
+                    quest.applications = JSON.parse(JSON.stringify((baseline.applications || []).filter(app =>
+                        ['q103-1','q103-2'].includes(String(quest.id)) &&
+                        String(app.userId) === 'u7' && app.status === 'approved')));
+                    return quest;
+                },
+                deleteHistoryLog(house, log, alreadyConfirmed = false) {
+                    if (!house || !log || !this.canDeleteHistoryLog(house, log)) return false;
+                    const initialMemory = this.isGrandpaChronicleHouse(house) && this.isGrandpaNovemberRecord(log);
+                    const resetHint = initialMemory ? 'この初期記録はデモリセットで復元できます。' : 'この操作は取り消せません。';
+                    if (!alreadyConfirmed && !window.confirm(`この歴史投稿を削除しますか？\n投稿者：${log.author || '不明'}\n${resetHint}`)) return false;
+                    // デモリセットまでは削除履歴で再表示を防ぐ。リセットでは初期記録だけ復元する。
+                    const marker = `history:${String(log.id)}`;
+                    if (!Array.isArray(house.deletedChronicleIds)) house.deletedChronicleIds = [];
+                    if (!house.deletedChronicleIds.includes(marker)) house.deletedChronicleIds.push(marker);
+                    if (this.isGrandpaChronicleHouse(house) && this.isGrandpaNovemberRecord(log)) {
+                        // v113: リセットで元の文章・写真を復元できるよう、削除前の記録を一時保管。
+                        house._resetGrandpaNovemberMemory = JSON.parse(JSON.stringify(log));
+                        if (!house.deletedChronicleIds.includes('seed:nov11')) house.deletedChronicleIds.push('seed:nov11');
+                    }
+                    house.historyLogs = (house.historyLogs || []).filter(item => String(item.id) !== String(log.id));
 
                     // 所有者確認済みで実績・ポイントを付与した投稿だけ、削除時に元へ戻す。
                     if (log.rewardGranted && log.authorId) {
@@ -8903,6 +9137,7 @@
                         }
                     }
                     this.showToast('歴史投稿を削除しました');
+                    return true;
                 },
 
                 chatEligibleApplications(quest) {
